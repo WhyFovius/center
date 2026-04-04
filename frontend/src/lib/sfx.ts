@@ -5,7 +5,15 @@ const getCtx = () => {
   return ctx;
 };
 
+export const isMuted = () => localStorage.getItem('zd_sfx_mute') === '1';
+export const toggleMute = () => {
+  const v = isMuted() ? '0' : '1';
+  localStorage.setItem('zd_sfx_mute', v);
+  window.dispatchEvent(new CustomEvent('zd_sfx_mute_change', { detail: v === '1' }));
+};
+
 const playTone = (freq: number, duration: number, type: OscillatorType = 'sine', vol = 0.15) => {
+  if (isMuted()) return;
   try {
     const c = getCtx();
     const o = c.createOscillator();

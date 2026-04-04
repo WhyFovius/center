@@ -1,0 +1,401 @@
+import { useState, useCallback, useEffect, useRef } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import {
+  Monitor, Wifi, Battery, Volume2, VolumeX, Shield, X, Minimize2,
+  Mail, Globe, MessageSquare, FolderOpen, Terminal, ChevronUp
+} from 'lucide-react';
+import { useGS } from '@/store/useGS';
+import OSWindow from './OSWindow';
+import MailApp from './MailApp';
+import BrowserApp from './BrowserApp';
+import XamMessenger from './XamMessenger';
+import FileManager from './FileManager';
+import Notifications, { NotificationProvider } from './Notifications';
+import GlitchEffect from './GlitchEffect';
+import SkyToggle from '@/components/ui/sky-toggle';
+
+interface OpenWindow {
+  id: string;
+  appId: string;
+  title: string;
+  icon: React.ReactNode;
+  minimized: boolean;
+  zIndex: number;
+}
+
+const APPS = [
+  { id: 'mail', label: 'Почта', icon: <Mail className="w-4 h-4" /> },
+  { id: 'browser', label: 'Браузер', icon: <Globe className="w-4 h-4" /> },
+  { id: 'messenger', label: 'Xam', icon: <MessageSquare className="w-4 h-4" /> },
+  { id: 'files', label: 'Файлы', icon: <FolderOpen className="w-4 h-4" /> },
+  { id: 'terminal', label: 'Терминал', icon: <Terminal className="w-4 h-4" /> },
+  { id: 'security', label: 'Безопасность', icon: <Shield className="w-4 h-4" /> },
+];
+
+const API_KEY = import.meta.env.VITE_OPENROUTER_API_KEY || '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';
+const API_MODEL = import.meta.env.VITE_OPENROUTER_MODEL || 'qwen/qwen3-coder-plus:free';
+
+export async function askAI(prompt: string, systemPrompt?: string): Promise<string> {
+  try {
+    const resp = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${API_KEY}`,
+        'HTTP-Referer': window.location.origin,
+        'X-Title': 'ZeroOS',
+      },
+      body: JSON.stringify({
+        model: API_MODEL,
+        messages: [
+          ...(systemPrompt ? [{ role: 'system', content: systemPrompt }] : []),
+          { role: 'user', content: prompt },
+        ],
+        max_tokens: 512,
+        temperature: 0.7,
+      }),
+    });
+    const data = await resp.json();
+    return data.choices?.[0]?.message?.content || 'Не удалось получить ответ.';
+  } catch {
+    return 'Ошибка подключения к AI.';
+  }
+}
+
+export default function DesktopOS() {
+  const setScreen = useGS(s => s.setScreen);
+  const muted = useGS(s => s.muted);
+  const toggleMute = useGS(s => s.toggleMute);
+  const prevStatus = useGS(s => s.fb?.consequence?.status);
+
+  const [openWindows, setOpenWindows] = useState<OpenWindow[]>([]);
+  const [activeWindow, setActiveWindow] = useState<string | null>(null);
+  const [nextZ, setNextZ] = useState(10);
+  const [startMenuOpen, setStartMenuOpen] = useState(false);
+  const [showTray, setShowTray] = useState(false);
+  const [showCompromised, setCompromised] = useState(false);
+  const [showGlitch, setShowGlitch] = useState(false);
+  const [time, setTime] = useState(new Date());
+  const aiHistoryRef = useRef<Record<string, { role: string; content: string }[]>>({});
+
+  useEffect(() => {
+    const timer = setInterval(() => setTime(new Date()), 1000);
+    return () => clearInterval(timer);
+  }, []);
+
+  useEffect(() => {
+    if (prevStatus === 'breach') {
+      setShowGlitch(true);
+      setCompromised(true);
+      const t = setTimeout(() => setShowGlitch(false), 3000);
+      return () => clearTimeout(t);
+    }
+  }, [prevStatus]);
+
+  const handleOpenApp = useCallback((appId: string) => {
+    const existing = openWindows.find(w => w.appId === appId);
+    if (existing) {
+      if (existing.minimized) {
+        setOpenWindows(prev => prev.map(w => w.id === existing.id ? { ...w, minimized: false, zIndex: nextZ } : w));
+        setActiveWindow(existing.id);
+        setNextZ(z => z + 1);
+      } else {
+        setActiveWindow(existing.id);
+        setOpenWindows(prev => prev.map(w => w.id === existing.id ? { ...w, zIndex: nextZ } : w));
+        setNextZ(z => z + 1);
+      }
+      setStartMenuOpen(false);
+      return;
+    }
+
+    const app = APPS.find(a => a.id === appId);
+    if (!app) return;
+
+    const titles: Record<string, string> = {
+      mail: 'Почта — ZeroOS',
+      browser: 'ZeroBrowser',
+      messenger: 'Xam Мессенджер',
+      files: 'Файлы',
+      terminal: 'Терминал',
+      security: 'Центр безопасности',
+    };
+
+    const id = `w-${Date.now()}`;
+    setOpenWindows(prev => [...prev, { id, appId, title: titles[appId] || app.label, icon: app.icon, minimized: false, zIndex: nextZ }]);
+    setActiveWindow(id);
+    setNextZ(z => z + 1);
+    setStartMenuOpen(false);
+
+    // Init AI history for messenger
+    if (appId === 'messenger') {
+      aiHistoryRef.current[id] = [
+        { role: 'system', content: 'Ты дружелюбный помощник в мессенджере Xam. Отвечай кратко, по делу, на русском языке. Максимум 2-3 предложения.' },
+      ];
+    }
+  }, [openWindows, nextZ]);
+
+  const handleClose = useCallback((id: string) => {
+    setOpenWindows(prev => prev.filter(w => w.id !== id));
+    setActiveWindow(prev => prev === id ? null : prev);
+    delete aiHistoryRef.current[id];
+  }, []);
+
+  const handleMinimize = useCallback((id: string) => {
+    setOpenWindows(prev => prev.map(w => w.id === id ? { ...w, minimized: true } : w));
+    setActiveWindow(prev => prev === id ? null : prev);
+  }, []);
+
+  const handleFocus = useCallback((id: string) => {
+    setActiveWindow(id);
+    setOpenWindows(prev => prev.map(w => w.id === id ? { ...w, zIndex: nextZ } : w));
+    setNextZ(z => z + 1);
+  }, [nextZ]);
+
+  const handleGoMenu = useCallback(() => {
+    setOpenWindows([]);
+    setActiveWindow(null);
+    setScreen('menu');
+  }, [setScreen]);
+
+  const timeStr = time.toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' });
+  const dateStr = time.toLocaleDateString('ru-RU', { day: 'numeric', month: 'short', year: 'numeric' });
+
+  return (
+    <NotificationProvider>
+      <div className="relative w-full h-full overflow-hidden select-none">
+        {/* Desktop background */}
+        <div className="absolute inset-0" style={{ paddingBottom: '44px' }}
+          onClick={() => { setStartMenuOpen(false); setShowTray(false); }}
+        >
+          <div className="absolute inset-0" style={{ background: 'linear-gradient(135deg, #1a1a2e 0%, #16213e 30%, #0f3460 60%, #1a1a2e 100%)' }} />
+          <div className="absolute inset-0 opacity-[0.03]" style={{ backgroundImage: 'radial-gradient(circle at 1px 1px, white 1px, transparent 0)', backgroundSize: '40px 40px' }} />
+
+          {/* Desktop icons */}
+          <div className="absolute top-4 left-4 flex flex-col gap-1">
+            {APPS.map(app => (
+              <motion.button key={app.id} whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}
+                onDoubleClick={() => handleOpenApp(app.id)}
+                className="flex flex-col items-center gap-1 p-2 rounded-lg hover:bg-white/10 transition-colors w-20 group"
+              >
+                <div className="w-11 h-11 rounded-xl flex items-center justify-center bg-white/10 backdrop-blur-sm group-hover:bg-white/20 transition-colors shadow-lg">
+                  {app.icon}
+                </div>
+                <span className="text-[10px] text-white/90 text-center leading-tight drop-shadow-lg">{app.label}</span>
+              </motion.button>
+            ))}
+          </div>
+        </div>
+
+        {/* Windows */}
+        <AnimatePresence>
+          {openWindows.map(win => !win.minimized && (
+            <OSWindow
+              key={win.id} id={win.id} title={win.title} icon={win.icon}
+              isActive={activeWindow === win.id} zIndex={win.zIndex}
+              onClose={() => handleClose(win.id)}
+              onMinimize={() => handleMinimize(win.id)}
+              onFocus={() => handleFocus(win.id)}
+            >
+              {win.appId === 'mail' && <MailApp />}
+              {win.appId === 'browser' && <BrowserApp />}
+              {win.appId === 'messenger' && <XamMessenger />}
+              {win.appId === 'files' && <FileManager />}
+              {win.appId === 'terminal' && <TerminalApp />}
+              {win.appId === 'security' && (
+                <div className="flex items-center justify-center h-full text-text-muted">
+                  <div className="text-center">
+                    <Shield className="w-12 h-12 mx-auto mb-3 opacity-40" />
+                    <p className="text-sm">Центр безопасности</p>
+                    <p className="text-xs mt-1 opacity-60">В разработке</p>
+                  </div>
+                </div>
+              )}
+            </OSWindow>
+          ))}
+        </AnimatePresence>
+
+        {/* Notifications */}
+        <Notifications />
+        <GlitchEffect active={showGlitch} onDone={() => setShowGlitch(false)} />
+
+        {showCompromised && (
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}
+            className="absolute top-3 left-1/2 -translate-x-1/2 z-40 bg-danger/90 text-white px-4 py-2 rounded-lg shadow-lg flex items-center gap-2 text-sm font-semibold"
+          >
+            <Shield className="w-4 h-4" />
+            СИСТЕМА СКОМПРОМЕТИРОВАНА
+            <button onClick={() => setCompromised(false)} className="ml-2 p-0.5 hover:bg-white/20 rounded">
+              <X className="w-3.5 h-3.5" />
+            </button>
+          </motion.div>
+        )}
+
+        {/* Start menu */}
+        {startMenuOpen && (
+          <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 8 }}
+            className="absolute bottom-12 left-2 w-72 bg-surface/98 backdrop-blur-xl border border-border rounded-lg shadow-2xl z-50 p-3"
+          >
+            <div className="space-y-1">
+              {APPS.map(item => (
+                <button key={item.id} onClick={() => handleOpenApp(item.id)}
+                  className="w-full flex items-center gap-2.5 px-2.5 py-2 rounded hover:bg-surface-active transition-colors text-sm"
+                >
+                  <span className="text-text-secondary">{item.icon}</span>
+                  <span>{item.label}</span>
+                </button>
+              ))}
+            </div>
+
+            <div className="mt-2 pt-2 border-t border-border flex justify-between">
+              <button onClick={handleGoMenu}
+                className="text-xs text-text-secondary hover:text-text px-2 py-1 rounded hover:bg-surface-active transition-colors"
+              >
+                Главное меню
+              </button>
+              <button onClick={() => {
+                setScreen('profile');
+                setStartMenuOpen(false);
+              }}
+                className="text-xs text-text-secondary hover:text-text px-2 py-1 rounded hover:bg-surface-active transition-colors"
+              >
+                Профиль
+              </button>
+            </div>
+          </motion.div>
+        )}
+
+        {/* Taskbar */}
+        <div className="absolute bottom-0 left-0 right-0 z-50">
+          <motion.div initial={{ y: 40 }} animate={{ y: 0 }}
+            className="h-10 bg-surface/95 backdrop-blur border-t border-border flex items-center px-1 gap-1 z-50 relative"
+          >
+            {/* Start button */}
+            <button onClick={() => { setStartMenuOpen(!startMenuOpen); setShowTray(false); }}
+              className="flex items-center gap-1.5 px-2.5 py-1.5 rounded hover:bg-surface-active transition-colors group"
+            >
+              <Monitor className="w-4 h-4 text-ci-green group-hover:text-ci-green-light transition-colors" />
+              <span className="text-xs font-semibold hidden sm:inline">Пуск</span>
+            </button>
+
+            <div className="w-px h-5 bg-border mx-0.5" />
+
+            {/* Open windows */}
+            <div className="flex-1 flex items-center gap-0.5 overflow-x-auto">
+              {openWindows.map(win => (
+                <div key={win.id}
+                  className={`flex items-center gap-1.5 px-2 py-1 rounded min-w-0 max-w-40 cursor-pointer transition-all group ${
+                    win.minimized ? 'bg-bg-secondary opacity-60 hover:opacity-100'
+                      : activeWindow === win.id ? 'bg-surface-active border-b-2 border-ci-green' : 'hover:bg-surface-active'
+                  }`}
+                  onClick={() => win.minimized ? handleOpenApp(win.appId) : (activeWindow === win.id ? handleMinimize(win.id) : handleFocus(win.id))}
+                >
+                  <span className="w-4 h-4 flex-shrink-0 text-text-secondary">{win.icon}</span>
+                  <span className="text-xs truncate flex-1">{win.title}</span>
+                  <div className="flex items-center gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity">
+                    <button onClick={e => { e.stopPropagation(); handleMinimize(win.id); }} className="p-0.5 hover:bg-bg-secondary rounded">
+                      <Minimize2 className="w-3 h-3 text-text-muted" />
+                    </button>
+                    <button onClick={e => { e.stopPropagation(); handleClose(win.id); }} className="p-0.5 hover:bg-danger/20 rounded">
+                      <X className="w-3 h-3 text-danger" />
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            <div className="w-px h-5 bg-border mx-0.5" />
+
+            {/* System tray */}
+            <div className="relative flex items-center gap-1">
+              <button onClick={() => setShowTray(!showTray)} className="flex items-center gap-1.5 px-2 py-1 rounded hover:bg-surface-active transition-colors">
+                <ChevronUp className="w-3.5 h-3.5 text-text-muted" />
+              </button>
+              <div className="flex items-center gap-2 px-2 py-1">
+                <Shield className="w-4 h-4 text-ci-green" />
+                <Wifi className="w-4 h-4 text-text-secondary" />
+                {muted ? <VolumeX className="w-4 h-4 text-text-muted" /> : <Volume2 className="w-4 h-4 text-text-secondary" />}
+                <Battery className="w-4 h-4 text-text-secondary" />
+              </div>
+
+              {showTray && (
+                <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 8 }}
+                  className="absolute bottom-full right-0 mb-2 w-64 bg-surface border border-border rounded-lg shadow-xl p-3"
+                >
+                  <div className="space-y-2">
+                    <p className="text-xs font-semibold">Состояние системы</p>
+                    <div className="flex justify-between items-center text-xs">
+                      <span className="text-text-secondary">Энергия</span>
+                      <span className="text-ci-green">{useGS.getState().energy}%</span>
+                    </div>
+                    <div className="flex justify-between items-center text-xs">
+                      <span className="text-text-secondary">Щит</span>
+                      <span className="text-ci-green">{useGS.getState().shield}%</span>
+                    </div>
+                    <button onClick={toggleMute} className="w-full text-xs text-text-secondary hover:text-text px-2 py-1 rounded hover:bg-surface-active transition-colors flex items-center gap-1.5">
+                      {muted ? <VolumeX className="w-3 h-3" /> : <Volume2 className="w-3 h-3" />}
+                      {muted ? 'Включить звук' : 'Выключить звук'}
+                    </button>
+                  </div>
+                </motion.div>
+              )}
+            </div>
+
+            {/* Theme toggle */}
+            <div className="px-1 py-1 border-l border-border mx-0.5">
+              <SkyToggle />
+            </div>
+
+            {/* Clock */}
+            <div className="px-2 py-1 border-l border-border ml-0.5 flex flex-col items-end leading-tight">
+              <span className="text-sm font-medium">{timeStr}</span>
+              <span className="text-[10px] text-text-muted">{dateStr}</span>
+            </div>
+          </motion.div>
+        </div>
+      </div>
+    </NotificationProvider>
+  );
+}
+
+function TerminalApp() {
+  const [output, setOutput] = useState<string[]>(['ZeroOS Terminal v1.0', 'Введите "help" для списка команд.', '']);
+  const [input, setInput] = useState('');
+  const bottomRef = useRef<HTMLDivElement>(null);
+
+  const runCommand = (cmd: string) => {
+    const parts = cmd.trim().toLowerCase().split(' ');
+    const c = parts[0];
+    let result = '';
+
+    switch (c) {
+      case 'help': result = 'Доступные команды: help, date, whoami, ls, clear, echo <text>, uname'; break;
+      case 'date': result = new Date().toLocaleString('ru-RU'); break;
+      case 'whoami': result = 'employee@zero-os'; break;
+      case 'ls': result = 'documents  downloads  desktop  .ssh  .config  report.pdf'; break;
+      case 'uname': result = 'ZeroOS 1.0.0 x86_64'; break;
+      case 'clear': setOutput([]); setInput(''); return;
+      case 'echo': result = parts.slice(1).join(' '); break;
+      case '': result = ''; break;
+      default: result = `Команда не найдена: ${c}`;
+    }
+
+    setOutput(prev => [...prev, `$ ${cmd}`, ...(result ? [result, ''] : [''])]);
+    setInput('');
+  };
+
+  useEffect(() => { bottomRef.current?.scrollIntoView(); }, [output]);
+
+  return (
+    <div className="h-full font-mono text-sm p-3 overflow-y-auto" style={{ backgroundColor: '#0c0c0c', color: '#22c55e' }}>
+      {output.map((line, i) => <div key={i} className="whitespace-pre-wrap">{line}</div>)}
+      <div className="flex items-center gap-2">
+        <span>$</span>
+        <input value={input} onChange={e => setInput(e.target.value)}
+          onKeyDown={e => { if (e.key === 'Enter') runCommand(input); }}
+          className="flex-1 bg-transparent outline-none" style={{ color: '#22c55e' }} autoFocus
+        />
+      </div>
+      <div ref={bottomRef} />
+    </div>
+  );
+}

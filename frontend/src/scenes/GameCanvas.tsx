@@ -6,6 +6,7 @@ import { LessonDialog } from '@/components/game/LessonDialog';
 import { EncounterDialog } from '@/components/game/EncounterDialog';
 import { ConsequenceOverlay } from '@/components/game/ConsequenceOverlay';
 import { GameHUD } from '@/components/game/GameHUD';
+import { TutorialOverlay } from '@/components/game/TutorialOverlay';
 
 const WORLD_WIDTH = 1320;
 const WORLD_HEIGHT = 840;
@@ -347,6 +348,8 @@ export function GameCanvas() {
   const energy = useGS(s => s.energy);
   const shield = useGS(s => s.shield);
   const progress = useGS(s => s.prog);
+  const theme = useGS(s => s.theme);
+  const isDark = theme === 'dark';
 
   const missions = sim?.missions ?? [];
   const currentMission = missions[currentMissionIndex] ?? missions[0] ?? null;
@@ -415,11 +418,19 @@ export function GameCanvas() {
     return () => window.removeEventListener('resize', resizeCanvas);
   }, [resizeCanvas]);
 
+  // Force canvas redraw on theme change
+  useEffect(() => {
+    resizeCanvas();
+  }, [theme, resizeCanvas]);
+
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
       if (gamePhase !== 'explore') return;
-      keysRef.current.add(event.key.toLowerCase());
-      event.preventDefault();
+      const gameKeys = ['w', 'a', 's', 'd', 'arrowup', 'arrowdown', 'arrowleft', 'arrowright', 'ц', 'ы', 'в', 'ф'];
+      if (gameKeys.includes(event.key.toLowerCase())) {
+        keysRef.current.add(event.key.toLowerCase());
+        event.preventDefault();
+      }
     };
     const handleKeyUp = (event: KeyboardEvent) => {
       keysRef.current.delete(event.key.toLowerCase());
@@ -524,10 +535,23 @@ export function GameCanvas() {
       }
     }
 
-    ctx.fillStyle = '#f9f7f1';
+    // Theme-based colors
+    const bgColor = isDark ? '#0f1117' : '#f9f7f1';
+    const gridColor = isDark ? 'rgba(255,255,255,0.03)' : 'rgba(0,0,0,0.03)';
+    const roadColor = isDark ? 'rgba(60,65,80,0.6)' : 'rgba(201,185,150,0.56)';
+    const roadDashColor = isDark ? 'rgba(255,255,255,0.15)' : 'rgba(255,255,255,0.46)';
+    const markerColor = isDark ? 'rgba(94,220,120,0.25)' : 'rgba(45,139,77,0.18)';
+    const tooltipBg = isDark ? 'rgba(22,23,29,0.96)' : 'rgba(255,255,255,0.98)';
+    const tooltipText = isDark ? 'rgba(255,255,255,0.7)' : 'rgba(0,0,0,0.62)';
+    const bannerBg = isDark ? 'rgba(22,23,29,0.94)' : 'rgba(255,255,255,0.94)';
+    const bannerBorder = isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.06)';
+    const bannerText = isDark ? '#e8e6e1' : '#1b1b1b';
+    const locDescColor = isDark ? 'rgba(255,255,255,0.65)' : 'rgba(0,0,0,0.58)';
+
+    ctx.fillStyle = bgColor;
     ctx.fillRect(0, 0, WORLD_WIDTH, WORLD_HEIGHT);
 
-    ctx.strokeStyle = 'rgba(0,0,0,0.03)';
+    ctx.strokeStyle = gridColor;
     ctx.lineWidth = 1;
     for (let gx = 0; gx < WORLD_WIDTH; gx += 48) {
       ctx.beginPath();
@@ -542,6 +566,232 @@ export function GameCanvas() {
       ctx.stroke();
     }
 
+    // Sun or Moon - positioned at top-right, visible
+    const celestialX = 1200;
+    const celestialY = isDark ? 70 : 50;
+    const celestialPulse = Math.sin(time * 0.3) * 8;
+    if (isDark) {
+      // Moon
+      ctx.fillStyle = 'rgba(200,210,230,0.08)';
+      ctx.beginPath();
+      ctx.arc(celestialX, celestialY + celestialPulse, 35, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.fillStyle = '#c8d2e6';
+      ctx.beginPath();
+      ctx.arc(celestialX, celestialY + celestialPulse, 18, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.fillStyle = bgColor;
+      ctx.beginPath();
+      ctx.arc(celestialX + 8, celestialY - 4 + celestialPulse, 14, 0, Math.PI * 2);
+      ctx.fill();
+      // Stars
+      const starPositions = [[80,20],[180,40],[320,15],[480,35],[650,18],[800,45],[950,25],[1050,55],[130,60],[380,50],[550,10],[870,30],[1250,40],[1100,70],[200,30],[700,55],[1000,15],[450,40],[1150,60],[900,10]];
+      starPositions.forEach(([sx, sy], i) => {
+        const twinkle = Math.sin(time * 2 + i * 0.7) * 0.5 + 0.5;
+        ctx.fillStyle = `rgba(255,255,255,${0.2 + twinkle * 0.8})`;
+        ctx.beginPath();
+        ctx.arc(sx, sy, 0.8 + twinkle * 1.2, 0, Math.PI * 2);
+        ctx.fill();
+      });
+    } else {
+      // Sun - bright and visible
+      ctx.fillStyle = 'rgba(255,200,50,0.1)';
+      ctx.beginPath();
+      ctx.arc(celestialX, celestialY + celestialPulse, 35, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.fillStyle = '#ffd040';
+      ctx.beginPath();
+      ctx.arc(celestialX, celestialY + celestialPulse, 18, 0, Math.PI * 2);
+      ctx.fill();
+      // Sun rays
+      for (let i = 0; i < 8; i++) {
+        const angle = (i / 8) * Math.PI * 2 + time * 0.2;
+        ctx.strokeStyle = `rgba(255,200,50,${0.12 + Math.sin(time + i) * 0.08})`;
+        ctx.lineWidth = 1.5;
+        ctx.beginPath();
+        ctx.moveTo(celestialX + Math.cos(angle) * 22, celestialY + celestialPulse + Math.sin(angle) * 22);
+        ctx.lineTo(celestialX + Math.cos(angle) * 30, celestialY + celestialPulse + Math.sin(angle) * 30);
+        ctx.stroke();
+      }
+      // Clouds
+      const cloudPositions = [[100, 35], [400, 50], [700, 25], [900, 45]];
+      cloudPositions.forEach(([cx, cy], i) => {
+        const drift = Math.sin(time * 0.15 + i * 2) * 12;
+        ctx.fillStyle = 'rgba(255,255,255,0.5)';
+        ctx.beginPath();
+        ctx.ellipse(cx + drift, cy, 25, 10, 0, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.beginPath();
+        ctx.ellipse(cx + drift + 15, cy + 2, 18, 8, 0, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.beginPath();
+        ctx.ellipse(cx + drift - 12, cy + 1, 15, 7, 0, 0, Math.PI * 2);
+        ctx.fill();
+      });
+    }
+
+    // Decorative elements - trees, bushes, benches, animals
+    const decorations = [
+      { x: 40, y: 340, type: 'tree' as const },
+      { x: 1280, y: 340, type: 'tree' as const },
+      { x: 660, y: 20, type: 'tree' as const },
+      { x: 660, y: 780, type: 'tree' as const },
+      { x: 200, y: 700, type: 'bush' as const },
+      { x: 1100, y: 700, type: 'bush' as const },
+      { x: 300, y: 380, type: 'bench' as const },
+      { x: 1000, y: 380, type: 'bench' as const },
+      { x: 660, y: 400, type: 'fountain' as const },
+      { x: 150, y: 180, type: 'lamp' as const },
+      { x: 1150, y: 180, type: 'lamp' as const },
+      { x: 660, y: 600, type: 'lamp' as const },
+    ];
+
+    // Animals
+    const animals = [
+      { x: 180, y: 500, type: 'cat' as const, dir: 1 },
+      { x: 900, y: 650, type: 'bird' as const, dir: -1 },
+      { x: 500, y: 750, type: 'cat' as const, dir: -1 },
+    ];
+
+    decorations.forEach(dec => {
+      if (dec.type === 'tree') {
+        ctx.fillStyle = isDark ? 'rgba(60,100,50,0.2)' : 'rgba(100,160,80,0.15)';
+        ctx.beginPath();
+        ctx.arc(dec.x, dec.y, 28, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.fillStyle = isDark ? '#3a6a30' : '#6b8f5e';
+        ctx.beginPath();
+        ctx.arc(dec.x, dec.y - 8, 18, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.fillStyle = isDark ? '#4a3a2a' : '#5a4a3a';
+        ctx.fillRect(dec.x - 2, dec.y + 6, 4, 14);
+      } else if (dec.type === 'bush') {
+        ctx.fillStyle = isDark ? 'rgba(50,90,40,0.25)' : 'rgba(80,140,60,0.2)';
+        ctx.beginPath();
+        ctx.ellipse(dec.x, dec.y, 22, 14, 0, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.fillStyle = isDark ? '#3a6a30' : '#5a8a4a';
+        ctx.beginPath();
+        ctx.ellipse(dec.x, dec.y - 2, 16, 10, 0, 0, Math.PI * 2);
+        ctx.fill();
+      } else if (dec.type === 'bench') {
+        ctx.fillStyle = isDark ? 'rgba(100,70,30,0.3)' : 'rgba(120,80,40,0.25)';
+        rr(ctx, dec.x - 14, dec.y - 4, 28, 8, 2);
+        ctx.fill();
+        ctx.fillStyle = isDark ? '#6a5020' : '#8b6914';
+        rr(ctx, dec.x - 12, dec.y - 3, 24, 6, 1);
+        ctx.fill();
+      } else if (dec.type === 'fountain') {
+        const fountainPulse = Math.sin(time * 1.5) * 3;
+        ctx.fillStyle = isDark ? 'rgba(60,120,160,0.2)' : 'rgba(100,180,220,0.15)';
+        ctx.beginPath();
+        ctx.arc(dec.x, dec.y, 30 + fountainPulse, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.fillStyle = isDark ? 'rgba(60,120,160,0.35)' : 'rgba(100,180,220,0.3)';
+        ctx.beginPath();
+        ctx.arc(dec.x, dec.y, 18, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.fillStyle = isDark ? 'rgba(100,160,200,0.5)' : 'rgba(150,210,240,0.5)';
+        ctx.beginPath();
+        ctx.arc(dec.x, dec.y, 8, 0, Math.PI * 2);
+        ctx.fill();
+      } else if (dec.type === 'lamp') {
+        ctx.fillStyle = isDark ? 'rgba(255,220,100,0.15)' : 'rgba(255,220,100,0.08)';
+        ctx.beginPath();
+        ctx.arc(dec.x, dec.y, 35, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.fillStyle = isDark ? '#555' : '#666';
+        ctx.fillRect(dec.x - 1, dec.y - 20, 2, 25);
+        ctx.fillStyle = '#ffdd55';
+        ctx.beginPath();
+        ctx.arc(dec.x, dec.y - 22, 4, 0, Math.PI * 2);
+        ctx.fill();
+      }
+    });
+
+    // Draw animals
+    animals.forEach(a => {
+      if (a.type === 'cat') {
+        const catBob = Math.sin(time * 3 + a.x) * 1;
+        ctx.fillStyle = isDark ? '#4a4a4a' : '#888';
+        ctx.beginPath();
+        ctx.ellipse(a.x, a.y + catBob, 10, 6, 0, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.beginPath();
+        ctx.arc(a.x + a.dir * 8, a.y - 4 + catBob, 5, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.fillStyle = isDark ? '#3a3a3a' : '#777';
+        ctx.beginPath();
+        ctx.moveTo(a.x + a.dir * 5, a.y - 8 + catBob);
+        ctx.lineTo(a.x + a.dir * 3, a.y - 13 + catBob);
+        ctx.lineTo(a.x + a.dir * 7, a.y - 9 + catBob);
+        ctx.fill();
+        ctx.beginPath();
+        ctx.moveTo(a.x + a.dir * 10, a.y - 7 + catBob);
+        ctx.lineTo(a.x + a.dir * 11, a.y - 12 + catBob);
+        ctx.lineTo(a.x + a.dir * 13, a.y - 6 + catBob);
+        ctx.fill();
+        // Tail
+        ctx.strokeStyle = isDark ? '#4a4a4a' : '#888';
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.moveTo(a.x - a.dir * 10, a.y + catBob);
+        ctx.quadraticCurveTo(a.x - a.dir * 16, a.y - 10 + catBob + Math.sin(time * 2) * 3, a.x - a.dir * 14, a.y - 14 + catBob);
+        ctx.stroke();
+        // Eyes
+        ctx.fillStyle = isDark ? '#8f8' : '#5a5';
+        ctx.beginPath();
+        ctx.arc(a.x + a.dir * 10, a.y - 5 + catBob, 1.2, 0, Math.PI * 2);
+        ctx.fill();
+      } else if (a.type === 'bird') {
+        const birdY = a.y + Math.sin(time * 4 + a.x) * 8;
+        const wingAngle = Math.sin(time * 8) * 0.4;
+        ctx.fillStyle = isDark ? '#5a6a8a' : '#4a7ab5';
+        ctx.beginPath();
+        ctx.ellipse(a.x, birdY, 5, 3, 0, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.strokeStyle = isDark ? '#5a6a8a' : '#4a7ab5';
+        ctx.lineWidth = 1.5;
+        ctx.beginPath();
+        ctx.moveTo(a.x - 3, birdY);
+        ctx.lineTo(a.x - 10, birdY - 6 + wingAngle * 8);
+        ctx.stroke();
+        ctx.beginPath();
+        ctx.moveTo(a.x + 3, birdY);
+        ctx.lineTo(a.x + 10, birdY - 6 + wingAngle * 8);
+        ctx.stroke();
+      }
+    });
+
+    // Ambient floating particles
+    const ambientParticles = [
+      { bx: 100, by: 200, speed: 0.3, size: 2 },
+      { bx: 300, by: 150, speed: 0.5, size: 1.5 },
+      { bx: 500, by: 300, speed: 0.4, size: 2.5 },
+      { bx: 700, by: 100, speed: 0.6, size: 1.8 },
+      { bx: 900, by: 250, speed: 0.35, size: 2.2 },
+      { bx: 1100, by: 180, speed: 0.45, size: 1.6 },
+      { bx: 200, by: 600, speed: 0.55, size: 2 },
+      { bx: 400, by: 500, speed: 0.3, size: 1.5 },
+      { bx: 600, by: 700, speed: 0.4, size: 2.3 },
+      { bx: 800, by: 550, speed: 0.5, size: 1.7 },
+      { bx: 1000, by: 650, speed: 0.35, size: 2.1 },
+      { bx: 1200, by: 400, speed: 0.45, size: 1.9 },
+      { bx: 150, by: 450, speed: 0.6, size: 1.4 },
+      { bx: 1050, by: 350, speed: 0.3, size: 2.4 },
+      { bx: 550, by: 450, speed: 0.5, size: 1.8 },
+    ];
+
+    ambientParticles.forEach((p, i) => {
+      const px = p.bx + Math.sin(time * p.speed + i * 1.3) * 15;
+      const py = p.by + Math.cos(time * p.speed * 0.7 + i * 0.9) * 10;
+      const alpha = 0.15 + Math.sin(time * 0.8 + i * 2) * 0.1;
+      ctx.fillStyle = isDark ? `rgba(94,220,120,${alpha})` : `rgba(45,139,77,${alpha})`;
+      ctx.beginPath();
+      ctx.arc(px, py, p.size, 0, Math.PI * 2);
+      ctx.fill();
+    });
+
     activeConnections.forEach((connection, index) => {
       const from = LOCATIONS[connection.f];
       const to = LOCATIONS[connection.t];
@@ -555,7 +805,7 @@ export function GameCanvas() {
       const cx = (fx + tx) / 2 + (index % 3 === 0 ? 28 : -28);
       const cy = (fy + ty) / 2 + curveOffset;
 
-      ctx.strokeStyle = 'rgba(201,185,150,0.56)';
+      ctx.strokeStyle = roadColor;
       ctx.lineWidth = 20;
       ctx.lineCap = 'round';
       ctx.beginPath();
@@ -563,7 +813,7 @@ export function GameCanvas() {
       ctx.quadraticCurveTo(cx, cy, tx, ty);
       ctx.stroke();
 
-      ctx.strokeStyle = 'rgba(255,255,255,0.46)';
+      ctx.strokeStyle = roadDashColor;
       ctx.lineWidth = 2.4;
       ctx.setLineDash([12, 12]);
       ctx.beginPath();
@@ -573,7 +823,7 @@ export function GameCanvas() {
       ctx.setLineDash([]);
 
       const t = (time * 0.2 + index * 0.2) % 1;
-      ctx.fillStyle = 'rgba(45,139,77,0.18)';
+      ctx.fillStyle = markerColor;
       const marker = bezierPoint(fx, fy, cx, cy, tx, ty, t);
       ctx.beginPath();
       ctx.arc(marker.x, marker.y, 4, 0, Math.PI * 2);
@@ -582,17 +832,43 @@ export function GameCanvas() {
 
     activeLocations.forEach(location => {
       const locationEncounters = encountersByLocation.get(location.name) ?? [];
+      const locBg = isDark ? '#1a1c24' : location.bg;
+      const locBgEnd = isDark ? '#16171d' : '#ffffff';
       const gradient = ctx.createLinearGradient(location.x, location.y, location.x + location.w, location.y + location.h);
-      gradient.addColorStop(0, location.bg);
-      gradient.addColorStop(1, '#ffffff');
+      gradient.addColorStop(0, locBg);
+      gradient.addColorStop(1, locBgEnd);
       ctx.fillStyle = gradient;
       rr(ctx, location.x, location.y, location.w, location.h, 22);
+      ctx.fill();
+
+      // Decorative corner accent
+      ctx.fillStyle = `${location.accent}08`;
+      ctx.beginPath();
+      ctx.moveTo(location.x + location.w, location.y);
+      ctx.lineTo(location.x + location.w, location.y + 60);
+      ctx.lineTo(location.x + location.w - 60, location.y);
+      ctx.closePath();
       ctx.fill();
 
       ctx.strokeStyle = location.border;
       ctx.lineWidth = 2.2;
       rr(ctx, location.x, location.y, location.w, location.h, 22);
       ctx.stroke();
+
+      // Location icon
+      const locIcons: Record<string, string> = {
+        'Офис': '🏢',
+        'Дом': '🏠',
+        'Кафе': '☕',
+        'Банк': '🏦',
+        'Аэропорт': '✈️',
+        'Отель': '🏨',
+      };
+      const icon = locIcons[location.label] || '📍';
+      ctx.font = '32px sans-serif';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText(icon, location.x + location.w - 40, location.y + 40);
 
       ctx.fillStyle = `${location.accent}16`;
       rr(ctx, location.x + 16, location.y + 16, location.w - 32, 58, 18);
@@ -605,10 +881,10 @@ export function GameCanvas() {
       ctx.fillText(fitTextByWidth(ctx, location.label, location.w - 150), location.x + 28, location.y + 27);
 
       ctx.font = '13px "Segoe UI", sans-serif';
-      ctx.fillStyle = 'rgba(0,0,0,0.58)';
+      ctx.fillStyle = locDescColor;
       ctx.fillText(fitTextByWidth(ctx, location.desc, location.w - 56), location.x + 28, location.y + 58);
 
-      const badgeText = locationEncounters.length ? `${locationEncounters.length} активные угрозы` : 'зона под контролем';
+      const badgeText = locationEncounters.length ? `${locationEncounters.length} активные угрозы` : '✓ зона под контролем';
       const badgeWidth = 166;
       ctx.fillStyle = locationEncounters.length ? `${location.accent}16` : 'rgba(45,139,77,0.13)';
       rr(ctx, location.x + location.w - badgeWidth - 24, location.y + 28, badgeWidth, 30, 15);
@@ -682,7 +958,7 @@ export function GameCanvas() {
       const tooltipHeight = 68;
       const tooltipX = clamp(hovered.x - tooltipWidth / 2, 12, WORLD_WIDTH - tooltipWidth - 12);
       const tooltipY = clamp(hovered.y - tooltipHeight - 46, 12, WORLD_HEIGHT - tooltipHeight - 12);
-      ctx.fillStyle = 'rgba(255,255,255,0.98)';
+      ctx.fillStyle = tooltipBg;
       ctx.strokeStyle = `${hovered.color}32`;
       ctx.lineWidth = 1;
       rr(ctx, tooltipX, tooltipY, tooltipWidth, tooltipHeight, 14);
@@ -693,7 +969,7 @@ export function GameCanvas() {
       ctx.textAlign = 'left';
       ctx.textBaseline = 'top';
       ctx.fillText(shorten(hovered.label, 34), tooltipX + 14, tooltipY + 14);
-      ctx.fillStyle = 'rgba(0,0,0,0.62)';
+      ctx.fillStyle = tooltipText;
       ctx.font = '12px "Segoe UI", sans-serif';
       ctx.fillText(shorten(hovered.step.title, 38), tooltipX + 14, tooltipY + 36);
     }
@@ -703,14 +979,14 @@ export function GameCanvas() {
       const bannerY = 18;
       const bannerW = 560;
       const bannerH = 40;
-      ctx.fillStyle = 'rgba(255,255,255,0.94)';
+      ctx.fillStyle = bannerBg;
       rr(ctx, bannerX, bannerY, bannerW, bannerH, 18);
       ctx.fill();
-      ctx.strokeStyle = 'rgba(0,0,0,0.06)';
+      ctx.strokeStyle = bannerBorder;
       ctx.lineWidth = 1;
       rr(ctx, bannerX, bannerY, bannerW, bannerH, 18);
       ctx.stroke();
-      ctx.fillStyle = '#1b1b1b';
+      ctx.fillStyle = bannerText;
       ctx.font = '600 13px "Segoe UI", sans-serif';
       ctx.textAlign = 'center';
       ctx.textBaseline = 'middle';
@@ -800,17 +1076,20 @@ export function GameCanvas() {
     setEncounterStepState(null);
   }, [encounterStep?.id, encounters, resetJoystick, setEncStep, setEncTrig, setPMov, setPPos]);
 
-  return (
-    <div className="relative w-full h-full overflow-hidden bg-[#f9f7f1]">
+    return (
+    <div className="relative w-full h-full overflow-hidden" style={{ backgroundColor: isDark ? '#0f1117' : '#f9f7f1' }}>
       <canvas
         ref={canvasRef}
-        className="w-full h-full [image-rendering:auto]"
+        className="w-full h-full [image-rendering:auto] [touch-action:none]"
         onMouseMove={onMouseMove}
         onMouseLeave={() => setHovered(null)}
         onClick={onClick}
       />
 
-      <GameHUD energy={energy} shield={shield} progress={progress} totalSteps={totalSteps} missionResolvedSteps={missionResolvedSteps} />
+      <GameHUD energy={energy} shield={shield} progress={progress} totalSteps={totalSteps} missionResolvedSteps={missionResolvedSteps} missionCode={currentMission?.code} />
+
+      {/* Tutorial overlay for first-time players */}
+      {gamePhase === 'explore' && <TutorialOverlay />}
 
       <AnimatePresence>
         {encounterStep && !useGS.getState().fb && gamePhase === 'lesson' && <LessonDialog step={encounterStep} onClose={onClose} />}
@@ -827,34 +1106,41 @@ export function GameCanvas() {
             <span className="text-[11px] text-text-secondary">WASD или стрелки - движение • Подойдите к маркеру угрозы • Сначала обучение, потом отдельный тест</span>
           </div>
 
-          <div className="absolute left-4 bottom-4 md:hidden pointer-events-auto">
+          {/* Mobile hint */}
+          <div className="absolute bottom-20 left-1/2 -translate-x-1/2 px-3 py-2 bg-white/92 backdrop-blur rounded-full border border-border/60 shadow-sm md:hidden">
+            <span className="text-[10px] text-text-secondary">Используйте джойстик внизу экрана</span>
+          </div>
+
+          <div className="absolute left-3 bottom-3 md:hidden pointer-events-none z-50">
             <div
               ref={joystickPadRef}
-              className="relative h-28 w-28 rounded-full border border-border/70 bg-white/86 shadow-lg"
-              style={{ touchAction: 'none' }}
+              className="relative h-32 w-32 rounded-full border-2 border-white/40 bg-black/20 backdrop-blur-sm shadow-xl"
+              style={{ touchAction: 'none', pointerEvents: 'auto' }}
               onTouchStart={event => {
                 event.preventDefault();
+                event.stopPropagation();
                 const touch = event.touches[0];
                 if (touch) updateJoystick(touch.clientX, touch.clientY);
               }}
               onTouchMove={event => {
                 event.preventDefault();
+                event.stopPropagation();
                 const touch = event.touches[0];
                 if (touch) updateJoystick(touch.clientX, touch.clientY);
               }}
               onTouchEnd={event => {
                 event.preventDefault();
+                event.stopPropagation();
                 if (event.touches.length === 0) resetJoystick();
               }}
               onTouchCancel={resetJoystick}
             >
-              <div className="absolute inset-3 rounded-full border border-border/60 bg-bg-secondary/55" />
+              <div className="absolute inset-4 rounded-full border border-white/20 bg-white/10" />
               <div
-                className={`absolute left-1/2 top-1/2 h-12 w-12 rounded-full border border-border bg-white shadow ${joystick.active ? 'scale-100' : 'scale-95'}`}
-                style={{ transform: `translate(calc(-50% + ${joystick.x * 32}px), calc(-50% + ${joystick.y * 32}px))` }}
+                className={`absolute left-1/2 top-1/2 h-14 w-14 rounded-full border-2 border-white/60 bg-white/40 shadow-lg backdrop-blur-sm ${joystick.active ? 'scale-100' : 'scale-95'}`}
+                style={{ transform: `translate(calc(-50% + ${joystick.x * 36}px), calc(-50% + ${joystick.y * 36}px))` }}
               />
             </div>
-            <p className="mt-2 text-[10px] text-text-secondary text-center">Джойстик</p>
           </div>
         </>
       )}

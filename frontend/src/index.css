@@ -4,14 +4,13 @@
   --font-sans: 'Inter', system-ui, -apple-system, sans-serif;
   --font-mono: 'JetBrains Mono', ui-monospace, monospace;
 
-  /* Centre Invest pastel palette */
   --color-ci-green: #2d8b4d;
   --color-ci-green-light: #5cc56e;
   --color-ci-green-pale: #e8f5e9;
   --color-ci-gold: #d3a53f;
   --color-ci-gold-light: #f7e2a3;
 
-  /* Light theme (default - bank style) */
+  /* Light theme - warm & clean */
   --color-bg: #f8f6ee;
   --color-bg-secondary: #f0ece1;
   --color-surface: #ffffff;
@@ -43,20 +42,104 @@
   --radius-full: 9999px;
 }
 
-html { background: var(--color-bg); color: var(--color-text); font-family: var(--font-sans); -webkit-font-smoothing: antialiased; }
+/* Dark theme - deep elegant dark with proper contrast */
+[data-theme="dark"] {
+  --color-bg: #0d1117;
+  --color-bg-secondary: #161b22;
+  --color-surface: #1c2128;
+  --color-surface-hover: #22272e;
+  --color-surface-active: #282e36;
+  --color-border: #30363d;
+  --color-border-strong: #484f58;
+  --color-text: #e6edf3;
+  --color-text-secondary: #a0a8b4;
+  --color-text-muted: #6e7681;
+  --color-primary: #3fb950;
+  --color-primary-hover: #2ea043;
+  --color-primary-container: #14261b;
+  --color-on-primary-container: #b6f5c8;
+  --color-accent: #d29922;
+  --color-danger: #f85149;
+  --color-danger-soft: #2d1215;
+  --color-success: #3fb950;
+  --color-success-soft: #12261a;
+  --color-warning: #d29922;
+  --color-warning-soft: #261d12;
+  --color-info: #58a6ff;
+  --color-info-soft: #121d2d;
+}
+
+/* B&W theme */
+[data-theme="bw"] {
+  --color-bg: #0a0a0a;
+  --color-bg-secondary: #141414;
+  --color-surface: #1a1a1a;
+  --color-surface-hover: #222222;
+  --color-surface-active: #2a2a2a;
+  --color-border: #333333;
+  --color-border-strong: #444444;
+  --color-text: #f0f0f0;
+  --color-text-secondary: #aaaaaa;
+  --color-text-muted: #666666;
+  --color-primary: #ffffff;
+  --color-primary-hover: #e0e0e0;
+  --color-primary-container: #222222;
+  --color-on-primary-container: #f0f0f0;
+  --color-accent: #cccccc;
+  --color-danger: #ff4444;
+  --color-danger-soft: #2a1a1a;
+  --color-success: #44ff44;
+  --color-success-soft: #1a2a1a;
+  --color-warning: #ffcc44;
+  --color-warning-soft: #2a2a1a;
+  --color-info: #4488ff;
+  --color-info-soft: #1a1a2a;
+}
+
+html {
+  background: var(--color-bg);
+  color: var(--color-text);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  scroll-behavior: smooth;
+}
 body { margin: 0; min-height: 100vh; background: var(--color-bg); }
 #root { width: 100vw; height: 100vh; overflow: hidden; }
 * { box-sizing: border-box; }
-::-webkit-scrollbar { width: 5px; }
-::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar { width: 8px; }
+::-webkit-scrollbar-track { background: var(--color-bg-secondary); }
 ::-webkit-scrollbar-thumb { background: var(--color-border-strong); border-radius: 999px; }
+::-webkit-scrollbar-thumb:hover { background: var(--color-text-muted); }
+
+/* Desktop scaling - base size increase for screens >= 1024px */
+@media (min-width: 1024px) {
+  html { font-size: 17px; }
+}
+@media (min-width: 1280px) {
+  html { font-size: 18px; }
+}
+@media (min-width: 1536px) {
+  html { font-size: 19px; }
+}
+@media (min-width: 1920px) {
+  html { font-size: 20px; }
+}
+
+/* Smooth theme transitions */
+html, body, .bg-bg, .bg-surface, .bg-secondary {
+  transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
+}
 
 @keyframes slide-up { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
 @keyframes fade-in { from { opacity: 0; } to { opacity: 1; } }
 @keyframes scale-in { from { opacity: 0; transform: scale(0.95); } to { opacity: 1; transform: scale(1); } }
 @keyframes float { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-6px); } }
+@keyframes pulse-glow { 0%,100% { box-shadow: 0 0 8px rgba(63,185,80,0.2); } 50% { box-shadow: 0 0 20px rgba(63,185,80,0.4); } }
+@keyframes shimmer { 0% { background-position: -200% 0; } 100% { background-position: 200% 0; } }
 
 .slide-up { animation: slide-up 0.4s cubic-bezier(0.16, 1, 0.3, 1) both; }
 .fade-in { animation: fade-in 0.3s ease both; }
 .scale-in { animation: scale-in 0.35s cubic-bezier(0.16, 1, 0.3, 1) both; }
 .float { animation: float 3s ease-in-out infinite; }
+.pulse-glow { animation: pulse-glow 2s ease-in-out infinite; }

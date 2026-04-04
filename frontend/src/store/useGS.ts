@@ -8,7 +8,7 @@ interface GS {
   mi: number; si: number; selOpt: number | null; fb: FeedbackState | null;
   cert: Certificate | null; band: LearningBand; hints: Map<string, number>;
   submitting: boolean; lessons: string[];
-  lang: Lang; theme: Theme;
+  lang: Lang; theme: Theme; muted: boolean;
   track: ScenarioTrack;
   gp: 'explore' | 'lesson' | 'decision' | 'consequence';
   px: number; py: number; pdir: 'up' | 'down' | 'left' | 'right'; pmov: boolean;
@@ -17,7 +17,7 @@ interface GS {
 
   setAuthed: (v: boolean) => void; setScreen: (s: GameScreen) => void;
   setLoading: (v: boolean) => void; setError: (v: string | null) => void;
-  setLang: (l: Lang) => void; setTheme: (t: Theme) => void;
+  setLang: (l: Lang) => void; setTheme: (t: Theme) => void; setMuted: (v: boolean) => void; toggleMute: () => void;
   setTrack: (t: ScenarioTrack) => void;
 
   load: () => Promise<void>;
@@ -31,6 +31,7 @@ interface GS {
   setPDir: (d: GS['pdir']) => void; setPMov: (v: boolean) => void;
   setEncTrig: (v: boolean) => void; setEncStep: (s: ScenarioStep | null) => void;
   setEnergy: (v: number) => void; setShield: (v: number) => void;
+  resetCurrentMission: () => Promise<void>;
 }
 
 function ssFor(m: Map<number, StepState>, id: number): StepState {
@@ -69,14 +70,31 @@ export const useGS = create<GS>((set, get) => ({
   sim: null, ss: new Map<number, StepState>(), prog: null,
   mi: 0, si: 0, selOpt: null, fb: null, cert: null, band: 'novice',
   hints: new Map<string, number>(), submitting: false, lessons: [],
-  lang: 'ru', theme: 'light',
+  lang: (localStorage.getItem('zd_lang') as Lang) || 'ru', theme: (localStorage.getItem('zd_theme') as Theme) || 'light',
+  muted: localStorage.getItem('zd_sfx_mute') === '1',
   track: 'network',
   gp: 'explore', px: 550, py: 405, pdir: 'down', pmov: false,
   encTriggered: false, encStep: null, energy: 100, shield: 100,
 
   setAuthed: v => set({ authed: v }), setScreen: s => set({ screen: s }),
   setLoading: v => set({ loading: v }), setError: v => set({ error: v }),
-  setLang: l => set({ lang: l }), setTheme: t => set({ theme: t }),
+  setLang: l => {
+    localStorage.setItem('zd_lang', l);
+    set({ lang: l });
+  }, setTheme: t => {
+    document.documentElement.setAttribute('data-theme', t);
+    localStorage.setItem('zd_theme', t);
+    set({ theme: t });
+  },
+  setMuted: v => {
+    localStorage.setItem('zd_sfx_mute', v ? '1' : '0');
+    set({ muted: v });
+  },
+  toggleMute: () => {
+    const v = !get().muted;
+    localStorage.setItem('zd_sfx_mute', v ? '1' : '0');
+    set({ muted: v });
+  },
   setTrack: t => set({ track: t }),
 
   load: async () => {
@@ -143,6 +161,15 @@ export const useGS = create<GS>((set, get) => ({
       set({ si: si + 1, selOpt: null, fb: null, gp: 'explore', encTriggered: false, encStep: null, ...playerSpawn() });
       return;
     }
+    // Mission completed - try to unlock next mission
+    const prog = get().prog;
+    if (prog && mi < ms.length - 1) {
+      const nextMission = ms[mi + 1];
+      const nextIndex = mi + 1;
+      const nextSi = nextMission ? firstUnresolved(nextMission, ss) : 0;
+      set({ mi: nextIndex, si: nextSi, selOpt: null, fb: null, gp: 'explore', encTriggered: false, encStep: null, ...playerSpawn() });
+      return;
+    }
     set({ fb: null, gp: 'explore', encTriggered: false, encStep: null, screen: 'lobby', ...playerSpawn() });
   },
 
@@ -152,6 +179,34 @@ export const useGS = create<GS>((set, get) => ({
   getHints: sid => get().hints.get(String(sid)) || 0,
 
   logout: () => { api.rmToken(); set({ authed: false, sim: null, ss: new Map(), prog: null, mi: 0, si: 0, selOpt: null, fb: null, cert: null, band: 'novice', hints: new Map(), submitting: false, lessons: [], error: null, loading: false, screen: 'auth', track: 'network', gp: 'explore', ...playerSpawn(), encTriggered: false, encStep: null, energy: 100, shield: 100 }); },
+
+  resetCurrentMission: async () => {
+    const { sim, mi } = get();
+    if (!sim) return;
+    const mission = sim.missions[mi];
+    if (!mission) return;
+    try {
+      await api.sim.resetMission(mission.code);
+      // Reload state from backend
+      const d = await api.sim.getState();
+      const ss = new Map<number, StepState>((d.step_states || []).map((s: StepState) => [s.step_id, s]));
+      const ms: Mission[] = d.missions || [];
+      const pr: Progress = d.progress;
+      const newMi = Math.min(mi, ms.length - 1);
+      const newM = ms[newMi];
+      const newSi = newM ? firstUnresolved(newM, ss) : 0;
+      const rc = ms.reduce((a: number, x: Mission) => a + x.steps.filter(s => ssFor(ss, s.id).resolved).length, 0);
+      set({
+        sim: d, ss, prog: pr, mi: newMi, si: newSi,
+        selOpt: null, fb: null, band: band(pr, rc), hints: new Map(), lessons: [],
+        gp: 'explore', encTriggered: false, encStep: null,
+        energy: pr.security_level, shield: pr.security_level,
+        ...playerSpawn(),
+      });
+    } catch (e) {
+      console.error('Mission reset failed:', e);
+    }
+  },
 
   setGp: p => set({ gp: p }), setPPos: (x, y) => set({ px: x, py: y }), setPDir: d => set({ pdir: d }), setPMov: v => set({ pmov: v }),
   setEncTrig: v => set({ encTriggered: v }), setEncStep: s => set({ encStep: s, gp: s ? 'lesson' : 'explore' }),

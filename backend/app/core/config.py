@@ -1,3 +1,4 @@
+import os
 from functools import lru_cache
 from typing import List
 
@@ -11,23 +12,23 @@ class Settings(BaseSettings):
     environment: str = "development"
     debug: bool = False
 
-    secret_key: str = Field(default="change-me-in-production")
+    secret_key: str = Field(default_factory=lambda: os.environ.get("SECRET_KEY", ""))
     access_token_expire_minutes: int = 24 * 60
     jwt_algorithm: str = "HS256"
 
     postgres_user: str = "shieldops"
     postgres_password: str = "shieldops"
     postgres_db: str = "shieldops"
-    postgres_host: str = "db"
+    postgres_host: str = "localhost"
     postgres_port: int = 5432
     database_url_from_env: str | None = Field(default=None, alias="DATABASE_URL")
 
-    redis_host: str = "redis"
+    redis_host: str = "localhost"
     redis_port: int = 6379
     redis_db: int = 0
     redis_password: str | None = None
 
-    cors_origins: List[str] = ["*"]
+    cors_origins: List[str] = ["http://localhost:5173", "http://localhost:3000"]
 
     model_config = SettingsConfigDict(
         env_file=".env",
@@ -35,6 +36,13 @@ class Settings(BaseSettings):
         case_sensitive=False,
         extra="ignore",
     )
+
+    def validate(self) -> None:
+        if not self.secret_key:
+            raise ValueError(
+                "SECRET_KEY environment variable must be set. "
+                "Generate one with: python -c 'import secrets; print(secrets.token_urlsafe(32))'"
+            )
 
     @property
     def database_url(self) -> str:
@@ -59,3 +67,4 @@ def get_settings() -> Settings:
 
 
 settings = get_settings()
+settings.validate()
