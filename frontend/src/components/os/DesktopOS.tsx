@@ -34,7 +34,7 @@ interface OpenWindow {
 }
 
 const API_KEY = import.meta.env.VITE_OPENROUTER_API_KEY || '';
-const API_MODEL = import.meta.env.VITE_OPENROUTER_MODEL || 'qwen/qwen3-coder-plus';
+const API_MODEL = import.meta.env.VITE_OPENROUTER_MODEL || 'qwen/qwen3.6-plus:free';
 
 export async function askAI(prompt: string, systemPrompt?: string): Promise<string> {
   if (!API_KEY) {
