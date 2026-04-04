@@ -1,29 +1,11 @@
 {
-  "experimentalServices": {
-    "frontend": {
-      "entrypoint": "frontend",
-      "routePrefix": "/",
-      "framework": "vite"
-    },
-    "backend": {
-      "entrypoint": "backend",
-      "routePrefix": "/api/v1"
-    }
-  },
   "buildCommand": "cd frontend && npm install && npm run build",
   "outputDirectory": "frontend/dist",
   "installCommand": "cd frontend && npm install",
   "rewrites": [
     {
-      "source": "/api/v1/:path*",
-      "destination": "/_/backend/:path*"
-    },
-    {
       "source": "/assets/:path*",
-      "destination": "/assets/:path*",
-      "headers": {
-        "cache-control": "public, max-age=31536000, immutable"
-      }
+      "destination": "/assets/:path*"
     },
     {
       "source": "/(.*)",
@@ -31,6 +13,15 @@
     }
   ],
   "headers": [
+    {
+      "source": "/assets/(.*)",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=31536000, immutable"
+        }
+      ]
+    },
     {
       "source": "/(.*)",
       "headers": [
@@ -50,7 +41,7 @@
     }
   ],
   "env": {
-    "VITE_API_URL": "/api/v1"
+    "VITE_API_URL": ""
   },
   "github": {
     "silent": true
