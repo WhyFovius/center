@@ -21,7 +21,7 @@ import { ToggleTheme } from '@/components/ui/toggle-theme';
 import type { ScenarioTrack } from '@/types';
 import logo from '@/assets/logo.png';
 
-const scenarios: { id: ScenarioTrack; titleKey: string; icon: typeof Globe; bg: string; accent: string }[] = [
+const scenarios = [
   { id: 'network', titleKey: 'scenNetwork', badgeKey: 'scenNetworkBadge', focusKey: 'scenNetworkFocus', icon: Globe, bg: '#0e2a1a', accent: '#41aa62', accentSoft: 'rgba(65,170,98,0.12)', accentBorder: 'rgba(65,170,98,0.25)' },
   { id: 'social', titleKey: 'scenSocial', badgeKey: 'scenSocialBadge', focusKey: 'scenSocialFocus', icon: Users, bg: '#2a0e1a', accent: '#ef4444', accentSoft: 'rgba(239,68,68,0.12)', accentBorder: 'rgba(239,68,68,0.25)' },
   { id: 'mobile', titleKey: 'scenMobile', badgeKey: 'scenMobileBadge', focusKey: 'scenMobileFocus', icon: Smartphone, bg: '#1a0e2a', accent: '#8b5cf6', accentSoft: 'rgba(139,92,246,0.12)', accentBorder: 'rgba(139,92,246,0.25)' },
