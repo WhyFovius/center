@@ -96,11 +96,14 @@ export default function BrowserApp() {
       }
     }
 
-    // Check if URL is safe (not suspicious)
-    const isSuspicious = finalUrl.includes('verify-secure') || finalUrl.includes('protonmail');
-    const isSafe = finalUrl.includes('google.com') || finalUrl.includes('wikipedia.org') || finalUrl.includes('habr.com') || finalUrl.includes('github.com') || finalUrl.includes('youtube.com') || finalUrl.includes('reddit.com') || finalUrl.includes('duckduckgo.com') || finalUrl.includes('stackoverflow.com');
-    if (isSafe && !isSuspicious) {
-      completeTask('browser_suspicious');
+    // Check if URL is safe or suspicious
+    const isFakeSite = finalUrl.includes('verify-secure');
+    const isSafe = (finalUrl.includes('google.com') || finalUrl.includes('wikipedia.org') || finalUrl.includes('habr.com') || finalUrl.includes('github.com') || finalUrl.includes('youtube.com') || finalUrl.includes('reddit.com') || finalUrl.includes('duckduckgo.com') || finalUrl.includes('stackoverflow.com')) && !isFakeSite;
+    if (isFakeSite) {
+      completeTask('browser_fake_site');
+    }
+    if (isSafe) {
+      completeTask('browser_safe');
     }
 
     setTabs(prev => prev.map(t => t.id === tid ? { ...t, url: finalUrl, title: finalUrl, loading: true, error: null } : t));
@@ -217,7 +220,7 @@ export default function BrowserApp() {
             <circle cx="12" cy="12" r="10" /><polyline points="12 6 12 12 16 14" />
           </svg>
         </button>
-        {osTasks.browser_suspicious && (
+        {(osTasks.browser_fake_site || osTasks.browser_safe) && (
           <div className="flex items-center gap-1 px-2 py-1 rounded-lg" style={{ backgroundColor: 'rgba(34,197,94,0.15)' }}>
             <CheckCircle className="w-3.5 h-3.5 text-green-500" />
             <span className="text-[10px] font-medium text-green-500">{T('osTasksCompleted')}</span>

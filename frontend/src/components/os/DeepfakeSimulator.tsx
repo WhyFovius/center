@@ -36,6 +36,7 @@ export default function DeepfakeSimulator({ onComplete }: { onComplete?: (safe: 
       completeTask('deepfake_callback');
     }
     if (c === 'transfer') {
+      completeTask('deepfake_transfer');
       setTransferAnim(true);
       setTimeout(() => setPhase('result'), 3000);
     } else {

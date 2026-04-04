@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
-import { motion } from 'framer-motion';
-import { Send, Search, MoreVertical, Phone, Video, Smile, Paperclip, ShieldAlert, CheckCircle } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { Send, Search, MoreVertical, Phone, Video, Smile, Paperclip, X, PhoneCall } from 'lucide-react';
 import { useGS } from '@/store/useGS';
 import { t } from '@/lib/i18n';
 import { askAI } from './DesktopOS';
@@ -22,6 +22,8 @@ interface ChatData {
   systemPrompt: string;
   messages: Message[];
 }
+
+const EMOJI_LIST = ['😀', '😂', '🤣', '😍', '🥰', '😘', '🤔', '😎', '🤩', '😢', '😭', '😡', '🤯', '👍', '👎', '❤️', '🔥', '💯', '🎉', '🛡️'];
 
 const INITIAL_CHATS: Record<string, ChatData> = {
   alexey: {
@@ -76,8 +78,6 @@ function getNow() {
 export default function XamMessenger() {
   const theme = useGS(s => s.theme);
   const lang = useGS(s => s.lang);
-  const completeTask = useGS(s => s.completeTask);
-  const osTasks = useGS(s => s.osTasks);
   const T = (key: string) => t(lang, key);
   const isDark = theme === 'dark' || theme === 'bw';
   const [selectedChat, setSelectedChat] = useState<string | null>(null);
@@ -85,39 +85,71 @@ export default function XamMessenger() {
   const [chats, setChats] = useState(INITIAL_CHATS);
   const [searchQuery, setSearchQuery] = useState('');
   const [aiTyping, setAiTyping] = useState(false);
+  const [showEmoji, setShowEmoji] = useState(false);
+  const [attachedFile, setAttachedFile] = useState<string | null>(null);
+  const [callStatus, setCallStatus] = useState<'none' | 'ringing' | 'connected' | 'ended'>('none');
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => { messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' }); }, [selectedChat, chats]);
 
-  const handleReportSuspicious = () => {
-    completeTask('messenger_social_eng');
-    alert('Вы отметили подозрительное сообщение. Задание выполнено!');
+  const handleEmojiClick = (emoji: string) => {
+    setNewMsg(prev => prev + emoji);
+    setShowEmoji(false);
+  };
+
+  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setAttachedFile(file.name);
+    }
+    e.target.value = '';
+  };
+
+  const handlePhoneCall = () => {
+    setCallStatus('ringing');
+    setTimeout(() => setCallStatus('connected'), 1500);
+    setTimeout(() => {
+      setCallStatus('ended');
+      setTimeout(() => setCallStatus('none'), 2000);
+    }, 3000);
+  };
+
+  const handleVideoCall = () => {
+    setCallStatus('ringing');
+    setTimeout(() => setCallStatus('connected'), 1500);
+    setTimeout(() => {
+      setCallStatus('ended');
+      setTimeout(() => setCallStatus('none'), 2000);
+    }, 3000);
   };
 
   const sendMessage = async () => {
-    if (!newMsg.trim() || !selectedChat) return;
-    const msg: Message = { id: Date.now(), text: newMsg.trim(), fromMe: true, time: getNow() };
+    if (!newMsg.trim() && !attachedFile) return;
+    const text = attachedFile ? `${newMsg} 📎 ${attachedFile}` : newMsg.trim();
+    const msg: Message = { id: Date.now(), text, fromMe: true, time: getNow() };
 
-    const chat = chats[selectedChat];
+    const chat = chats[selectedChat!];
     const updatedMessages = [...chat.messages, msg];
     const updatedChats = {
       ...chats,
-      [selectedChat]: { ...chat, messages: updatedMessages, lastMsg: msg.text, time: msg.time },
+      [selectedChat!]: { ...chat, messages: updatedMessages, lastMsg: msg.text, time: msg.time },
     };
     setChats(updatedChats);
     setNewMsg('');
+    setAttachedFile(null);
 
     // AI reply
-    if (chat.isAI) {
+    if (chat.isAI && newMsg.trim()) {
       setAiTyping(true);
       try {
-        const aiResp = await askAI(msg.text, chat.systemPrompt);
+        const aiResp = await askAI(newMsg.trim(), chat.systemPrompt);
         const aiMsg: Message = { id: Date.now() + 1, text: aiResp.trim(), fromMe: false, time: getNow() };
         setChats(prev => ({
           ...prev,
-          [selectedChat]: {
-            ...prev[selectedChat],
-            messages: [...prev[selectedChat].messages, aiMsg],
+          [selectedChat!]: {
+            ...prev[selectedChat!],
+            messages: [...prev[selectedChat!].messages, aiMsg],
             lastMsg: aiMsg.text,
             time: aiMsg.time,
           },
@@ -183,7 +215,7 @@ export default function XamMessenger() {
         {selectedChat && chats[selectedChat] ? (
           <>
             {(() => {
-              const contact = chats[selectedChat];
+              const contact = chats[selectedChat!];
               return (
                 <div className="flex items-center justify-between px-4 py-2.5 border-b shrink-0" style={{ borderColor: isDark ? '#333' : '#e5e5e5' }}>
                   <div className="flex items-center gap-2.5">
@@ -194,26 +226,22 @@ export default function XamMessenger() {
                     </div>
                   </div>
                   <div className="flex items-center gap-1.5">
-                    {!osTasks.messenger_social_eng && (
-                      <button onClick={handleReportSuspicious} className="p-1.5 rounded-lg hover:bg-black/10 text-yellow-500" title="Это подозрительно!">
-                        <ShieldAlert className="w-3.5 h-3.5" />
-                      </button>
-                    )}
-                    {osTasks.messenger_social_eng && (
-                      <div className="flex items-center gap-1 px-1.5 py-1 rounded-lg" style={{ backgroundColor: 'rgba(34,197,94,0.15)' }}>
-                        <CheckCircle className="w-3 h-3 text-green-500" />
-                      </div>
-                    )}
-                    <button onClick={() => alert('Звонки пока недоступны в демо-режиме')} className="p-1.5 rounded-lg hover:bg-black/10"><Phone className="w-3.5 h-3.5" style={{ color: isDark ? '#aaa' : '#666' }} /></button>
-                    <button onClick={() => alert('Видеозвонки пока недоступны в демо-режиме')} className="p-1.5 rounded-lg hover:bg-black/10"><Video className="w-3.5 h-3.5" style={{ color: isDark ? '#aaa' : '#666' }} /></button>
-                    <button onClick={() => alert('Меню контакта')} className="p-1.5 rounded-lg hover:bg-black/10"><MoreVertical className="w-3.5 h-3.5" style={{ color: isDark ? '#aaa' : '#666' }} /></button>
+                    <button onClick={handlePhoneCall} className="p-1.5 rounded-lg hover:bg-black/10" title="Позвонить">
+                      <Phone className="w-3.5 h-3.5" style={{ color: isDark ? '#aaa' : '#666' }} />
+                    </button>
+                    <button onClick={handleVideoCall} className="p-1.5 rounded-lg hover:bg-black/10" title="Видеозвонок">
+                      <Video className="w-3.5 h-3.5" style={{ color: isDark ? '#aaa' : '#666' }} />
+                    </button>
+                    <button onClick={() => alert('Меню контакта')} className="p-1.5 rounded-lg hover:bg-black/10">
+                      <MoreVertical className="w-3.5 h-3.5" style={{ color: isDark ? '#aaa' : '#666' }} />
+                    </button>
                   </div>
                 </div>
               );
             })()}
 
             <div className="flex-1 overflow-y-auto p-3 space-y-2" style={{ backgroundColor: isDark ? '#121212' : '#fafafa' }}>
-              {chats[selectedChat].messages.map(msg => (
+              {chats[selectedChat!].messages.map(msg => (
                 <motion.div key={msg.id} initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }}
                   className={`flex ${msg.fromMe ? 'justify-end' : 'justify-start'}`}
                 >
@@ -242,21 +270,88 @@ export default function XamMessenger() {
               <div ref={messagesEndRef} />
             </div>
 
-            <div className="flex items-center gap-1.5 px-3 py-2 border-t shrink-0" style={{ backgroundColor: isDark ? '#1e1e1e' : '#fff', borderColor: isDark ? '#333' : '#e5e5e5' }}>
-              <button onClick={() => alert('Прикрепление файлов пока недоступно')} className="p-1.5 rounded-lg hover:bg-black/10"><Paperclip className="w-4 h-4" style={{ color: isDark ? '#888' : '#666' }} /></button>
+            {/* Call Status Banner */}
+            <AnimatePresence>
+              {callStatus !== 'none' && (
+                <motion.div
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: 10 }}
+                  className="flex items-center justify-center gap-2 py-2 text-xs font-medium"
+                  style={{ backgroundColor: callStatus === 'ended' ? 'rgba(34,197,94,0.15)' : 'rgba(124,58,237,0.15)' }}
+                >
+                  <PhoneCall className="w-3.5 h-3.5" style={{ color: callStatus === 'ended' ? '#22c55e' : '#7c3aed' }} />
+                  <span style={{ color: callStatus === 'ended' ? '#22c55e' : '#7c3aed' }}>
+                    {callStatus === 'ringing' && 'Звонок начат...'}
+                    {callStatus === 'connected' && 'Звонок начат...'}
+                    {callStatus === 'ended' && 'Звонок завершён'}
+                  </span>
+                </motion.div>
+              )}
+            </AnimatePresence>
+
+            {/* Attached file indicator */}
+            {attachedFile && (
+              <div className="flex items-center gap-2 px-3 py-1 text-xs" style={{ backgroundColor: isDark ? '#252525' : '#f0f0f0' }}>
+                <Paperclip className="w-3 h-3" style={{ color: isDark ? '#888' : '#666' }} />
+                <span style={{ color: isDark ? '#ccc' : '#333' }}>{attachedFile}</span>
+                <button onClick={() => setAttachedFile(null)} className="p-0.5 rounded hover:bg-black/10">
+                  <X className="w-3 h-3" style={{ color: isDark ? '#888' : '#666' }} />
+                </button>
+              </div>
+            )}
+
+            <div className="flex items-center gap-1.5 px-3 py-2 border-t shrink-0 relative" style={{ backgroundColor: isDark ? '#1e1e1e' : '#fff', borderColor: isDark ? '#333' : '#e5e5e5' }}>
+              <button onClick={() => fileInputRef.current?.click()} className="p-1.5 rounded-lg hover:bg-black/10" title="Прикрепить файл">
+                <Paperclip className="w-4 h-4" style={{ color: isDark ? '#888' : '#666' }} />
+              </button>
+              <input
+                ref={fileInputRef}
+                type="file"
+                className="hidden"
+                onChange={handleFileSelect}
+              />
               <input value={newMsg} onChange={e => setNewMsg(e.target.value)}
                 onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(); } }}
                 placeholder={T('osXamMsgPlaceholder')}
                 className="flex-1 px-3 py-1.5 rounded-full text-sm outline-none"
                 style={{ backgroundColor: isDark ? '#2a2a2a' : '#f0f0f0', color: isDark ? '#e0e0e0' : '#333' }}
               />
-              <button onClick={() => alert('Эмодзи пока недоступны')} className="p-1.5 rounded-lg hover:bg-black/10"><Smile className="w-4 h-4" style={{ color: isDark ? '#888' : '#666' }} /></button>
-              <button onClick={sendMessage} disabled={!newMsg.trim()}
+              <button onClick={() => setShowEmoji(!showEmoji)} className="p-1.5 rounded-lg hover:bg-black/10" title="Эмодзи">
+                <Smile className="w-4 h-4" style={{ color: isDark ? '#888' : '#666' }} />
+              </button>
+              <button onClick={sendMessage} disabled={!newMsg.trim() && !attachedFile}
                 className="p-2 rounded-full disabled:opacity-30 transition-all"
-                style={{ backgroundColor: newMsg.trim() ? '#7c3aed' : 'transparent' }}
+                style={{ backgroundColor: (newMsg.trim() || attachedFile) ? '#7c3aed' : 'transparent' }}
               >
                 <Send className="w-4 h-4 text-white" />
               </button>
+
+              {/* Emoji Picker */}
+              <AnimatePresence>
+                {showEmoji && (
+                  <motion.div
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: 10 }}
+                    className="absolute bottom-full right-4 mb-2 p-3 rounded-xl border shadow-xl grid grid-cols-5 gap-1 z-50"
+                    style={{ backgroundColor: isDark ? '#2a2a2a' : '#fff', borderColor: isDark ? '#444' : '#ddd' }}
+                  >
+                    {EMOJI_LIST.map(emoji => (
+                      <button key={emoji} onClick={() => handleEmojiClick(emoji)}
+                        className="w-8 h-8 flex items-center justify-center rounded hover:bg-black/10 text-base transition-colors"
+                      >
+                        {emoji}
+                      </button>
+                    ))}
+                    <button onClick={() => setShowEmoji(false)}
+                      className="absolute top-1 right-1 p-1 rounded hover:bg-black/10"
+                    >
+                      <X className="w-3 h-3" style={{ color: isDark ? '#888' : '#666' }} />
+                    </button>
+                  </motion.div>
+                )}
+              </AnimatePresence>
             </div>
           </>
         ) : (

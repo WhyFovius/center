@@ -83,17 +83,33 @@ export const useGS = create<GS>((set, get) => ({
   gp: 'explore', px: 550, py: 405, pdir: 'down', pmov: false,
   encTriggered: false, encStep: null, energy: 100, shield: 100,
   osTasks: {
+    // Mail
     mail_phishing: false,
-    browser_suspicious: false,
-    messenger_social_eng: false,
+    mail_payroll: false,
+    mail_ceo_fraud: false,
+    // Browser
+    browser_fake_site: false,
+    browser_safe: false,
+    // Messenger
+    messenger_password: false,
+    messenger_transfer: false,
+    messenger_link: false,
+    // Terminal
     terminal_scan: false,
     terminal_protect: false,
+    // Security
     security_scan: false,
     security_defense: false,
+    // WiFi
     wifi_vpn: false,
+    wifi_risky: false,
+    // Deepfake
+    deepfake_transfer: false,
     deepfake_callback: false,
+    // Settings
     settings_theme: false,
     settings_lang: false,
+    // Attack
     attack_emulator: false,
   },
 
@@ -246,13 +262,20 @@ export const useGS = create<GS>((set, get) => ({
     set({
       osTasks: {
         mail_phishing: false,
-        browser_suspicious: false,
-        messenger_social_eng: false,
+        mail_payroll: false,
+        mail_ceo_fraud: false,
+        browser_fake_site: false,
+        browser_safe: false,
+        messenger_password: false,
+        messenger_transfer: false,
+        messenger_link: false,
         terminal_scan: false,
         terminal_protect: false,
         security_scan: false,
         security_defense: false,
         wifi_vpn: false,
+        wifi_risky: false,
+        deepfake_transfer: false,
         deepfake_callback: false,
         settings_theme: false,
         settings_lang: false,

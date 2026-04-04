@@ -132,6 +132,14 @@ export default function ZeroMobile() {
                   </motion.p>
                 </div>
 
+                {/* Цент Инвест Logo */}
+                <div className="flex items-center justify-center gap-2 mb-6">
+                  <div className="w-7 h-7 rounded-full flex items-center justify-center text-[9px] font-bold text-white" style={{ backgroundColor: '#2d8b4d' }}>
+                    ЦИ
+                  </div>
+                  <span className="text-[11px] text-white/50 font-medium">Центр Инвест</span>
+                </div>
+
                 {/* App Grid */}
                 <div className="flex-1 px-8">
                   <div className="grid grid-cols-4 gap-y-6 gap-x-4">

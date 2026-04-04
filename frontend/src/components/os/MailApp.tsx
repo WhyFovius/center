@@ -1,10 +1,32 @@
 import { useState } from 'react';
 import { motion } from 'framer-motion';
-import { Inbox, Send, AlertTriangle, Shield, Mail, Star, Trash2, Archive, RefreshCw, Search, Reply, Forward, CheckCircle } from 'lucide-react';
+import { Inbox, Send, AlertTriangle, Shield, Mail, Star, Trash2, Archive, RefreshCw, Search, Reply, Forward, CheckCircle, Plus, X } from 'lucide-react';
 import { useGS } from '@/store/useGS';
 import { t } from '@/lib/i18n';
 
-const EMAILS: Record<string, Array<{ id: number; from: string; subject: string; preview: string; time: string; body: string; headers?: Record<string, string>; isPhishing?: boolean; read?: boolean }>> = {
+interface EmailData {
+  id: number;
+  from: string;
+  subject: string;
+  preview: string;
+  time: string;
+  body: string;
+  headers?: Record<string, string>;
+  isPhishing?: boolean;
+  read?: boolean;
+}
+
+interface ComposeData {
+  to: string;
+  subject: string;
+  body: string;
+  isReply: boolean;
+  replyTo?: EmailData;
+  isForward: boolean;
+  forwardFrom?: EmailData;
+}
+
+const INITIAL_EMAILS: Record<string, EmailData[]> = {
   inbox: [
     {
       id: 1, from: 'hr@company-mail.ru', subject: 'Срочно: подтвердите реквизиты до 10:00', time: '09:45',
@@ -67,21 +89,27 @@ export default function MailApp() {
     { id: 'trash', label: T('osMailTrash'), icon: Trash2 },
   ];
 
+  const [emails, setEmails] = useState(INITIAL_EMAILS);
   const [selectedFolder, setSelectedFolder] = useState('inbox');
   const [selectedEmail, setSelectedEmail] = useState<number | null>(null);
   const [showHeaders, setShowHeaders] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
+  const [showCompose, setShowCompose] = useState(false);
+  const [composeData, setComposeData] = useState<ComposeData>({ to: '', subject: '', body: '', isReply: false, isForward: false });
 
-  const emails = EMAILS[selectedFolder] || [];
-  const email = emails.find(e => e.id === selectedEmail);
+  const emailsList = emails[selectedFolder] || [];
+  const email = emailsList.find(e => e.id === selectedEmail);
 
   const filteredEmails = searchQuery
-    ? emails.filter(e => e.subject.toLowerCase().includes(searchQuery.toLowerCase()) || e.from.toLowerCase().includes(searchQuery.toLowerCase()))
-    : emails;
+    ? emailsList.filter(e => e.subject.toLowerCase().includes(searchQuery.toLowerCase()) || e.from.toLowerCase().includes(searchQuery.toLowerCase()))
+    : emailsList;
 
   const handleReportSOC = () => {
     if (email?.isPhishing) {
       completeTask('mail_phishing');
+      if (email.subject.includes('реквизиты') || email.subject.includes('зарплат')) {
+        completeTask('mail_payroll');
+      }
     }
     alert('Жалоба отправлена в SOC. Письмо будет проанализировано.');
   };
@@ -92,11 +120,57 @@ export default function MailApp() {
   };
 
   const handleReply = () => {
-    alert('Функция ответа будет добавлена');
+    if (!email) return;
+    setComposeData({
+      to: email.from,
+      subject: `Re: ${email.subject}`,
+      body: `\n\n--- Original Message ---\nFrom: ${email.from}\n${email.body}`,
+      isReply: true,
+      replyTo: email,
+      isForward: false,
+    });
+    setShowCompose(true);
   };
 
   const handleForward = () => {
-    alert('Функция пересылки будет добавлена');
+    if (!email) return;
+    setComposeData({
+      to: '',
+      subject: `Fwd: ${email.subject}`,
+      body: `\n\n--- Forwarded Message ---\nFrom: ${email.from}\n${email.body}`,
+      isReply: false,
+      isForward: true,
+      forwardFrom: email,
+    });
+    setShowCompose(true);
+  };
+
+  const handleNewCompose = () => {
+    setComposeData({ to: '', subject: '', body: '', isReply: false, isForward: false });
+    setShowCompose(true);
+  };
+
+  const handleSendEmail = () => {
+    if (!composeData.to || !composeData.subject) {
+      alert('Заполните поля "Кому" и "Тема"');
+      return;
+    }
+    const newEmail: EmailData = {
+      id: Date.now(),
+      from: 'me@company.ru',
+      subject: composeData.subject,
+      preview: composeData.body.slice(0, 80) + '...',
+      time: new Date().toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' }),
+      body: composeData.body,
+      headers: { 'SPF': 'PASS', 'DKIM': 'pass', 'From': 'me@company.ru' },
+    };
+    setEmails(prev => ({
+      ...prev,
+      sent: [newEmail, ...(prev.sent || [])],
+    }));
+    setShowCompose(false);
+    setComposeData({ to: '', subject: '', body: '', isReply: false, isForward: false });
+    alert('Письмо отправлено!');
   };
 
   return (
@@ -105,10 +179,19 @@ export default function MailApp() {
       <div className="w-48 border-r flex flex-col shrink-0" style={{ borderColor: 'var(--color-border)' }}>
         <div className="px-3 py-3 border-b" style={{ borderColor: 'var(--color-border)' }}>
           <div className="flex items-center gap-2">
-            <Mail className="w-5 h-5" style={{ color: 'var(--color-text)' }} />
+            <div className="w-6 h-6 rounded-full flex items-center justify-center text-[9px] font-bold text-white" style={{ backgroundColor: '#2d8b4d' }}>
+              ЦИ
+            </div>
             <span className="text-sm font-bold" style={{ color: 'var(--color-text)' }}>{T('osMail')}</span>
           </div>
         </div>
+
+        <button onClick={handleNewCompose}
+          className="mx-2 mt-2 flex items-center justify-center gap-1 px-3 py-2 rounded-lg text-xs font-medium text-white"
+          style={{ backgroundColor: '#3fb950' }}
+        >
+          <Plus className="w-3.5 h-3.5" /> {T('osMailCompose')}
+        </button>
 
         <div className="flex-1 overflow-y-auto py-2">
           {FOLDERS.map(folder => {
@@ -266,7 +349,7 @@ export default function MailApp() {
                     <AlertTriangle className="w-4 h-4 text-red-500" />
                     <span className="text-sm font-bold text-red-500">{T('osMailSuspicious')}</span>
                   </div>
-                  {osTasks.mail_phishing && (
+                  {(osTasks.mail_phishing || osTasks.mail_payroll) && (
                     <div className="flex items-center gap-1 text-green-500">
                       <CheckCircle className="w-4 h-4" />
                       <span className="text-xs font-medium">{T('osTasksCompleted')}</span>
@@ -292,6 +375,18 @@ export default function MailApp() {
                 </div>
               </div>
             )}
+
+            {/* Actions for non-phishing emails */}
+            {!email.isPhishing && (
+              <div className="mt-6 flex gap-2 flex-wrap">
+                <button onClick={handleReply} className="px-3 py-1.5 rounded-lg text-xs font-medium border border-gray-300 hover:bg-gray-50 transition-colors flex items-center gap-1">
+                  <Reply className="w-3 h-3" /> Reply
+                </button>
+                <button onClick={handleForward} className="px-3 py-1.5 rounded-lg text-xs font-medium border border-gray-300 hover:bg-gray-50 transition-colors flex items-center gap-1">
+                  <Forward className="w-3 h-3" /> Forward
+                </button>
+              </div>
+            )}
           </div>
         ) : (
           <div className="flex items-center justify-center h-full">
@@ -302,6 +397,64 @@ export default function MailApp() {
           </div>
         )}
       </div>
+
+      {/* Compose Modal */}
+      {showCompose && (
+        <div className="fixed inset-0 z-[200] flex items-center justify-center bg-black/50 backdrop-blur-sm" onClick={() => setShowCompose(false)}>
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            className="w-full max-w-lg bg-surface border border-border rounded-2xl shadow-2xl overflow-hidden"
+            onClick={e => e.stopPropagation()}
+          >
+            <div className="flex items-center justify-between px-4 py-3 border-b" style={{ borderColor: 'var(--color-border)' }}>
+              <h3 className="text-sm font-bold" style={{ color: 'var(--color-text)' }}>
+                {composeData.isReply ? 'Reply' : composeData.isForward ? 'Forward' : T('osMailCompose')}
+              </h3>
+              <button onClick={() => setShowCompose(false)} className="p-1 rounded hover:bg-black/10">
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+            <div className="p-4 space-y-3">
+              <div>
+                <label className="text-xs font-medium" style={{ color: 'var(--color-text-secondary)' }}>Кому:</label>
+                <input
+                  value={composeData.to}
+                  onChange={e => setComposeData(prev => ({ ...prev, to: e.target.value }))}
+                  className="w-full mt-1 px-3 py-2 rounded-lg text-sm outline-none"
+                  style={{ backgroundColor: 'var(--color-bg)', border: '1px solid var(--color-border)', color: 'var(--color-text)' }}
+                  placeholder="recipient@company.ru"
+                />
+              </div>
+              <div>
+                <label className="text-xs font-medium" style={{ color: 'var(--color-text-secondary)' }}>Тема:</label>
+                <input
+                  value={composeData.subject}
+                  onChange={e => setComposeData(prev => ({ ...prev, subject: e.target.value }))}
+                  className="w-full mt-1 px-3 py-2 rounded-lg text-sm outline-none"
+                  style={{ backgroundColor: 'var(--color-bg)', border: '1px solid var(--color-border)', color: 'var(--color-text)' }}
+                />
+              </div>
+              <div>
+                <label className="text-xs font-medium" style={{ color: 'var(--color-text-secondary)' }}>Текст:</label>
+                <textarea
+                  value={composeData.body}
+                  onChange={e => setComposeData(prev => ({ ...prev, body: e.target.value }))}
+                  className="w-full mt-1 px-3 py-2 rounded-lg text-sm outline-none resize-none"
+                  style={{ backgroundColor: 'var(--color-bg)', border: '1px solid var(--color-border)', color: 'var(--color-text)', minHeight: '150px' }}
+                />
+              </div>
+              <button
+                onClick={handleSendEmail}
+                className="w-full py-2.5 rounded-lg text-sm font-bold text-white flex items-center justify-center gap-2"
+                style={{ backgroundColor: '#3fb950' }}
+              >
+                <Send className="w-4 h-4" /> Отправить
+              </button>
+            </div>
+          </motion.div>
+        </div>
+      )}
     </div>
   );
 }

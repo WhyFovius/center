@@ -34,7 +34,7 @@ interface OpenWindow {
 }
 
 const API_KEY = import.meta.env.VITE_OPENROUTER_API_KEY || '';
-const API_MODEL = import.meta.env.VITE_OPENROUTER_MODEL || 'qwen/qwen3-coder-plus:free';
+const API_MODEL = import.meta.env.VITE_OPENROUTER_MODEL || 'qwen/qwen3-coder-plus';
 
 export async function askAI(prompt: string, systemPrompt?: string): Promise<string> {
   if (!API_KEY) {
@@ -59,6 +59,9 @@ export async function askAI(prompt: string, systemPrompt?: string): Promise<stri
         temperature: 0.7,
       }),
     });
+    if (resp.status === 401) {
+      return 'AI временно недоступен. Обновите API ключ в настройках.';
+    }
     const data = await resp.json();
     return data.choices?.[0]?.message?.content || 'Не удалось получить ответ.';
   } catch {
@@ -81,6 +84,9 @@ export default function DesktopOS() {
     { id: 'files', label: T('osFiles'), icon: <FolderOpen className="w-4 h-4" /> },
     { id: 'terminal', label: T('osTerminal'), icon: <Terminal className="w-4 h-4" /> },
     { id: 'security', label: T('osSecurity'), icon: <Shield className="w-4 h-4" /> },
+  ];
+
+  const DESKTOP_ONLY_APPS = [
     { id: 'settings', label: T('osSettings'), icon: <Settings className="w-4 h-4" /> },
   ];
 
@@ -143,7 +149,7 @@ export default function DesktopOS() {
       return;
     }
 
-    const app = APPS.find(a => a.id === appId);
+    const app = APPS.find(a => a.id === appId) || DESKTOP_ONLY_APPS.find(a => a.id === appId);
     if (!app) return;
 
     const titles: Record<string, string> = {
@@ -258,6 +264,26 @@ export default function DesktopOS() {
                 <span className="text-[10px] text-white/90 text-center leading-tight drop-shadow-lg">{app.label}</span>
               </motion.button>
             ))}
+            {/* Desktop-only apps */}
+            {DESKTOP_ONLY_APPS.map(app => (
+              <motion.button key={app.id} whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}
+                onClick={() => handleOpenApp(app.id)}
+                className="flex flex-col items-center gap-1 p-2 rounded-lg hover:bg-white/10 active:bg-white/20 transition-colors w-20 group cursor-pointer"
+              >
+                <div className="w-11 h-11 rounded-xl flex items-center justify-center bg-white/10 backdrop-blur-sm group-hover:bg-white/20 transition-colors shadow-lg">
+                  {app.icon}
+                </div>
+                <span className="text-[10px] text-white/90 text-center leading-tight drop-shadow-lg">{app.label}</span>
+              </motion.button>
+            ))}
+          </div>
+
+          {/* Центр Инвест Logo — bottom right */}
+          <div className="absolute bottom-4 right-4 flex items-center gap-2 opacity-60">
+            <div className="w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold text-white" style={{ backgroundColor: '#2d8b4d' }}>
+              ЦИ
+            </div>
+            <span className="text-[10px] text-white/70 font-medium">Центр Инвест</span>
           </div>
         </div>
 
@@ -335,12 +361,6 @@ export default function DesktopOS() {
               >
                 <span className="text-text-secondary"><Monitor className="w-4 h-4" /></span>
                 <span>{T('osCorporate')}</span>
-              </button>
-              <button onClick={() => handleOpenApp('settings')}
-                className="w-full flex items-center gap-2.5 px-2.5 py-2 rounded hover:bg-surface-active transition-colors text-sm"
-              >
-                <span className="text-text-secondary"><Settings className="w-4 h-4" /></span>
-                <span>{T('osSettings')}</span>
               </button>
             </div>
 
@@ -513,13 +533,20 @@ export default function DesktopOS() {
                   <div className="space-y-1 max-h-48 overflow-y-auto mb-3">
                     {[
                       { id: 'mail_phishing', label: T('osTaskMail') },
-                      { id: 'browser_suspicious', label: T('osTaskBrowser') },
-                      { id: 'messenger_social_eng', label: T('osTaskMessenger') },
+                      { id: 'mail_payroll', label: T('osTaskMailPayroll') },
+                      { id: 'mail_ceo_fraud', label: T('osTaskMailCeo') },
+                      { id: 'browser_fake_site', label: T('osTaskBrowserFake') },
+                      { id: 'browser_safe', label: T('osTaskBrowserSafe') },
+                      { id: 'messenger_password', label: T('osTaskMessengerPassword') },
+                      { id: 'messenger_transfer', label: T('osTaskMessengerTransfer') },
+                      { id: 'messenger_link', label: T('osTaskMessengerLink') },
                       { id: 'terminal_scan', label: T('osTaskTerminalScan') },
                       { id: 'terminal_protect', label: T('osTaskTerminalProtect') },
                       { id: 'security_scan', label: T('osTaskSecurityScan') },
                       { id: 'security_defense', label: T('osTaskSecurityDefense') },
                       { id: 'wifi_vpn', label: T('osTaskWifi') },
+                      { id: 'wifi_risky', label: T('osTaskWifiRisky') },
+                      { id: 'deepfake_transfer', label: T('osTaskDeepfakeTransfer') },
                       { id: 'deepfake_callback', label: T('osTaskDeepfake') },
                       { id: 'settings_theme', label: T('osTaskTheme') },
                       { id: 'settings_lang', label: T('osTaskLang') },

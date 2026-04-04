@@ -50,11 +50,10 @@ export default function WifiSimulator({ onComplete }: { onComplete?: (safe: bool
     setChoice(c);
     if (c === 'secure') {
       completeTask('wifi_vpn');
-    }
-    if (c === 'secure') {
       setPhase('attack');
       startAttack(true);
     } else {
+      completeTask('wifi_risky');
       setPhase('attack');
       startAttack(false);
     }
