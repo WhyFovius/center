@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Sparkles, Loader2, AlertTriangle, Send, Globe } from 'lucide-react';
 import { useGS } from '@/store/useGS';
+import { t } from '@/lib/i18n';
 import { Button } from '@/components/ui/button';
 
 const TOPICS = [
@@ -12,9 +13,9 @@ const TOPICS = [
 ];
 
 const DIFFICULTIES = [
-  { value: 'easy', label: 'Лёгкий' },
-  { value: 'medium', label: 'Средний' },
-  { value: 'hard', label: 'Сложный' },
+  { value: 'easy', label: 'aiEasy' },
+  { value: 'medium', label: 'aiMedium' },
+  { value: 'hard', label: 'aiHard' },
 ];
 
 export function AIGenerator() {
@@ -26,21 +27,22 @@ export function AIGenerator() {
   const [customTopic, setCustomTopic] = useState('');
 
   const lang = useGS(s => s.lang);
+  const T = (key: string) => t(lang, key);
 
   const handleGenerate = async () => {
-    const t = customTopic || topic;
-    if (!t) return;
+    const tVal = customTopic || topic;
+    if (!tVal) return;
     setLoading(true); setError(''); setGenerated(null);
     try {
       const token = localStorage.getItem('zd_token');
       const resp = await fetch('/api/v1/ai/generate-scenario', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
-        body: JSON.stringify({ topic: t, difficulty, language: lang }),
+        body: JSON.stringify({ topic: tVal, difficulty, language: lang }),
       });
       if (!resp.ok) {
         const e = await resp.json();
-        throw new Error(e.detail || 'Ошибка генерации');
+        throw new Error(e.detail || T('aiError'));
       }
       const data = await resp.json();
       setGenerated(data.scenario);
@@ -55,35 +57,33 @@ export function AIGenerator() {
     <div className="bg-surface border border-border rounded-xl p-5">
       <div className="flex items-center gap-2 mb-4">
         <Sparkles className="w-5 h-5 text-accent" />
-        <h3 className="text-base font-bold text-text">AI-генератор сценариев</h3>
+        <h3 className="text-base font-bold text-text">{T('aiTitle')}</h3>
       </div>
 
       <div className="space-y-3">
-        {/* Topic selection */}
         <div>
-          <label className="text-xs font-semibold text-text-secondary mb-1.5 block">Тема</label>
+          <label className="text-xs font-semibold text-text-secondary mb-1.5 block">{T('aiTopic')}</label>
           <div className="flex flex-wrap gap-1.5 mb-2">
-            {TOPICS.map(t => (
-              <button key={t} onClick={() => { setTopic(t); setCustomTopic(''); }}
+            {TOPICS.map(tVal => (
+              <button key={tVal} onClick={() => { setTopic(tVal); setCustomTopic(''); }}
                 className={`px-2.5 py-1 rounded-full text-xs border transition-all ${
-                  topic === t && !customTopic
+                  topic === tVal && !customTopic
                     ? 'border-primary bg-primary-container text-on-primary-container'
                     : 'border-border text-text-muted hover:text-text hover:bg-bg-secondary'
-                }`}>{t}</button>
+                }`}>{tVal}</button>
             ))}
           </div>
           <input
             type="text"
             value={customTopic}
             onChange={e => { setCustomTopic(e.target.value); setTopic(''); }}
-            placeholder="Или введите свою тему..."
+            placeholder={T('aiCustomTopicPlaceholder')}
             className="w-full px-3 py-2 bg-bg-secondary border border-border rounded-lg text-sm text-text placeholder:text-text-muted focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary"
           />
         </div>
 
-        {/* Difficulty */}
         <div>
-          <label className="text-xs font-semibold text-text-secondary mb-1.5 block">Сложность</label>
+          <label className="text-xs font-semibold text-text-secondary mb-1.5 block">{T('aiDifficulty')}</label>
           <div className="flex gap-1">
             {DIFFICULTIES.map(d => (
               <button key={d.value} onClick={() => setDifficulty(d.value)}
@@ -91,14 +91,14 @@ export function AIGenerator() {
                   difficulty === d.value
                     ? 'border-primary bg-primary-container text-on-primary-container'
                     : 'border-border text-text-muted hover:text-text'
-                }`}>{d.label}</button>
+                }`}>{T(d.label)}</button>
             ))}
           </div>
         </div>
 
         <Button onClick={handleGenerate} disabled={loading || (!topic && !customTopic)} className="w-full">
           {loading ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <Send className="w-4 h-4 mr-2" />}
-          {loading ? 'Генерация...' : 'Сгенерировать сценарий'}
+          {loading ? T('aiGenerating') : T('aiGenerate')}
         </Button>
 
         <AnimatePresence>

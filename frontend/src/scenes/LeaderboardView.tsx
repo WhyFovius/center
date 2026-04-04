@@ -1,11 +1,17 @@
 import { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
-import { Loader2, Trophy, User, Crown, Medal, Sparkles } from 'lucide-react';
+import { Loader2, Trophy, User, Crown, Medal, Sparkles, ArrowLeft, Zap } from 'lucide-react';
 import { useGS } from '@/store/useGS';
+import { t } from '@/lib/i18n';
 import { api } from '@/lib/api';
+import SkyToggle from '@/components/ui/sky-toggle';
 
 export default function LeaderboardView() {
+  const lang = useGS(s => s.lang);
+  const T = (key: string) => t(lang, key);
   const setScreen = useGS(s => s.setScreen);
+  const theme = useGS(s => s.theme);
+  const isDark = theme === 'dark';
   const [entries, setEntries] = useState<any[]>([]);
   const [lbLoading, setLbLoading] = useState(true);
 
@@ -13,141 +19,114 @@ export default function LeaderboardView() {
     api.lb.get().then(r => { setEntries(r.entries || []); setLbLoading(false); }).catch(() => setLbLoading(false));
   }, []);
 
-  const leagueFallback = 'Новичок';
-  const leagueColors: Record<string, string> = {
-    [leagueFallback]: '#9ca3af',
-    'Аналитик': '#60a5fa',
-    'Охотник за угрозами': '#a78bfa',
-    'Эксперт': '#fbbf24',
+  const leagueFallback = T('leagueNovice');
+
+  const leagueMeta: Record<string, { color: string; bg: string; border: string; icon: string }> = {
+    [T('leagueNovice')]: { color: isDark ? '#9ca3af' : '#6b7280', bg: isDark ? 'rgba(156,163,175,0.12)' : 'rgba(107,114,128,0.1)', border: isDark ? 'rgba(156,163,175,0.25)' : 'rgba(107,114,128,0.2)', icon: '🌱' },
+    [T('leagueAnalyst')]: { color: isDark ? '#60a5fa' : '#2563eb', bg: isDark ? 'rgba(96,165,250,0.12)' : 'rgba(37,99,235,0.1)', border: isDark ? 'rgba(96,165,250,0.25)' : 'rgba(37,99,235,0.2)', icon: '🔍' },
+    [T('leagueThreatHunter')]: { color: isDark ? '#a78bfa' : '#7c3aed', bg: isDark ? 'rgba(167,139,250,0.12)' : 'rgba(124,58,237,0.1)', border: isDark ? 'rgba(167,139,250,0.25)' : 'rgba(124,58,237,0.2)', icon: '🎯' },
+    [T('leagueExpert')]: { color: isDark ? '#fbbf24' : '#d97706', bg: isDark ? 'rgba(251,191,36,0.12)' : 'rgba(217,119,6,0.1)', border: isDark ? 'rgba(251,191,36,0.25)' : 'rgba(217,119,6,0.2)', icon: '👑' },
   };
 
-  const podium = entries.slice(0, 3).map((entry, index) => ({ ...entry, podiumPlace: index + 1 }));
-  const others = entries.slice(3);
-
-  const getPodiumStyle = (place: number) => {
-    if (place === 1) {
-      return {
-        title: 'Чемпион',
-        icon: <Crown className="w-5 h-5 text-[#f3c74d]" />,
-        card: 'border-[#d3a53f] bg-gradient-to-br from-[#fff8df] via-[#ffefbf] to-[#f5dea0]',
-        glow: 'rgba(211, 165, 63, 0.45)',
-      };
-    }
-
-    if (place === 2) {
-      return {
-        title: 'Серебро',
-        icon: <Medal className="w-5 h-5 text-[#8ea0b8]" />,
-        card: 'border-[#b8c4d4] bg-gradient-to-br from-[#f5f8fd] via-[#ebf0f7] to-[#dfe7f2]',
-        glow: 'rgba(162, 180, 204, 0.4)',
-      };
-    }
-
-    return {
-      title: 'Медь',
-      icon: <Medal className="w-5 h-5 text-[#b86b3c]" />,
-      card: 'border-[#c67f52] bg-gradient-to-br from-[#f8e0d3] via-[#efc2a9] to-[#d79a76]',
-      glow: 'rgba(198, 127, 82, 0.38)',
-    };
+  const getLeagueStyle = (league: string) => {
+    return leagueMeta[league] || leagueMeta[leagueFallback];
   };
+
+  const topThree = entries.slice(0, 3);
+  const restEntries = entries.slice(3);
 
   return (
-    <div
-      className="relative h-full flex flex-col overflow-hidden"
-      style={{
-        background:
-          'radial-gradient(1000px 520px at 12% -10%, rgba(211,165,63,0.34), transparent 62%), radial-gradient(820px 460px at 88% 0%, rgba(45,139,77,0.22), transparent 58%), linear-gradient(180deg, #fcf8ea 0%, #f6efdd 48%, #efe6d1 100%)',
-      }}
-    >
-      <div
-        className="pointer-events-none absolute inset-0 opacity-30"
-        style={{
-          backgroundImage:
-            'linear-gradient(rgba(205,191,157,0.28) 1px, transparent 1px), linear-gradient(90deg, rgba(205,191,157,0.28) 1px, transparent 1px)',
-          backgroundSize: '34px 34px',
-        }}
-      />
-      <div className="pointer-events-none absolute -top-24 left-1/2 h-60 w-60 -translate-x-1/2 rounded-full bg-[#f4d98c]/45 blur-3xl" />
-
-      <header className="relative flex items-center gap-3 px-6 py-3 border-b border-[#d7c292] bg-white/70 backdrop-blur-md">
-        <button onClick={() => setScreen('menu')} className="text-sm text-text-secondary hover:text-text transition-colors">← Назад</button>
-        <h1 className="text-base font-bold text-text flex items-center gap-2"><Trophy className="w-5 h-5 text-[#b88217]" />Лидерборд</h1>
+    <div className="h-full flex flex-col bg-bg overflow-hidden">
+      {/* Header */}
+      <header className="flex items-center justify-between px-6 py-4 border-b border-border bg-surface/95 backdrop-blur-md shrink-0">
+        <div className="flex items-center gap-4">
+          <button
+            onClick={() => setScreen('menu')}
+            className="inline-flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium text-text-secondary hover:text-text hover:bg-bg-secondary transition-all"
+          >
+            <ArrowLeft className="w-5 h-5" />
+            {T('back')}
+          </button>
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-xl bg-accent/10 flex items-center justify-center">
+              <Trophy className="w-6 h-6 text-accent" />
+            </div>
+            <div>
+              <h1 className="text-lg font-extrabold text-text tracking-tight">{T('leaderboard')}</h1>
+              <p className="text-xs text-text-muted">{T('lbHallOfFame')}</p>
+            </div>
+          </div>
+        </div>
+        <SkyToggle />
       </header>
 
-      <div className="relative flex-1 overflow-y-auto p-4 md:p-6">
-        <div className="max-w-4xl mx-auto">
+      {/* Content */}
+      <div className="flex-1 overflow-y-auto">
+        <div className="max-w-4xl mx-auto p-6">
           {lbLoading ? (
-            <div className="flex items-center justify-center py-20"><Loader2 className="w-8 h-8 text-primary animate-spin" /></div>
+            <div className="flex flex-col items-center justify-center py-32">
+              <Loader2 className="w-10 h-10 text-primary animate-spin mb-4" />
+              <p className="text-sm text-text-muted">{T('lbLoading')}</p>
+            </div>
           ) : entries.length === 0 ? (
-            <div className="text-center py-20 text-text-muted">Нет данных</div>
+            <div className="flex flex-col items-center justify-center py-32">
+              <Trophy className="w-16 h-16 text-text-muted/30 mb-4" />
+              <p className="text-lg font-semibold text-text">{T('lbNoData')}</p>
+              <p className="text-sm text-text-muted mt-1">{T('lbNoDataDesc')}</p>
+            </div>
           ) : (
-            <div className="space-y-4">
-              <div className="rounded-2xl border border-[#d8c79a] bg-white/75 backdrop-blur-md p-4 md:p-5 shadow-[0_16px_50px_-36px_rgba(90,64,0,0.5)]">
-                <p className="text-[11px] tracking-[0.24em] uppercase text-text-secondary mb-1 flex items-center gap-1.5">
-                  <Sparkles className="w-3.5 h-3.5 text-[#b88217]" />
-                  Зал славы
-                </p>
-                <h2 className="text-xl md:text-2xl font-bold text-text">Лучшие игроки</h2>
-              </div>
+            <div className="space-y-6">
+              {/* Podium */}
+              {topThree.length > 0 && <PodiumSection entries={topThree} getLeagueStyle={getLeagueStyle} T={T} isDark={isDark} />}
 
-              <div className="space-y-3">
-                {podium[0] ? (
-                  <PodiumCard
-                    entry={podium[0]}
-                    leagueColors={leagueColors}
-                    leagueFallback={leagueFallback}
-                    styleMeta={getPodiumStyle(1)}
-                    isChampion
-                  />
-                ) : null}
-
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                  {podium[1] ? (
-                    <PodiumCard
-                      entry={podium[1]}
-                      leagueColors={leagueColors}
-                      leagueFallback={leagueFallback}
-                      styleMeta={getPodiumStyle(2)}
-                    />
-                  ) : null}
-
-                  {podium[2] ? (
-                    <PodiumCard
-                      entry={podium[2]}
-                      leagueColors={leagueColors}
-                      leagueFallback={leagueFallback}
-                      styleMeta={getPodiumStyle(3)}
-                    />
-                  ) : null}
-                </div>
-              </div>
-
-              {others.length > 0 ? (
-                <div className="space-y-2 pt-1">
-                  {others.map((e: any) => (
-                    <div key={e.user_id} className="flex items-center gap-4 p-4 bg-white/80 backdrop-blur-sm border border-[#d9cfb5] rounded-xl shadow-[0_14px_34px_-26px_rgba(60,40,0,0.45)]">
-                      <span className="text-base font-bold text-text-muted w-8 text-center">#{e.rank}</span>
-                      <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center"><User className="w-5 h-5 text-primary" /></div>
-                      <div className="flex-1 min-w-0">
-                        <p className="text-sm font-semibold text-text truncate">{e.full_name || e.username}</p>
-                        <p className="text-xs text-text-muted truncate">@{e.username}</p>
-                      </div>
-                      <div className="text-right">
-                        <p className="text-sm font-bold text-text">{e.reputation} реп.</p>
-                        <span
-                          className="text-xs px-2 py-0.5 rounded-full"
-                          style={{
-                            background: (leagueColors[e.league || leagueFallback] || '#9ca3af') + '20',
-                            color: leagueColors[e.league || leagueFallback] || '#9ca3af',
-                          }}
+              {/* Rest of the leaderboard */}
+              {restEntries.length > 0 && (
+                <div className="space-y-2">
+                  {restEntries.map((entry: any, index: number) => {
+                    const leagueStyle = getLeagueStyle(entry.league || leagueFallback);
+                    return (
+                      <motion.div
+                        key={entry.user_id}
+                        initial={{ opacity: 0, x: -16 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        transition={{ delay: index * 0.04 }}
+                        className="flex items-center gap-4 p-4 rounded-2xl bg-surface border border-border hover:border-border-strong transition-all duration-200 group"
+                      >
+                        <span className="text-base font-bold text-text-muted w-10 text-center">#{entry.rank}</span>
+                        <div
+                          className="w-11 h-11 rounded-xl flex items-center justify-center text-lg"
+                          style={{ backgroundColor: leagueStyle.bg }}
                         >
-                          {e.league || leagueFallback}
-                        </span>
-                      </div>
-                    </div>
-                  ))}
+                          <User className="w-5 h-5" style={{ color: leagueStyle.color }} />
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="text-base font-semibold text-text truncate">{entry.full_name || entry.username}</p>
+                          <p className="text-xs text-text-muted truncate">@{entry.username}</p>
+                        </div>
+                        <div className="flex items-center gap-4">
+                          <div className="text-right">
+                            <div className="flex items-center gap-1.5">
+                              <Zap className="w-4 h-4 text-accent" />
+                              <p className="text-base font-bold text-text">{entry.reputation}</p>
+                            </div>
+                            <p className="text-xs text-text-muted">{T('lbRep')}</p>
+                          </div>
+                          <span
+                            className="px-3 py-1.5 rounded-full text-xs font-semibold border"
+                            style={{
+                              backgroundColor: leagueStyle.bg,
+                              color: leagueStyle.color,
+                              borderColor: leagueStyle.border,
+                            }}
+                          >
+                            {leagueStyle.icon} {entry.league || leagueFallback}
+                          </span>
+                        </div>
+                      </motion.div>
+                    );
+                  })}
                 </div>
-              ) : null}
+              )}
             </div>
           )}
         </div>
@@ -156,59 +135,160 @@ export default function LeaderboardView() {
   );
 }
 
+function PodiumSection({
+  entries,
+  getLeagueStyle,
+  T,
+  isDark,
+}: {
+  entries: any[];
+  getLeagueStyle: (league: string) => { color: string; bg: string; border: string; icon: string };
+  T: (key: string) => string;
+  isDark: boolean;
+}) {
+  const first = entries[0] || null;
+  const second = entries[1] || null;
+  const third = entries[2] || null;
+
+  const podiumStyles = [
+    {
+      title: T('lbChampion'),
+      icon: <Crown className="w-6 h-6" />,
+      iconColor: '#fbbf24',
+      gradient: isDark
+        ? 'linear-gradient(135deg, rgba(251,191,36,0.15), rgba(251,191,36,0.05))'
+        : 'linear-gradient(135deg, rgba(251,191,36,0.2), rgba(251,191,36,0.08))',
+      border: isDark ? 'rgba(251,191,36,0.3)' : 'rgba(217,169,18,0.3)',
+      glow: isDark ? 'rgba(251,191,36,0.15)' : 'rgba(251,191,36,0.2)',
+      avatarSize: 'w-16 h-16',
+      textSize: 'text-xl',
+    },
+    {
+      title: T('lbSilver'),
+      icon: <Medal className="w-5 h-5" />,
+      iconColor: isDark ? '#94a3b8' : '#64748b',
+      gradient: isDark
+        ? 'linear-gradient(135deg, rgba(148,163,184,0.12), rgba(148,163,184,0.04))'
+        : 'linear-gradient(135deg, rgba(148,163,184,0.15), rgba(148,163,184,0.06))',
+      border: isDark ? 'rgba(148,163,184,0.25)' : 'rgba(100,116,139,0.2)',
+      glow: isDark ? 'rgba(148,163,184,0.1)' : 'rgba(148,163,184,0.15)',
+      avatarSize: 'w-14 h-14',
+      textSize: 'text-lg',
+    },
+    {
+      title: T('lbBronze'),
+      icon: <Medal className="w-5 h-5" />,
+      iconColor: isDark ? '#d97706' : '#b45309',
+      gradient: isDark
+        ? 'linear-gradient(135deg, rgba(217,119,6,0.12), rgba(217,119,6,0.04))'
+        : 'linear-gradient(135deg, rgba(217,119,6,0.15), rgba(217,119,6,0.06))',
+      border: isDark ? 'rgba(217,119,6,0.25)' : 'rgba(180,83,9,0.2)',
+      glow: isDark ? 'rgba(217,119,6,0.1)' : 'rgba(217,119,6,0.15)',
+      avatarSize: 'w-14 h-14',
+      textSize: 'text-lg',
+    },
+  ];
+
+  return (
+    <div className="space-y-4">
+      {/* Champion - full width */}
+      {first && (
+        <PodiumCard entry={first} style={podiumStyles[0]} getLeagueStyle={getLeagueStyle} T={T} />
+      )}
+
+      {/* Silver & Bronze - side by side */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        {second && <PodiumCard entry={second} style={podiumStyles[1]} getLeagueStyle={getLeagueStyle} T={T} />}
+        {third && <PodiumCard entry={third} style={podiumStyles[2]} getLeagueStyle={getLeagueStyle} T={T} />}
+      </div>
+    </div>
+  );
+}
+
 function PodiumCard({
   entry,
-  leagueColors,
-  leagueFallback,
-  styleMeta,
-  isChampion = false,
+  style,
+  getLeagueStyle,
+  T,
 }: {
   entry: any;
-  leagueColors: Record<string, string>;
-  leagueFallback: string;
-  styleMeta: { title: string; icon: any; card: string; glow: string };
-  isChampion?: boolean;
+  style: {
+    title: string;
+    icon: React.ReactNode;
+    iconColor: string;
+    gradient: string;
+    border: string;
+    glow: string;
+    avatarSize: string;
+    textSize: string;
+  };
+  getLeagueStyle: (league: string) => { color: string; bg: string; border: string; icon: string };
+  T: (key: string) => string;
 }) {
+  const leagueStyle = getLeagueStyle(entry.league || T('leagueNovice'));
+
   return (
     <motion.div
-      initial={{ opacity: 0, y: 16 }}
+      initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.35, ease: [0.16, 1, 0.3, 1] }}
-      className={`relative overflow-hidden rounded-2xl border p-4 md:p-5 ${styleMeta.card} ${isChampion ? 'shadow-[0_18px_45px_-28px_rgba(150,110,20,0.6)]' : 'shadow-[0_15px_34px_-28px_rgba(60,40,0,0.45)]'}`}
+      transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
+      className="relative overflow-hidden rounded-3xl border p-6"
+      style={{
+        background: style.gradient,
+        borderColor: style.border,
+        boxShadow: `0 8px 32px -16px ${style.glow}`,
+      }}
     >
-      <div className="pointer-events-none absolute -right-10 -top-10 h-24 w-24 rounded-full blur-2xl" style={{ background: styleMeta.glow }} />
+      {/* Glow effect */}
+      <div className="pointer-events-none absolute -top-8 -right-8 w-24 h-24 rounded-full blur-2xl" style={{ backgroundColor: style.glow }} />
 
-      <div className="flex items-center justify-between gap-3">
-        <div className="flex items-center gap-2">
-          <span className="w-9 h-9 rounded-full bg-white/70 border border-white/75 flex items-center justify-center">{styleMeta.icon}</span>
+      {/* Header */}
+      <div className="flex items-center justify-between mb-4">
+        <div className="flex items-center gap-3">
+          <div
+            className="w-10 h-10 rounded-xl flex items-center justify-center"
+            style={{ backgroundColor: style.glow }}
+          >
+            <span style={{ color: style.iconColor }}>{style.icon}</span>
+          </div>
           <div>
-            <p className="text-[11px] tracking-[0.18em] uppercase text-text-secondary">{styleMeta.title}</p>
-            <p className="text-sm font-bold text-text">#{entry.rank}</p>
+            <p className="text-xs uppercase tracking-[0.16em] text-text-secondary font-semibold">{style.title}</p>
+            <p className="text-lg font-extrabold text-text">#{entry.rank}</p>
           </div>
         </div>
-        {isChampion ? <Sparkles className="w-5 h-5 text-[#b88217]" /> : null}
+        {entry.rank === 1 && <Sparkles className="w-6 h-6 text-[#fbbf24]" />}
       </div>
 
-      <div className="mt-3 flex items-center gap-3">
-        <div className={`rounded-full flex items-center justify-center ${isChampion ? 'w-12 h-12 bg-white/75' : 'w-11 h-11 bg-white/70'}`}>
-          <User className={`${isChampion ? 'w-6 h-6' : 'w-5 h-5'} text-primary`} />
+      {/* Player info */}
+      <div className="flex items-center gap-4 mb-4">
+        <div
+          className={`${style.avatarSize} rounded-2xl flex items-center justify-center`}
+          style={{ backgroundColor: leagueStyle.bg }}
+        >
+          <User className="w-8 h-8" style={{ color: leagueStyle.color }} />
         </div>
-        <div className="min-w-0">
-          <p className={`font-semibold text-text truncate ${isChampion ? 'text-base' : 'text-sm'}`}>{entry.full_name || entry.username}</p>
-          <p className="text-xs text-text-muted truncate">@{entry.username}</p>
+        <div className="flex-1 min-w-0">
+          <p className={`${style.textSize} font-bold text-text truncate`}>{entry.full_name || entry.username}</p>
+          <p className="text-sm text-text-muted truncate">@{entry.username}</p>
         </div>
       </div>
 
-      <div className="mt-4 flex items-center justify-between gap-3">
-        <p className={`font-bold text-text ${isChampion ? 'text-base md:text-lg' : 'text-base'}`}>{entry.reputation} реп.</p>
+      {/* Stats */}
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-2">
+          <Zap className="w-5 h-5 text-accent" />
+          <p className="text-lg font-extrabold text-text">{entry.reputation}</p>
+          <p className="text-sm text-text-muted">{T('lbRep')}</p>
+        </div>
         <span
-          className="text-xs px-2.5 py-1 rounded-full"
+          className="px-3 py-1.5 rounded-full text-sm font-semibold border"
           style={{
-            background: (leagueColors[entry.league || leagueFallback] || '#9ca3af') + '24',
-            color: leagueColors[entry.league || leagueFallback] || '#9ca3af',
+            backgroundColor: leagueStyle.bg,
+            color: leagueStyle.color,
+            borderColor: leagueStyle.border,
           }}
         >
-          {entry.league || leagueFallback}
+          {leagueStyle.icon} {entry.league || T('leagueNovice')}
         </span>
       </div>
     </motion.div>

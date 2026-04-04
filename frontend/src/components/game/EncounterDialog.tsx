@@ -3,6 +3,7 @@ import { motion } from 'framer-motion';
 import { CheckCircle2, ShieldCheck, X, AlertTriangle } from 'lucide-react';
 import type { ScenarioStep } from '@/types';
 import { useGS } from '@/store/useGS';
+import { t } from '@/lib/i18n';
 import { sfx } from '@/lib/sfx';
 
 type FeedbackState = 'idle' | 'success' | 'error';
@@ -19,38 +20,18 @@ function buildQuestion(step: ScenarioStep) {
   return step.brief || `${step.title}. Какое действие безопаснее?`;
 }
 
-function buildChecklist(step: ScenarioStep) {
+function buildChecklistKeys(step: ScenarioStep): string[] {
   const family = [step.attack_type, step.location, step.title, step.code].join(' ').toLowerCase();
   if (family.includes('wifi') || family.includes('кафе')) {
-    return [
-      'Сверьте SSID с официальным источником на площадке.',
-      'Не вводите корпоративный логин в публичных captive-порталах.',
-      'Для рабочих задач используйте VPN или мобильный интернет.',
-      'Не выполняйте срочные действия в недоверенной сети.',
-    ];
+    return ['clWifi1', 'clWifi2', 'clWifi3', 'clWifi4'];
   }
   if (family.includes('sms') || family.includes('qr') || family.includes('смартф')) {
-    return [
-      'Не переходите по ссылкам из SMS и push без проверки.',
-      'Обновляйте приложения только через официальный магазин.',
-      'Проверяйте уведомление в официальном приложении сервиса.',
-      'Подтверждайте операции через доверенный канал ИБ/банка.',
-    ];
+    return ['clMobile1', 'clMobile2', 'clMobile3', 'clMobile4'];
   }
   if (family.includes('звонок') || family.includes('соц') || family.includes('otp')) {
-    return [
-      'Не передавайте OTP, пароли и коды даже руководителю.',
-      'Проверьте личность через независимый канал подтверждения.',
-      'Любое давление срочностью считайте красным флагом.',
-      'Эскалируйте запрос в ИБ до выполнения действия.',
-    ];
+    return ['clSocial1', 'clSocial2', 'clSocial3', 'clSocial4'];
   }
-  return [
-    'Проверь источник: адрес, номер, домен, имя отправителя.',
-    'Ищи давление срочностью, страхом или авторитетом.',
-    'Подтверждай действие только через независимый корпоративный канал.',
-    'Не доверяй сообщению с требованием срочного действия.',
-  ];
+  return ['clGeneric1', 'clGeneric2', 'clGeneric3', 'clGeneric4'];
 }
 
 function buildAnswers(step: ScenarioStep): AnswerItem[] {
@@ -64,12 +45,14 @@ function buildAnswers(step: ScenarioStep): AnswerItem[] {
 }
 
 export function EncounterDialog({ step, onClose }: { step: ScenarioStep; onClose: () => void }) {
+  const lang = useGS(s => s.lang);
+  const T = (key: string) => t(lang, key);
   const submit = useGS(s => s.submit);
   const getHints = useGS(s => s.getHints);
   const submitting = useGS(s => s.submitting);
 
   const answers = useMemo(() => buildAnswers(step), [step]);
-  const checklist = useMemo(() => buildChecklist(step), [step]);
+  const checklistKeys = useMemo(() => buildChecklistKeys(step), [step]);
   const question = useMemo(() => buildQuestion(step), [step]);
   const canInstantCheck = useMemo(() => answers.some(answer => answer.isCorrect), [answers]);
   const [selectedAnswerId, setSelectedAnswerId] = useState<number | null>(null);
@@ -85,8 +68,8 @@ export function EncounterDialog({ step, onClose }: { step: ScenarioStep; onClose
   const selectedAnswer = answers.find(answer => answer.id === selectedAnswerId) ?? null;
 
   const message = useMemo(() => {
-    if (feedback === 'success') return `Верно. Угроза "${step.attack_type}" остановлена безопасным действием.`;
-    if (feedback === 'error') return `Ошибка. В этом сценарии "${step.attack_type}" это рискованный выбор.`;
+    if (feedback === 'success') return T('encounterSuccess');
+    if (feedback === 'error') return T('encounterError');
     return '';
   }, [feedback, step.attack_type]);
 
@@ -139,8 +122,8 @@ export function EncounterDialog({ step, onClose }: { step: ScenarioStep; onClose
           >
             <X className="w-4 h-4" />
           </button>
-          <h2 className="text-2xl font-bold text-text">Тест: {step.attack_type}</h2>
-          <p className="mt-2 text-sm text-text-secondary">Выберите безопасное действие. После выбора будет показана мгновенная обратная связь.</p>
+          <h2 className="text-2xl font-bold text-text">{T('encounterTitle')}: {step.attack_type}</h2>
+          <p className="mt-2 text-sm text-text-secondary">{T('encounterSubtitle')}</p>
         </div>
 
         <div className="p-6">
@@ -151,18 +134,18 @@ export function EncounterDialog({ step, onClose }: { step: ScenarioStep; onClose
               transition={{ duration: 0.25 }}
               className="rounded-[24px] border border-border bg-white p-5"
             >
-              <h3 className="text-sm uppercase tracking-[0.14em] text-primary font-semibold">Чеклист перед решением</h3>
+              <h3 className="text-sm uppercase tracking-[0.14em] text-primary font-semibold">{T('encounterChecklist')}</h3>
               <div className="mt-4 space-y-3">
-                {checklist.map((item, index) => (
+                {checklistKeys.map((itemKey, index) => (
                   <motion.div
-                    key={item}
+                    key={itemKey}
                     initial={{ opacity: 0, y: 8 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.28, delay: 0.1 + index * 0.08 }}
                     className="rounded-2xl border border-border bg-bg-secondary/45 px-4 py-3 flex items-start gap-3"
                   >
                     <CheckCircle2 className="w-5 h-5 mt-0.5 text-success shrink-0" />
-                    <p className="text-sm leading-relaxed text-text">{item}</p>
+                    <p className="text-sm leading-relaxed text-text">{T(itemKey)}</p>
                   </motion.div>
                 ))}
               </div>
@@ -174,15 +157,15 @@ export function EncounterDialog({ step, onClose }: { step: ScenarioStep; onClose
               transition={{ duration: 0.25, delay: 0.08 }}
               className="rounded-[24px] border border-border bg-bg-secondary/45 p-5"
             >
-              <h3 className="text-sm uppercase tracking-[0.14em] text-info font-semibold">Готовность к тесту</h3>
+              <h3 className="text-sm uppercase tracking-[0.14em] text-info font-semibold">{T('encounterReadiness')}</h3>
               <p className="mt-3 text-sm leading-relaxed text-text-secondary">
-                Вы готовы переходить к практическому решению. Оцените письмо как потенциальную угрозу и выберите действие, которое минимизирует риск.
+                {T('encounterReadinessDesc')}
               </p>
               <div className="mt-5 rounded-2xl border border-border bg-white p-4">
                 <div className="flex items-start gap-2">
                   <ShieldCheck className="w-5 h-5 text-primary mt-0.5 shrink-0" />
                   <p className="text-sm text-text-secondary">
-                    Главный принцип: не подтверждать данные из письма напрямую, пока запрос не проверен через официальный корпоративный канал.
+                    {T('encounterPrinciple')}
                   </p>
                 </div>
               </div>
@@ -260,14 +243,14 @@ export function EncounterDialog({ step, onClose }: { step: ScenarioStep; onClose
                 onClick={onClose}
                 className="rounded-full border border-border bg-white px-4 py-2 text-sm font-semibold text-text-secondary hover:bg-surface-hover transition-colors"
               >
-                Закрыть
+                {T('encounterClose')}
               </button>
               <button
                 onClick={continueWithResult}
                 disabled={!selectedAnswer || submitting}
                 className="rounded-full bg-primary px-5 py-2 text-sm font-semibold text-white hover:bg-primary-hover transition-colors disabled:opacity-45"
               >
-                Продолжить
+                {T('encounterContinue')}
               </button>
             </div>
           </motion.section>

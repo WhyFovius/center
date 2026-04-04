@@ -3,6 +3,7 @@ import { AnimatePresence, motion } from 'framer-motion';
 import { AlertTriangle, ArrowRight, BookOpen, CheckCircle2, Inbox, MailOpen, ShieldCheck, X } from 'lucide-react';
 import type { ScenarioStep } from '@/types';
 import { useGS } from '@/store/useGS';
+import { t } from '@/lib/i18n';
 import { sfx } from '@/lib/sfx';
 
 type PracticeCard = {
@@ -352,13 +353,15 @@ function buildTrainingBlocks(step: ScenarioStep) {
   ];
 }
 
-function decisionLabel(target: 'flags' | 'verify' | null) {
-  if (target === 'flags') return 'Подозрительно';
-  if (target === 'verify') return 'Безопасно';
-  return 'Не проверено';
+function decisionLabel(target: 'flags' | 'verify' | null, T: (key: string) => string) {
+  if (target === 'flags') return T('lessonSuspicious');
+  if (target === 'verify') return T('lessonSafe');
+  return T('lessonNotChecked');
 }
 
 export function LessonDialog({ step, onClose }: { step: ScenarioStep; onClose: () => void }) {
+  const lang = useGS(s => s.lang);
+  const T = (key: string) => t(lang, key);
   const setGp = useGS(s => s.setGp);
   const [page, setPage] = useState<'training' | 'practice'>('training');
   const practiceCards = useMemo(() => buildPracticeCards(step), [step]);
@@ -434,7 +437,7 @@ export function LessonDialog({ step, onClose }: { step: ScenarioStep; onClose: (
           <div className="flex flex-wrap items-center gap-3 pr-10">
             <span className="inline-flex items-center gap-2 rounded-full border border-border bg-white/85 px-3 py-1 text-xs font-semibold text-info">
               <BookOpen className="w-3.5 h-3.5" />
-              Обучение перед тестом
+              {T('lessonTrainingBeforeTest')}
             </span>
             <span className="inline-flex items-center gap-2 rounded-full border border-border bg-white/70 px-3 py-1 text-xs text-text-secondary">
               {step.attack_type}
@@ -446,7 +449,7 @@ export function LessonDialog({ step, onClose }: { step: ScenarioStep; onClose: (
 
           <h2 className="mt-4 text-3xl font-bold text-text max-w-4xl">{step.title}</h2>
           <p className="mt-2 max-w-4xl text-sm leading-relaxed text-text-secondary">
-            Обучение отдельно от теста: сначала разбираем правила и примеры, потом принимаем решение.
+            {T('lessonSubtitle')}
           </p>
         </div>
 
@@ -458,7 +461,7 @@ export function LessonDialog({ step, onClose }: { step: ScenarioStep; onClose: (
                 page === 'training' ? 'bg-primary text-white' : 'bg-bg-secondary text-text-secondary hover:bg-surface-active'
               }`}
             >
-              1. Обучение
+              {T('lessonTrainingTab')}
             </button>
             <button
               onClick={() => setPage('practice')}
@@ -466,16 +469,24 @@ export function LessonDialog({ step, onClose }: { step: ScenarioStep; onClose: (
                 page === 'practice' ? 'bg-primary text-white' : 'bg-bg-secondary text-text-secondary hover:bg-surface-active'
               }`}
             >
-              2. Входящие
+              {T('lessonPracticeTab')}
             </button>
           </div>
         </div>
 
         <div className="p-5 overflow-y-auto">
+          <AnimatePresence mode="wait">
           {page === 'training' && (
-            <div className="grid grid-cols-1 xl:grid-cols-[1.1fr_0.9fr] gap-5">
+            <motion.div
+              key="training"
+              initial={{ opacity: 0, x: -20 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: 20 }}
+              transition={{ duration: 0.25, ease: 'easeOut' }}
+              className="grid grid-cols-1 xl:grid-cols-[1.1fr_0.9fr] gap-5"
+            >
               <div className="rounded-[28px] border border-border bg-white p-5">
-                <p className="text-xs uppercase tracking-[0.14em] text-info font-semibold">Учебный разбор</p>
+                <p className="text-xs uppercase tracking-[0.14em] text-info font-semibold">{T('lessonTrainingSection')}</p>
                 <div className="mt-4 space-y-4">
                   {trainingBlocks.map((block, index) => (
                     <div key={block.title} className="relative rounded-3xl border border-border bg-bg-secondary/45 p-4 pl-14">
@@ -492,30 +503,37 @@ export function LessonDialog({ step, onClose }: { step: ScenarioStep; onClose: (
               <div className="rounded-[28px] border border-border bg-[#0e1726] text-[#dfe9ff] p-5">
                 <div className="flex items-center gap-2 text-xs uppercase tracking-[0.14em] text-[#89aaff] font-semibold">
                   <ShieldCheck className="w-3.5 h-3.5" />
-                  Реальные примеры сообщений
+                  {T('lessonRealExamples')}
                 </div>
                 <div className="mt-4 space-y-3">
                   {practiceCards.filter(card => card.target === 'flags').slice(0, 3).map(card => (
                     <div key={card.id} className="rounded-2xl border border-white/12 bg-white/5 p-3">
-                      <p className="text-[12px] text-[#9bb6ff]">From: {card.from}</p>
+                      <p className="text-[12px] text-[#9bb6ff]">{T('lessonFrom')}: {card.from}</p>
                       <p className="mt-1 text-sm font-semibold text-white">{card.subject}</p>
                       <p className="mt-1 text-sm text-[#d3def8] leading-relaxed">{card.preview}</p>
                     </div>
                   ))}
                 </div>
               </div>
-            </div>
+            </motion.div>
           )}
 
           {page === 'practice' && (
-            <div className="space-y-5">
+            <motion.div
+              key="practice"
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: -20 }}
+              transition={{ duration: 0.25, ease: 'easeOut' }}
+              className="space-y-5"
+            >
               <div className="flex items-start justify-between gap-4 rounded-[28px] border border-border bg-bg-secondary/45 p-5">
                 <div>
-                  <p className="text-xs uppercase tracking-[0.14em] text-primary font-semibold">Практика</p>
-                  <h3 className="mt-2 text-xl font-bold text-text">Проверьте входящие сообщения</h3>
+                  <p className="text-xs uppercase tracking-[0.14em] text-primary font-semibold">{T('lessonPractice')}</p>
+                  <h3 className="mt-2 text-xl font-bold text-text">{T('lessonCheckInbox')}</h3>
                 </div>
                 <div className="rounded-2xl bg-white px-4 py-3 border border-border text-right min-w-40">
-                  <p className="text-xs text-text-muted">Прогресс</p>
+                  <p className="text-xs text-text-muted">{T('progress')}</p>
                   <p className="text-2xl font-bold text-text">{checkedCount}/{practiceCards.length}</p>
                 </div>
               </div>
@@ -525,9 +543,9 @@ export function LessonDialog({ step, onClose }: { step: ScenarioStep; onClose: (
                   <div className="flex items-center justify-between gap-3">
                     <div className="inline-flex items-center gap-2 text-sm font-semibold text-text">
                       <Inbox className="w-4 h-4 text-primary" />
-                      Входящие
+                      {T('lessonInbox')}
                     </div>
-                    <div className="text-xs text-text-muted">{checkedCount} из {practiceCards.length}</div>
+                    <div className="text-xs text-text-muted">{checkedCount} {T('lobbyOf')} {practiceCards.length}</div>
                   </div>
                   <div className="mt-2 h-1.5 w-full rounded-full bg-bg-secondary overflow-hidden">
                     <div className="h-full rounded-full bg-primary transition-all duration-300" style={{ width: `${progressPercent}%` }} />
@@ -576,7 +594,7 @@ export function LessonDialog({ step, onClose }: { step: ScenarioStep; onClose: (
                             transition={{ duration: 0.2 }}
                             className="rounded-2xl border border-border bg-white p-4 shadow-sm"
                           >
-                            <p className="text-xs text-text-muted">From: {selectedCard.from}</p>
+                            <p className="text-xs text-text-muted">{T('lessonFrom')}: {selectedCard.from}</p>
                             <p className="mt-1 text-lg font-bold text-text">{selectedCard.subject}</p>
                             <p className="mt-3 whitespace-pre-wrap text-sm leading-relaxed text-text-secondary">{selectedMessageBody}</p>
                           </motion.div>
@@ -589,8 +607,8 @@ export function LessonDialog({ step, onClose }: { step: ScenarioStep; onClose: (
                               selectedDecision === 'verify' ? 'border-success/40 bg-success-soft text-success' : 'border-border bg-white hover:bg-success-soft/40'
                             }`}
                           >
-                            <p className="text-sm font-semibold">✅ Безопасно</p>
-                            <p className="mt-1 text-xs opacity-80">Сообщение выглядит легитимным</p>
+                            <p className="text-sm font-semibold">{T('lessonSafe')}</p>
+                            <p className="mt-1 text-xs opacity-80">{T('lessonLegitimateDesc')}</p>
                           </button>
                           <button
                             onClick={() => markMessage('flags')}
@@ -598,8 +616,8 @@ export function LessonDialog({ step, onClose }: { step: ScenarioStep; onClose: (
                               selectedDecision === 'flags' ? 'border-danger/40 bg-danger-soft text-danger' : 'border-border bg-white hover:bg-danger-soft/45'
                             }`}
                           >
-                            <p className="text-sm font-semibold">⚠️ Подозрительно</p>
-                            <p className="mt-1 text-xs opacity-80">Есть признаки фишинга или обмана</p>
+                            <p className="text-sm font-semibold">{T('lessonSuspicious')}</p>
+                            <p className="mt-1 text-xs opacity-80">{T('lessonPhishingDesc')}</p>
                           </button>
                         </div>
 
@@ -607,12 +625,12 @@ export function LessonDialog({ step, onClose }: { step: ScenarioStep; onClose: (
                           <div className={`mt-3 rounded-2xl border px-4 py-3 text-sm ${
                             selectedIsCorrect ? 'border-success/30 bg-success-soft text-success' : 'border-danger/30 bg-danger-soft text-danger'
                           }`}>
-                            {selectedIsCorrect ? 'Отметка верная. Можно идти к следующему сообщению.' : 'Здесь ошибка в оценке. Пересмотрите письмо и исправьте отметку.'}
+                            {selectedIsCorrect ? T('lessonCorrectMark') : T('lessonIncorrectMark')}
                           </div>
                         )}
                       </>
                     ) : (
-                      <div className="h-full flex items-center justify-center text-sm text-text-muted">Нет сообщений для проверки.</div>
+                      <div className="h-full flex items-center justify-center text-sm text-text-muted">{T('lessonNoMessages')}</div>
                     )}
                   </section>
                 </div>
@@ -626,10 +644,10 @@ export function LessonDialog({ step, onClose }: { step: ScenarioStep; onClose: (
                 >
                   <div className="flex flex-wrap items-center justify-between gap-3">
                     <div>
-                      <p className="text-xs uppercase tracking-[0.14em] text-primary font-semibold">Итог проверки</p>
-                      <p className="mt-1 text-lg font-bold text-text">Результат: {correctlyPlaced}/{practiceCards.length}</p>
+                      <p className="text-xs uppercase tracking-[0.14em] text-primary font-semibold">{T('lessonSummary')}</p>
+                      <p className="mt-1 text-lg font-bold text-text">{T('lessonResult')}: {correctlyPlaced}/{practiceCards.length}</p>
                     </div>
-                    <div className="text-sm text-text-secondary">Можно кликнуть сообщение и изменить решение.</div>
+                    <div className="text-sm text-text-secondary">{T('lessonChangeDecision')}</div>
                   </div>
                   <div className="mt-4 space-y-2">
                     {practiceCards.map(card => {
@@ -644,20 +662,21 @@ export function LessonDialog({ step, onClose }: { step: ScenarioStep; onClose: (
                           }`}
                         >
                           <span className="font-semibold">{card.subject}</span>
-                          <span className="ml-2 text-text-secondary">Ваш ответ: {decisionLabel(userDecision)} • Верно: {decisionLabel(card.target)}</span>
+                          <span className="ml-2 text-text-secondary">{T('lessonYourAnswer')}: {decisionLabel(userDecision, T)} • {T('lessonCorrect')}: {decisionLabel(card.target, T)}</span>
                         </button>
                       );
                     })}
                   </div>
                 </motion.div>
               )}
-            </div>
+            </motion.div>
           )}
+          </AnimatePresence>
         </div>
 
         <div className="flex items-center justify-between gap-3 border-t border-border px-6 py-4 bg-surface">
           <div className="text-sm text-text-secondary">
-            {page === 'practice' ? 'Откройте сообщение, отметьте его как безопасное или подозрительное, затем проверьте итог.' : 'Сначала изучите правила, затем переходите к практике.'}
+            {page === 'practice' ? T('lessonFooterPractice') : T('lessonFooterTraining')}
           </div>
           <div className="flex items-center gap-2">
             <button
@@ -665,7 +684,7 @@ export function LessonDialog({ step, onClose }: { step: ScenarioStep; onClose: (
               disabled={page === 'training'}
               className="rounded-full border border-border bg-white px-4 py-2 text-sm font-semibold text-text-secondary disabled:opacity-45"
             >
-              Назад
+              {T('back')}
             </button>
 
             {page === 'training' ? (
@@ -673,7 +692,7 @@ export function LessonDialog({ step, onClose }: { step: ScenarioStep; onClose: (
                 onClick={() => setPage('practice')}
                 className="inline-flex items-center gap-2 rounded-full bg-primary px-5 py-2 text-sm font-semibold text-white hover:bg-primary-hover transition-colors"
               >
-                Далее
+                {T('next')}
                 <ArrowRight className="w-4 h-4" />
               </button>
             ) : (
@@ -685,7 +704,7 @@ export function LessonDialog({ step, onClose }: { step: ScenarioStep; onClose: (
                 disabled={!isPracticeComplete}
                 className="inline-flex items-center gap-2 rounded-full bg-primary px-5 py-2 text-sm font-semibold text-white hover:bg-primary-hover transition-colors disabled:opacity-45"
               >
-                Перейти к тесту
+                {T('lessonGoToTest')}
                 <ArrowRight className="w-4 h-4" />
               </button>
             )}

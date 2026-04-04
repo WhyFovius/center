@@ -1,10 +1,11 @@
 from datetime import datetime, timezone
 
 from fastapi import APIRouter, Depends, HTTPException, Request
-from sqlalchemy.orm import Session
+from sqlalchemy import delete, select
+from sqlalchemy.orm import Session, selectinload
 
 from backend.app.core.security import get_current_user
-from backend.app.db.models import User
+from backend.app.db.models import Attempt, Mission, User, UserStepState
 from backend.app.db.session import get_db
 from backend.app.schemas.simulator import AttemptRequest, AttemptResponse, SimulatorStateOut
 from backend.app.services import leaderboard_service, progress_service
@@ -39,7 +40,7 @@ async def submit_attempt(
     except ValueError as exc:
         raise HTTPException(status_code=400, detail=str(exc)) from exc
 
-    current_user = db.get(User, current_user.id)  # refresh for consistency
+    current_user = db.get(User, current_user.id)
     progress = progress_service.get_or_create_progress(db, current_user.id)
 
     redis_client = getattr(request.app.state, "redis", None)
@@ -57,3 +58,48 @@ async def submit_attempt(
         )
 
     return AttemptResponse(**result)
+
+
+@router.post("/reset/{mission_code}")
+async def reset_mission(
+    mission_code: str,
+    request: Request,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """Reset all progress for a specific mission."""
+    mission = db.scalar(
+        select(Mission)
+        .where(Mission.code == mission_code)
+        .options(selectinload(Mission.steps))
+    )
+    if mission is None:
+        raise HTTPException(status_code=404, detail="Mission not found")
+
+    step_ids = [s.id for s in mission.steps]
+    resolved_count = 0
+
+    if step_ids:
+        resolved_states = db.scalars(
+            select(UserStepState).where(
+                UserStepState.user_id == current_user.id,
+                UserStepState.step_id.in_(step_ids),
+                UserStepState.resolved == True,
+            )
+        ).all()
+        resolved_count = len(resolved_states)
+
+        db.execute(delete(UserStepState).where(UserStepState.user_id == current_user.id, UserStepState.step_id.in_(step_ids)))
+        db.execute(delete(Attempt).where(Attempt.user_id == current_user.id, Attempt.step_id.in_(step_ids)))
+
+    # Decrement resolved_steps by the number of resolved steps in this mission
+    progress = progress_service.get_or_create_progress(db, current_user.id)
+    if resolved_count > 0:
+        progress.resolved_steps = max(0, progress.resolved_steps - resolved_count)
+        # Recalculate first_try_resolved (simplified: subtract resolved_count as approximation)
+        progress.first_try_resolved = max(0, progress.first_try_resolved - resolved_count)
+
+    db.flush()
+    db.commit()
+
+    return {"message": f"Mission '{mission_code}' has been reset", "reset_steps": len(step_ids), "resolved_reset": resolved_count}

@@ -13,10 +13,10 @@ from backend.app.db.models import User
 
 router = APIRouter(prefix="/ai", tags=["ai"])
 
-OPENROUTER_API_KEY = os.getenv("OPENROUTER_API_KEY", "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")
+OPENROUTER_API_KEY = os.getenv("OPENROUTER_API_KEY", "")
 OPENROUTER_URL = "https://openrouter.ai/api/v1/chat/completions"
 
-DEFAULT_MODEL = "qwen/qwen3-coder:free"
+DEFAULT_MODEL = "qwen/qwen3.6-plus:free"
 
 
 class GenerateScenarioRequest(BaseModel):

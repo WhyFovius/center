@@ -25,10 +25,6 @@ def clamp(value: int, low: int, high: int) -> int:
 def get_or_create_progress(db: Session, user_id: int) -> UserProgress:
     progress = db.scalar(select(UserProgress).where(UserProgress.user_id == user_id))
     if progress is not None:
-        if progress.resolved_steps == 0 and progress.security_level < 100:
-            progress.security_level = 100
-            progress.reputation = max(progress.reputation, 100)
-            db.flush()
         return progress
 
     progress = UserProgress(
