@@ -1,8 +1,8 @@
-import { useState, useCallback, useEffect, useRef } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   Monitor, Wifi, Battery, Volume2, VolumeX, Shield, X, Minimize2,
-  Mail, Globe, MessageSquare, FolderOpen, Terminal, ChevronUp
+  Mail, Globe, MessageSquare, FolderOpen, Terminal, ChevronUp, Settings
 } from 'lucide-react';
 import { useGS } from '@/store/useGS';
 import OSWindow from './OSWindow';
@@ -10,6 +10,9 @@ import MailApp from './MailApp';
 import BrowserApp from './BrowserApp';
 import XamMessenger from './XamMessenger';
 import FileManager from './FileManager';
+import TerminalApp from './TerminalApp';
+import SecurityCenter from './SecurityCenter';
+import SettingsApp from './SettingsApp';
 import Notifications, { NotificationProvider } from './Notifications';
 import GlitchEffect from './GlitchEffect';
 import SkyToggle from '@/components/ui/sky-toggle';
@@ -30,6 +33,7 @@ const APPS = [
   { id: 'files', label: 'Файлы', icon: <FolderOpen className="w-4 h-4" /> },
   { id: 'terminal', label: 'Терминал', icon: <Terminal className="w-4 h-4" /> },
   { id: 'security', label: 'Безопасность', icon: <Shield className="w-4 h-4" /> },
+  { id: 'settings', label: 'Настройки', icon: <Settings className="w-4 h-4" /> },
 ];
 
 const API_KEY = import.meta.env.VITE_OPENROUTER_API_KEY || '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';
@@ -76,7 +80,6 @@ export default function DesktopOS() {
   const [showCompromised, setCompromised] = useState(false);
   const [showGlitch, setShowGlitch] = useState(false);
   const [time, setTime] = useState(new Date());
-  const aiHistoryRef = useRef<Record<string, { role: string; content: string }[]>>({});
 
   useEffect(() => {
     const timer = setInterval(() => setTime(new Date()), 1000);
@@ -118,6 +121,7 @@ export default function DesktopOS() {
       files: 'Файлы',
       terminal: 'Терминал',
       security: 'Центр безопасности',
+      settings: 'Настройки',
     };
 
     const id = `w-${Date.now()}`;
@@ -125,19 +129,11 @@ export default function DesktopOS() {
     setActiveWindow(id);
     setNextZ(z => z + 1);
     setStartMenuOpen(false);
-
-    // Init AI history for messenger
-    if (appId === 'messenger') {
-      aiHistoryRef.current[id] = [
-        { role: 'system', content: 'Ты дружелюбный помощник в мессенджере Xam. Отвечай кратко, по делу, на русском языке. Максимум 2-3 предложения.' },
-      ];
-    }
   }, [openWindows, nextZ]);
 
   const handleClose = useCallback((id: string) => {
     setOpenWindows(prev => prev.filter(w => w.id !== id));
     setActiveWindow(prev => prev === id ? null : prev);
-    delete aiHistoryRef.current[id];
   }, []);
 
   const handleMinimize = useCallback((id: string) => {
@@ -201,15 +197,8 @@ export default function DesktopOS() {
               {win.appId === 'messenger' && <XamMessenger />}
               {win.appId === 'files' && <FileManager />}
               {win.appId === 'terminal' && <TerminalApp />}
-              {win.appId === 'security' && (
-                <div className="flex items-center justify-center h-full text-text-muted">
-                  <div className="text-center">
-                    <Shield className="w-12 h-12 mx-auto mb-3 opacity-40" />
-                    <p className="text-sm">Центр безопасности</p>
-                    <p className="text-xs mt-1 opacity-60">В разработке</p>
-                  </div>
-                </div>
-              )}
+              {win.appId === 'security' && <SecurityCenter />}
+              {win.appId === 'settings' && <SettingsApp />}
             </OSWindow>
           ))}
         </AnimatePresence>
@@ -244,6 +233,12 @@ export default function DesktopOS() {
                   <span>{item.label}</span>
                 </button>
               ))}
+              <button onClick={() => handleOpenApp('settings')}
+                className="w-full flex items-center gap-2.5 px-2.5 py-2 rounded hover:bg-surface-active transition-colors text-sm"
+              >
+                <span className="text-text-secondary"><Settings className="w-4 h-4" /></span>
+                <span>Настройки</span>
+              </button>
             </div>
 
             <div className="mt-2 pt-2 border-t border-border flex justify-between">
@@ -354,48 +349,5 @@ export default function DesktopOS() {
         </div>
       </div>
     </NotificationProvider>
-  );
-}
-
-function TerminalApp() {
-  const [output, setOutput] = useState<string[]>(['ZeroOS Terminal v1.0', 'Введите "help" для списка команд.', '']);
-  const [input, setInput] = useState('');
-  const bottomRef = useRef<HTMLDivElement>(null);
-
-  const runCommand = (cmd: string) => {
-    const parts = cmd.trim().toLowerCase().split(' ');
-    const c = parts[0];
-    let result = '';
-
-    switch (c) {
-      case 'help': result = 'Доступные команды: help, date, whoami, ls, clear, echo <text>, uname'; break;
-      case 'date': result = new Date().toLocaleString('ru-RU'); break;
-      case 'whoami': result = 'employee@zero-os'; break;
-      case 'ls': result = 'documents  downloads  desktop  .ssh  .config  report.pdf'; break;
-      case 'uname': result = 'ZeroOS 1.0.0 x86_64'; break;
-      case 'clear': setOutput([]); setInput(''); return;
-      case 'echo': result = parts.slice(1).join(' '); break;
-      case '': result = ''; break;
-      default: result = `Команда не найдена: ${c}`;
-    }
-
-    setOutput(prev => [...prev, `$ ${cmd}`, ...(result ? [result, ''] : [''])]);
-    setInput('');
-  };
-
-  useEffect(() => { bottomRef.current?.scrollIntoView(); }, [output]);
-
-  return (
-    <div className="h-full font-mono text-sm p-3 overflow-y-auto" style={{ backgroundColor: '#0c0c0c', color: '#22c55e' }}>
-      {output.map((line, i) => <div key={i} className="whitespace-pre-wrap">{line}</div>)}
-      <div className="flex items-center gap-2">
-        <span>$</span>
-        <input value={input} onChange={e => setInput(e.target.value)}
-          onKeyDown={e => { if (e.key === 'Enter') runCommand(input); }}
-          className="flex-1 bg-transparent outline-none" style={{ color: '#22c55e' }} autoFocus
-        />
-      </div>
-      <div ref={bottomRef} />
-    </div>
   );
 }
