@@ -9,7 +9,7 @@ export interface AttemptResponse { correct: boolean; title: string; message: str
 export interface Certificate { available: boolean; certificate_id: string; message: string; created_at: string; }
 export interface Consequence { status: 'contained' | 'breach'; badge: string; summary: string; coach: string; emotionalOutcome: string; missedSignal: string; inductiveRule: string; timeline: { stage: string; text: string }[]; metrics: { label: string; value: string; tone: 'positive' | 'negative' | 'neutral' }[]; }
 export interface FeedbackState { kind: 'success' | 'warning' | 'info'; title: string; message: string; detail: string; references: string[]; stepId: number | null; consequence: Consequence | null; }
-export type GameScreen = 'auth' | 'menu' | 'lobby' | 'game' | 'os' | 'profile' | 'leaderboard' | 'corporate';
+export type GameScreen = 'auth' | 'menu' | 'lobby' | 'game' | 'os' | 'mobile' | 'profile' | 'leaderboard' | 'corporate';
 export type LearningBand = 'novice' | 'intermediate' | 'advanced';
 export type ScenarioTrack = 'network' | 'social' | 'mobile';
 export type Lang = 'ru' | 'kz' | 'en';

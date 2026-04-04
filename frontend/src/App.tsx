@@ -16,6 +16,10 @@ const DesktopOS = lazy(async () => {
   const mod = await import('@/components/os/DesktopOS');
   return { default: mod.default };
 });
+const ZeroMobile = lazy(async () => {
+  const mod = await import('@/components/os/ZeroMobile');
+  return { default: mod.default };
+});
 const ProfileView = lazy(async () => {
   const mod = await import('@/scenes/ProfileView');
   return { default: mod.ProfileView };
@@ -77,6 +81,8 @@ export default function App() {
             <motion.div key="game" initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.95 }} transition={{ duration: 0.3 }} className="h-full"><ScreenLoader><GameCanvas /></ScreenLoader></motion.div>
           ) : screen === 'os' ? (
             <motion.div key="os" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.3 }} className="h-full"><ScreenLoader><DesktopOS /></ScreenLoader></motion.div>
+          ) : screen === 'mobile' ? (
+            <motion.div key="mobile" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.3 }} className="h-full"><ScreenLoader><ZeroMobile /></ScreenLoader></motion.div>
           ) : screen === 'profile' ? (
             <motion.div key="profile" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }} transition={{ duration: 0.2 }} className="h-full"><ScreenLoader><ProfileView /></ScreenLoader></motion.div>
           ) : screen === 'leaderboard' ? (

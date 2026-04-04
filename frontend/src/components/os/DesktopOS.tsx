@@ -16,6 +16,7 @@ import SettingsApp from './SettingsApp';
 import AttackEmulator from './AttackEmulator';
 import WifiSimulator from './WifiSimulator';
 import DeepfakeSimulator from './DeepfakeSimulator';
+import OSTutorial from './OSTutorial';
 import Notifications, { NotificationProvider } from './Notifications';
 import GlitchEffect from './GlitchEffect';
 import { ToggleTheme } from '@/components/ui/toggle-theme';
@@ -88,6 +89,7 @@ export default function DesktopOS() {
   const [showCompromised, setCompromised] = useState(false);
   const [showGlitch, setShowGlitch] = useState(false);
   const [time, setTime] = useState(new Date());
+  const [showTutorial, setShowTutorial] = useState(() => !localStorage.getItem('zd_os_tutorial_seen'));
   const [showAttackEmulator, setShowAttackEmulator] = useState(false);
   const [activeSimulator, setActiveSimulator] = useState<'wifi' | 'deepfake' | null>(null);
 
@@ -169,6 +171,13 @@ export default function DesktopOS() {
   return (
     <NotificationProvider>
       <div className="relative w-full h-full overflow-hidden select-none">
+        {/* Tutorial — shown only once */}
+        <AnimatePresence>
+          {showTutorial && (
+            <OSTutorial onComplete={() => { localStorage.setItem('zd_os_tutorial_seen', '1'); setShowTutorial(false); }} />
+          )}
+        </AnimatePresence>
+
         {/* Attack Emulator */}
         <AnimatePresence>
           {showAttackEmulator && (
@@ -209,12 +218,12 @@ export default function DesktopOS() {
           <div className="absolute inset-0" style={{ background: 'linear-gradient(135deg, #1a1a2e 0%, #16213e 30%, #0f3460 60%, #1a1a2e 100%)' }} />
           <div className="absolute inset-0 opacity-[0.03]" style={{ backgroundImage: 'radial-gradient(circle at 1px 1px, white 1px, transparent 0)', backgroundSize: '40px 40px' }} />
 
-          {/* Desktop icons */}
+          {/* Desktop icons — single click to open */}
           <div className="absolute top-4 left-4 flex flex-col gap-1">
             {APPS.map(app => (
               <motion.button key={app.id} whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}
-                onDoubleClick={() => handleOpenApp(app.id)}
-                className="flex flex-col items-center gap-1 p-2 rounded-lg hover:bg-white/10 transition-colors w-20 group"
+                onClick={() => handleOpenApp(app.id)}
+                className="flex flex-col items-center gap-1 p-2 rounded-lg hover:bg-white/10 active:bg-white/20 transition-colors w-20 group cursor-pointer"
               >
                 <div className="w-11 h-11 rounded-xl flex items-center justify-center bg-white/10 backdrop-blur-sm group-hover:bg-white/20 transition-colors shadow-lg">
                   {app.icon}

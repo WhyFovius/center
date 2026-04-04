@@ -14,7 +14,6 @@ import {
   ChevronRight,
   Shield,
   Target,
-  User,
 } from 'lucide-react';
 import { useGS } from '@/store/useGS';
 import { t } from '@/lib/i18n';
@@ -22,40 +21,10 @@ import { ToggleTheme } from '@/components/ui/toggle-theme';
 import type { ScenarioTrack } from '@/types';
 import logo from '@/assets/logo.png';
 
-const scenarios: { id: ScenarioTrack; titleKey: string; badgeKey: string; focusKey: string; icon: typeof Shield; bg: string; accent: string; accentSoft: string; accentBorder: string }[] = [
-  {
-    id: 'network',
-    titleKey: 'scenNetwork',
-    badgeKey: 'scenNetworkBadge',
-    focusKey: 'scenNetworkFocus',
-    icon: Globe,
-    bg: '#0e2a1a',
-    accent: '#41aa62',
-    accentSoft: 'rgba(65,170,98,0.12)',
-    accentBorder: 'rgba(65,170,98,0.25)',
-  },
-  {
-    id: 'social',
-    titleKey: 'scenSocial',
-    badgeKey: 'scenSocialBadge',
-    focusKey: 'scenSocialFocus',
-    icon: Users,
-    bg: '#2a0e1a',
-    accent: '#ef4444',
-    accentSoft: 'rgba(239,68,68,0.12)',
-    accentBorder: 'rgba(239,68,68,0.25)',
-  },
-  {
-    id: 'mobile',
-    titleKey: 'scenMobile',
-    badgeKey: 'scenMobileBadge',
-    focusKey: 'scenMobileFocus',
-    icon: Smartphone,
-    bg: '#1a0e2a',
-    accent: '#8b5cf6',
-    accentSoft: 'rgba(139,92,246,0.12)',
-    accentBorder: 'rgba(139,92,246,0.25)',
-  },
+const scenarios: { id: ScenarioTrack; titleKey: string; icon: typeof Globe; bg: string; accent: string }[] = [
+  { id: 'network', titleKey: 'scenNetwork', badgeKey: 'scenNetworkBadge', focusKey: 'scenNetworkFocus', icon: Globe, bg: '#0e2a1a', accent: '#41aa62', accentSoft: 'rgba(65,170,98,0.12)', accentBorder: 'rgba(65,170,98,0.25)' },
+  { id: 'social', titleKey: 'scenSocial', badgeKey: 'scenSocialBadge', focusKey: 'scenSocialFocus', icon: Users, bg: '#2a0e1a', accent: '#ef4444', accentSoft: 'rgba(239,68,68,0.12)', accentBorder: 'rgba(239,68,68,0.25)' },
+  { id: 'mobile', titleKey: 'scenMobile', badgeKey: 'scenMobileBadge', focusKey: 'scenMobileFocus', icon: Smartphone, bg: '#1a0e2a', accent: '#8b5cf6', accentSoft: 'rgba(139,92,246,0.12)', accentBorder: 'rgba(139,92,246,0.25)' },
 ];
 
 const TRACK_MISSIONS: Record<ScenarioTrack, string[]> = {
@@ -64,14 +33,7 @@ const TRACK_MISSIONS: Record<ScenarioTrack, string[]> = {
   mobile: ['travel', 'remote'],
 };
 
-const CHARACTERS = [
-  { id: 'analyst', nameKey: 'charAnalyst', emoji: '🔍', descKey: 'charAnalystDesc' },
-  { id: 'hacker', nameKey: 'charHacker', emoji: '💻', descKey: 'charHackerDesc' },
-  { id: 'manager', nameKey: 'charManager', emoji: '📋', descKey: 'charManagerDesc' },
-  { id: 'agent', nameKey: 'charAgent', emoji: '🕵️', descKey: 'charAgentDesc' },
-];
-
-type MenuView = 'main' | 'scenarios' | 'docs' | 'characters';
+type MenuView = 'main' | 'scenarios' | 'docs';
 
 export default function MainMenu() {
   const lang = useGS(s => s.lang);
@@ -205,6 +167,19 @@ export default function MainMenu() {
               className="grid grid-cols-1 sm:grid-cols-2 gap-4"
             >
               <button
+                onClick={() => setScreen('mobile')}
+                className="flex items-center gap-5 p-5 rounded-2xl bg-surface border border-border hover:border-primary/30 hover:bg-surface-hover transition-all duration-200 text-left group"
+              >
+                <div className="w-14 h-14 rounded-2xl bg-primary/10 flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform">
+                  <Smartphone className="w-7 h-7 text-primary" />
+                </div>
+                <div>
+                  <div className="text-lg font-semibold text-text">Zero Mobile</div>
+                  <div className="text-sm text-text-muted mt-0.5">Мобильная версия ОС</div>
+                </div>
+              </button>
+
+              <button
                 onClick={() => setScreen('leaderboard')}
                 className="flex items-center gap-5 p-5 rounded-2xl bg-surface border border-border hover:border-accent/30 hover:bg-surface-hover transition-all duration-200 text-left group"
               >
@@ -227,19 +202,6 @@ export default function MainMenu() {
                 <div>
                   <div className="text-lg font-semibold text-text">{T('menuProfile')}</div>
                   <div className="text-sm text-text-muted mt-0.5">{T('menuProfileDesc')}</div>
-                </div>
-              </button>
-
-              <button
-                onClick={() => setView('characters')}
-                className="flex items-center gap-5 p-5 rounded-2xl bg-surface border border-border hover:border-purple-500/30 hover:bg-surface-hover transition-all duration-200 text-left group"
-              >
-                <div className="w-14 h-14 rounded-2xl bg-purple-500/10 flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform">
-                  <User className="w-7 h-7 text-purple-500" />
-                </div>
-                <div>
-                  <div className="text-lg font-semibold text-text">{T('menuCharacters')}</div>
-                  <div className="text-sm text-text-muted mt-0.5">{T('menuCharactersDesc')}</div>
                 </div>
               </button>
 
@@ -271,56 +233,6 @@ export default function MainMenu() {
         </div>
 
         {/* Footer */}
-        <footer className="shrink-0 border-t border-border/40 bg-surface/60">
-          <div className="max-w-5xl mx-auto px-6 py-3 flex items-center justify-center gap-2.5">
-            <Shield className="w-4 h-4 text-primary/40" />
-            <span className="text-xs text-text-muted/60">{T('footerBrand')}</span>
-          </div>
-        </footer>
-      </div>
-    );
-  }
-
-  if (view === 'characters') {
-    return (
-      <div className="h-full flex flex-col bg-bg overflow-hidden">
-        <header className="flex items-center justify-between px-6 py-4 border-b border-border bg-surface shrink-0">
-          <button
-            onClick={() => setView('main')}
-            className="inline-flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium text-text-secondary hover:text-text hover:bg-bg-secondary transition-all"
-          >
-            <ArrowRight className="w-5 h-5 rotate-180" />
-            {T('back')}
-          </button>
-          <h1 className="text-lg font-bold text-text">{T('charTitle')}</h1>
-          <ToggleTheme />
-        </header>
-
-        <div className="flex-1 overflow-y-auto">
-          <div className="max-w-5xl mx-auto p-4 md:p-8">
-            <p className="text-base text-text-secondary mb-6">{T('charDesc')}</p>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-              {CHARACTERS.map((char, i) => (
-                <motion.div
-                  key={char.id}
-                  initial={{ opacity: 0, y: 16 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: i * 0.1 }}
-                  className="bg-surface border border-border rounded-2xl p-7 hover:border-primary/30 hover:bg-primary/5 transition-all cursor-pointer group"
-                >
-                  <div className="text-5xl mb-4">{char.emoji}</div>
-                  <h3 className="text-xl font-bold text-text">{T(char.nameKey)}</h3>
-                  <p className="text-sm text-text-secondary mt-2">{T(char.descKey)}</p>
-                  <div className="mt-5 flex items-center gap-3 text-primary opacity-0 group-hover:opacity-100 transition-opacity">
-                    <span className="text-sm font-semibold">{T('charSelect')}</span>
-                    <ChevronRight className="w-5 h-5" />
-                  </div>
-                </motion.div>
-              ))}
-            </div>
-          </div>
-        </div>
-
         <footer className="shrink-0 border-t border-border/40 bg-surface/60">
           <div className="max-w-5xl mx-auto px-6 py-3 flex items-center justify-center gap-2.5">
             <Shield className="w-4 h-4 text-primary/40" />
