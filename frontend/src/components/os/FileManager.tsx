@@ -1,6 +1,8 @@
 import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { FolderOpen, FileText, Image, FileCode, Download, ArrowUp, Home, Search, ChevronRight } from 'lucide-react';
+import { useGS } from '@/store/useGS';
+import { t } from '@/lib/i18n';
 
 type FileItem = {
   name: string;
@@ -49,6 +51,8 @@ const FILE_SYSTEM: FileItem[] = [
 ];
 
 export default function FileManager() {
+  const lang = useGS(s => s.lang);
+  const T = (key: string) => t(lang, key);
   const [path, setPath] = useState<string[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedFile, setSelectedFile] = useState<string | null>(null);
@@ -88,7 +92,7 @@ export default function FileManager() {
         <div className="px-3 py-2.5 border-b" style={{ borderColor: 'var(--color-border)' }}>
           <div className="flex items-center gap-2">
             <FolderOpen className="w-4 h-4" style={{ color: 'var(--color-text)' }} />
-            <span className="text-xs font-bold" style={{ color: 'var(--color-text)' }}>Файлы</span>
+            <span className="text-xs font-bold" style={{ color: 'var(--color-text)' }}>{T('osFiles')}</span>
           </div>
         </div>
 
@@ -99,7 +103,7 @@ export default function FileManager() {
             }`}
             style={{ color: 'var(--color-text-secondary)' }}
           >
-            <Home className="w-3.5 h-3.5" />Главная
+            <Home className="w-3.5 h-3.5" />{T('osFilesHome')}
           </button>
 
           {FILE_SYSTEM.map(f => {
@@ -128,7 +132,7 @@ export default function FileManager() {
 
           {/* Breadcrumb */}
           <div className="flex items-center gap-1 text-xs flex-1 min-w-0" style={{ color: 'var(--color-text-secondary)' }}>
-            <button onClick={() => { setPath([]); setSelectedFile(null); }} className="hover:underline shrink-0">Главная</button>
+            <button onClick={() => { setPath([]); setSelectedFile(null); }} className="hover:underline shrink-0">{T('osFilesHome')}</button>
             {path.map((p, i) => (
               <span key={i} className="flex items-center gap-1 min-w-0">
                 <ChevronRight className="w-3 h-3 shrink-0" />
@@ -140,7 +144,7 @@ export default function FileManager() {
           {/* Search */}
           <div className="flex items-center gap-1.5 px-2 py-1 rounded-lg shrink-0" style={{ backgroundColor: 'var(--color-bg)', border: `1px solid var(--color-border)` }}>
             <Search className="w-3 h-3" style={{ color: 'var(--color-text-muted)' }} />
-            <input value={searchQuery} onChange={e => setSearchQuery(e.target.value)} placeholder="Поиск..."
+            <input value={searchQuery} onChange={e => setSearchQuery(e.target.value)} placeholder={T('osFilesSearch')}
               className="w-28 bg-transparent text-xs outline-none" style={{ color: 'var(--color-text)' }} />
           </div>
         </div>
@@ -149,7 +153,7 @@ export default function FileManager() {
         <div className="flex-1 overflow-y-auto p-3">
           {filtered.length === 0 ? (
             <div className="flex items-center justify-center h-full">
-              <p className="text-sm" style={{ color: 'var(--color-text-muted)' }}>Папка пуста</p>
+              <p className="text-sm" style={{ color: 'var(--color-text-muted)' }}>{T('osFilesEmpty')}</p>
             </div>
           ) : (
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2">

@@ -1,16 +1,8 @@
 import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { Inbox, Send, AlertTriangle, Shield, Mail, Star, Trash2, Archive, RefreshCw, Search } from 'lucide-react';
-
-const FOLDERS = [
-  { id: 'inbox', label: 'Входящие', icon: Inbox, count: 3 },
-  { id: 'sent', label: 'Отправленные', icon: Send },
-  { id: 'spam', label: 'Спам', icon: AlertTriangle, count: 1 },
-  { id: 'soc', label: 'SOC', icon: Shield, count: 2 },
-  { id: 'starred', label: 'Избранные', icon: Star },
-  { id: 'archive', label: 'Архив', icon: Archive },
-  { id: 'trash', label: 'Корзина', icon: Trash2 },
-];
+import { useGS } from '@/store/useGS';
+import { t } from '@/lib/i18n';
 
 const EMAILS: Record<string, Array<{ id: number; from: string; subject: string; preview: string; time: string; body: string; headers?: Record<string, string>; isPhishing?: boolean; read?: boolean }>> = {
   inbox: [
@@ -60,6 +52,19 @@ const EMAILS: Record<string, Array<{ id: number; from: string; subject: string; 
 };
 
 export default function MailApp() {
+  const lang = useGS(s => s.lang);
+  const T = (key: string) => t(lang, key);
+
+  const FOLDERS = [
+    { id: 'inbox', label: T('osMailInbox'), icon: Inbox, count: 3 },
+    { id: 'sent', label: T('osMailSent'), icon: Send },
+    { id: 'spam', label: T('osMailSpam'), icon: AlertTriangle, count: 1 },
+    { id: 'soc', label: T('osMailSOC'), icon: Shield, count: 2 },
+    { id: 'starred', label: T('osMailStarred'), icon: Star },
+    { id: 'archive', label: T('osMailArchive'), icon: Archive },
+    { id: 'trash', label: T('osMailTrash'), icon: Trash2 },
+  ];
+
   const [selectedFolder, setSelectedFolder] = useState('inbox');
   const [selectedEmail, setSelectedEmail] = useState<number | null>(null);
   const [showHeaders, setShowHeaders] = useState(false);
@@ -79,7 +84,7 @@ export default function MailApp() {
         <div className="px-3 py-3 border-b" style={{ borderColor: 'var(--color-border)' }}>
           <div className="flex items-center gap-2">
             <Mail className="w-5 h-5" style={{ color: 'var(--color-text)' }} />
-            <span className="text-sm font-bold" style={{ color: 'var(--color-text)' }}>Почта</span>
+            <span className="text-sm font-bold" style={{ color: 'var(--color-text)' }}>{T('osMail')}</span>
           </div>
         </div>
 
@@ -125,7 +130,7 @@ export default function MailApp() {
             <input
               value={searchQuery}
               onChange={e => setSearchQuery(e.target.value)}
-              placeholder="Поиск..."
+              placeholder={T('osMailSearch')}
               className="flex-1 bg-transparent text-xs outline-none"
               style={{ color: 'var(--color-text)' }}
             />
@@ -158,7 +163,7 @@ export default function MailApp() {
                   backgroundColor: 'rgba(239,68,68,0.1)',
                   color: '#ef4444',
                 }}>
-                  <AlertTriangle className="w-2.5 h-2.5" /> Подозрительное
+                  <AlertTriangle className="w-2.5 h-2.5" /> {T('osMailSuspicious')}
                 </span>
               )}
             </button>
@@ -192,7 +197,7 @@ export default function MailApp() {
                     className="text-xs px-3 py-1.5 rounded-lg hover:bg-black/10 transition-colors"
                     style={{ color: 'var(--color-text-secondary)' }}
                   >
-                    {showHeaders ? 'Скрыть заголовки' : 'Показать заголовки'}
+                    {showHeaders ? T('osMailHideHeaders') : T('osMailShowHeaders')}
                   </button>
                 )}
               </div>
@@ -206,7 +211,7 @@ export default function MailApp() {
                 className="mb-4 p-4 rounded-xl"
                 style={{ backgroundColor: 'var(--color-surface)' }}
               >
-                <h4 className="text-xs font-bold mb-2 uppercase" style={{ color: 'var(--color-text-muted)' }}>Заголовки безопасности</h4>
+                <h4 className="text-xs font-bold mb-2 uppercase" style={{ color: 'var(--color-text-muted)' }}>{T('osMailSOC')}</h4>
                 <div className="space-y-1.5 text-xs font-mono">
                   {Object.entries(email.headers).map(([key, value]) => (
                     <div key={key} className="flex items-center gap-2">
@@ -236,17 +241,17 @@ export default function MailApp() {
               }}>
                 <div className="flex items-center gap-2 mb-2">
                   <AlertTriangle className="w-4 h-4 text-red-500" />
-                  <span className="text-sm font-bold text-red-500">Подозрительное письмо</span>
+                  <span className="text-sm font-bold text-red-500">{T('osMailSuspicious')}</span>
                 </div>
                 <p className="text-xs text-red-400/80 mb-3">
-                  Обнаружены признаки фишинга: подозрительный Reply-To, SPF FAIL, DKIM none
+                  {T('osMailSuspicious')}: Reply-To, SPF FAIL, DKIM none
                 </p>
                 <div className="flex gap-2">
                   <button className="px-3 py-1.5 rounded-lg text-xs font-medium bg-red-500 text-white hover:bg-red-600 transition-colors">
-                    Пожаловаться в SOC
+                    {T('osMailReportSOC')}
                   </button>
                   <button className="px-3 py-1.5 rounded-lg text-xs font-medium border border-red-300 text-red-500 hover:bg-red-50 transition-colors">
-                    Удалить
+                    {T('osMailDelete')}
                   </button>
                 </div>
               </div>
@@ -256,7 +261,7 @@ export default function MailApp() {
           <div className="flex items-center justify-center h-full">
             <div className="text-center">
               <Mail className="w-16 h-16 mx-auto mb-4 opacity-20" style={{ color: 'var(--color-text)' }} />
-              <p className="text-sm" style={{ color: 'var(--color-text-muted)' }}>Выберите письмо для просмотра</p>
+              <p className="text-sm" style={{ color: 'var(--color-text-muted)' }}>{T('osMailSearch')}</p>
             </div>
           </div>
         )}

@@ -1,59 +1,63 @@
 import { useState, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Monitor, Wifi, Shield, Mail, Globe, MessageSquare, X, Check, ChevronLeft, ChevronRight } from 'lucide-react';
+import { useGS } from '@/store/useGS';
+import { t } from '@/lib/i18n';
 
 const STEPS = [
   {
-    title: 'Добро пожаловать в ZeroOS!',
-    desc: 'Это ваша корпоративная операционная система для обучения кибербезопасности. Здесь вы будете выполнять миссии и защищать данные компании.',
+    titleKey: 'osTutorialTitle1',
+    descKey: 'osTutorialDesc1',
     icon: Monitor,
     color: '#3fb950',
   },
   {
-    title: 'Приложения на рабочем столе',
-    desc: 'Кликните по иконке чтобы открыть приложение: Почта, Браузер, Xam Мессенджер, Файлы, Терминал, Безопасность. Каждое приложение — часть обучения.',
+    titleKey: 'osTutorialTitle2',
+    descKey: 'osTutorialDesc2',
     icon: Monitor,
     color: '#58a6ff',
   },
   {
-    title: 'Почта — ваша первая миссия',
-    desc: 'Откройте Почту. Вы получите фишинговое письмо. Проверьте SPF/DKIM заголовки, не переходите по подозрительным ссылкам. Это ваш первый тест!',
+    titleKey: 'osTutorialTitle3',
+    descKey: 'osTutorialDesc3',
     icon: Mail,
     color: '#ef4444',
   },
   {
-    title: 'Xam Мессенджер с AI',
-    desc: 'Xam — умный мессенджер с AI-ассистентом. Пишите сообщения и получайте ответы от нейросети. Но будьте осторожны — мошенники тоже используют AI!',
+    titleKey: 'osTutorialTitle4',
+    descKey: 'osTutorialDesc4',
     icon: MessageSquare,
     color: '#7c3aed',
   },
   {
-    title: 'ZeroBrowser',
-    desc: 'Браузер с вкладками, историей и закладками. Работает через iframe. Для важных операций используйте мобильный интернет или VPN.',
+    titleKey: 'osTutorialTitle5',
+    descKey: 'osTutorialDesc5',
     icon: Globe,
     color: '#f59e0b',
   },
   {
-    title: 'Симуляторы атак',
-    desc: 'В меню «Пуск» есть симуляторы: Wi-Fi атака (сниффинг трафика), Дипфейк-звонок (распознавание AI-голоса), Эмуляция атаки (визуализация).',
+    titleKey: 'osTutorialTitle6',
+    descKey: 'osTutorialDesc6',
     icon: Wifi,
     color: '#ec4899',
   },
   {
-    title: 'Центр безопасности',
-    desc: 'Мониторинг угроз в реальном времени. Сканируйте систему, активируйте защиту, отслеживайте уровень безопасности.',
+    titleKey: 'osTutorialTitle7',
+    descKey: 'osTutorialDesc7',
     icon: Shield,
     color: '#22c55e',
   },
   {
-    title: 'Готовы начать?',
-    desc: 'Откройте Почту — там вас ждёт первое задание. Удачи в защите данных компании!',
+    titleKey: 'osTutorialTitle8',
+    descKey: 'osTutorialDesc8',
     icon: Check,
     color: '#3fb950',
   },
 ];
 
 export default function OSTutorial({ onComplete }: { onComplete: () => void }) {
+  const lang = useGS(s => s.lang);
+  const T = (key: string) => t(lang, key);
   const [step, setStep] = useState(0);
   const [fade, setFade] = useState(true);
   const current = STEPS[step];
@@ -88,8 +92,8 @@ export default function OSTutorial({ onComplete }: { onComplete: () => void }) {
               <Icon className="w-10 h-10" />
             </div>
 
-            <h2 className="text-2xl font-bold text-white mb-3">{current.title}</h2>
-            <p className="text-base text-gray-300 leading-relaxed mb-6">{current.desc}</p>
+            <h2 className="text-2xl font-bold text-white mb-3">{T(current.titleKey)}</h2>
+            <p className="text-base text-gray-300 leading-relaxed mb-6">{T(current.descKey)}</p>
 
             {/* Progress dots */}
             <div className="flex items-center justify-center gap-1.5 mb-8">
@@ -105,13 +109,13 @@ export default function OSTutorial({ onComplete }: { onComplete: () => void }) {
             <div className="flex items-center justify-center gap-3">
               {step > 0 && (
                 <button onClick={goPrev} className="flex items-center gap-1.5 px-4 py-2.5 rounded-xl text-sm font-medium text-gray-400 hover:text-white transition-colors">
-                  <ChevronLeft className="w-4 h-4" /> Назад
+                  <ChevronLeft className="w-4 h-4" /> {T('osTutorialBack')}
                 </button>
               )}
               <button onClick={goNext} className="flex items-center gap-2 px-6 py-3 rounded-xl text-sm font-bold text-white shadow-lg transition-all hover:scale-105"
                 style={{ backgroundColor: current.color, boxShadow: `0 0 20px ${current.color}30` }}
               >
-                {step < STEPS.length - 1 ? (<>Далее <ChevronRight className="w-4 h-4" /></>) : (<>Начать работу <Check className="w-4 h-4" /></>)}
+                {step < STEPS.length - 1 ? (<>{T('osTutorialNext')} <ChevronRight className="w-4 h-4" /></>) : (<>{T('osTutorialStart')} <Check className="w-4 h-4" /></>)}
               </button>
             </div>
           </motion.div>

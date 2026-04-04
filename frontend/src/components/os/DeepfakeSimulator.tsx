@@ -1,10 +1,14 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Phone, PhoneOff, PhoneCall, AlertTriangle, Check, ArrowRight, Shield, Mic, User, Clock } from 'lucide-react';
+import { useGS } from '@/store/useGS';
+import { t } from '@/lib/i18n';
 
 type Phase = 'ringing' | 'conversation' | 'decision' | 'result';
 
 export default function DeepfakeSimulator({ onComplete }: { onComplete?: (safe: boolean) => void }) {
+  const lang = useGS(s => s.lang);
+  const T = (key: string) => t(lang, key);
   const [phase, setPhase] = useState<Phase>('ringing');
   const [msgIndex, setMsgIndex] = useState(0);
   const [choice, setChoice] = useState<'transfer' | 'callback' | 'ignore' | null>(null);
@@ -46,7 +50,7 @@ export default function DeepfakeSimulator({ onComplete }: { onComplete?: (safe: 
           <span className="text-sm font-bold text-white">Deepfake Call Simulator</span>
         </div>
         <div className="text-[10px] px-2 py-0.5 rounded-full bg-purple-500/20 text-purple-400">
-          {phase === 'ringing' ? 'ВХОДЯЩИЙ' : phase === 'conversation' ? 'РАЗГОВОР' : phase === 'decision' ? 'РЕШЕНИЕ' : 'РЕЗУЛЬТАТ'}
+          {phase === 'ringing' ? T('osDeepfakeCall') : phase === 'conversation' ? T('osContinue') : phase === 'decision' ? T('osDeepfakeDecision') : T('osWifiResult')}
         </div>
       </div>
 
@@ -60,7 +64,7 @@ export default function DeepfakeSimulator({ onComplete }: { onComplete?: (safe: 
               >
                 <PhoneCall className="w-12 h-12 text-purple-400" />
               </motion.div>
-              <h2 className="text-2xl font-bold text-white mb-2">Входящий звонок</h2>
+              <h2 className="text-2xl font-bold text-white mb-2">{T('osDeepfakeCall')}</h2>
               <p className="text-lg text-purple-300 mb-1">Сергей Петрович</p>
               <p className="text-xs text-gray-500 mb-8">Генеральный директор</p>
 
@@ -69,13 +73,13 @@ export default function DeepfakeSimulator({ onComplete }: { onComplete?: (safe: 
                   className="flex flex-col items-center gap-2 p-4 rounded-2xl bg-green-500/10 border border-green-500/30 hover:bg-green-500/20 transition-colors"
                 >
                   <Phone className="w-6 h-6 text-green-400" />
-                  <span className="text-xs text-green-300">Ответить</span>
+                  <span className="text-xs text-green-300">{T('osDeepfakeAnswer')}</span>
                 </button>
                 <button onClick={() => makeChoice('ignore')}
                   className="flex flex-col items-center gap-2 p-4 rounded-2xl bg-red-500/10 border border-red-500/30 hover:bg-red-500/20 transition-colors"
                 >
                   <PhoneOff className="w-6 h-6 text-red-400" />
-                  <span className="text-xs text-red-300">Отклонить</span>
+                  <span className="text-xs text-red-300">{T('osDeepfakeDecline')}</span>
                 </button>
               </div>
             </motion.div>
@@ -139,7 +143,7 @@ export default function DeepfakeSimulator({ onComplete }: { onComplete?: (safe: 
           {/* DECISION */}
           {phase === 'decision' && (
             <motion.div key="decision" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="space-y-4 max-w-lg mx-auto">
-              <h2 className="text-xl font-bold text-white text-center">Ваше решение?</h2>
+              <h2 className="text-xl font-bold text-white text-center">{T('osDeepfakeDecision')}</h2>
 
               <div className="grid grid-cols-1 gap-3">
                 <button onClick={() => makeChoice('transfer')}
@@ -147,7 +151,7 @@ export default function DeepfakeSimulator({ onComplete }: { onComplete?: (safe: 
                 >
                   <div className="text-2xl">💸</div>
                   <div>
-                    <p className="text-sm font-bold text-red-300">Перевести деньги</p>
+                    <p className="text-sm font-bold text-red-300">{T('osDeepfakeTransfer')}</p>
                     <p className="text-[10px] text-gray-500">Отправить 280,000₽ по реквизитам</p>
                   </div>
                 </button>
@@ -157,7 +161,7 @@ export default function DeepfakeSimulator({ onComplete }: { onComplete?: (safe: 
                 >
                   <Shield className="w-8 h-8 text-green-400" />
                   <div>
-                    <p className="text-sm font-bold text-green-300">Перезвонить по известному номеру</p>
+                    <p className="text-sm font-bold text-green-300">{T('osDeepfakeCallback')}</p>
                     <p className="text-[10px] text-gray-500">Проверить через официальный контакт</p>
                   </div>
                 </button>
@@ -167,7 +171,7 @@ export default function DeepfakeSimulator({ onComplete }: { onComplete?: (safe: 
                 >
                   <PhoneOff className="w-8 h-8 text-gray-400" />
                   <div>
-                    <p className="text-sm font-bold text-gray-300">Завершить звонок</p>
+                    <p className="text-sm font-bold text-gray-300">{T('osDeepfakeIgnore')}</p>
                     <p className="text-[10px] text-gray-500">Сообщить в отдел безопасности</p>
                   </div>
                 </button>
@@ -183,10 +187,10 @@ export default function DeepfakeSimulator({ onComplete }: { onComplete?: (safe: 
                   <div className="text-center">
                     <motion.div animate={transferAnim ? { y: [0, -100], opacity: [1, 0] } : {}}
                       className="text-6xl mb-4">💸</motion.div>
-                    <h2 className="text-xl font-bold text-red-400">Деньги отправлены!</h2>
+                    <h2 className="text-xl font-bold text-red-400">{T('osDeepfakeScam')}</h2>
                   </div>
                   <div className="rounded-xl border border-red-500/20 bg-red-500/5 p-4 space-y-2">
-                    <p className="text-sm text-red-300 font-bold">❌ Это был дипфейк!</p>
+                    <p className="text-sm text-red-300 font-bold">{T('osDeepfakeScam')}</p>
                     <p className="text-xs text-gray-400">Голос был сгенерирован нейросетью. Настоящий Сергей Петрович был на совещании и ничего не переводил.</p>
                     <p className="text-xs text-gray-400">280,000₽ ушли на счёт мошенников. Возврат маловероятен.</p>
                   </div>
@@ -197,10 +201,10 @@ export default function DeepfakeSimulator({ onComplete }: { onComplete?: (safe: 
                     <div className="w-20 h-20 rounded-full mx-auto mb-4 flex items-center justify-center bg-green-500/10 border border-green-500/30">
                       <Check className="w-10 h-10 text-green-400" />
                     </div>
-                    <h2 className="text-xl font-bold text-green-400">Правильное решение!</h2>
+                    <h2 className="text-xl font-bold text-green-400">{T('osDeepfakeCorrect')}</h2>
                   </div>
                   <div className="rounded-xl border border-green-500/20 bg-green-500/5 p-4 space-y-2">
-                    <p className="text-sm text-green-300 font-bold">✅ Вы распознали дипфейк!</p>
+                    <p className="text-sm text-green-300 font-bold">{T('osDeepfakeCorrect')}</p>
                     <p className="text-xs text-gray-400">Перезвонив по известному номеру, вы обнаружили что это мошенники.</p>
                     <p className="text-xs text-gray-400">Инцидент передан в отдел безопасности.</p>
                   </div>
@@ -222,7 +226,7 @@ export default function DeepfakeSimulator({ onComplete }: { onComplete?: (safe: 
                 className="w-full py-3 rounded-xl text-sm font-bold text-white flex items-center justify-center gap-2"
                 style={{ backgroundColor: '#3fb950' }}
               >
-                Продолжить <ArrowRight className="w-4 h-4" />
+                {T('osContinue')} <ArrowRight className="w-4 h-4" />
               </button>
             </motion.div>
           )}

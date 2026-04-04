@@ -260,15 +260,15 @@ export default function MainMenu() {
 
         <div className="flex-1 overflow-y-auto">
           <div className="max-w-5xl mx-auto p-4 md:p-8 space-y-4 md:space-y-5">
-            {scenarios.map((scenario, index) => {
+            {scenarios.map((scenario: any, index) => {
               const Icon = scenario.icon;
-              const missionCodes = TRACK_MISSIONS[scenario.id];
-              const resolvedInTrack = missionCodes.reduce((a, code) => {
-                const m = missions.find(x => x.code === code);
-                return a + (m ? m.steps.filter(s => stepStates.get(s.id)?.resolved).length : 0);
+              const missionCodes = TRACK_MISSIONS[scenario.id as ScenarioTrack];
+              const resolvedInTrack = missionCodes.reduce((a: number, code: string) => {
+                const m = missions.find((x: any) => x.code === code);
+                return a + (m ? m.steps.filter((s: any) => stepStates.get(s.id)?.resolved).length : 0);
               }, 0);
-              const totalInTrack = missionCodes.reduce((a, code) => {
-                const m = missions.find(x => x.code === code);
+              const totalInTrack = missionCodes.reduce((a: number, code: string) => {
+                const m = missions.find((x: any) => x.code === code);
                 return a + (m ? m.steps.length : 0);
               }, 0);
               const pct = totalInTrack ? Math.round((resolvedInTrack / totalInTrack) * 100) : 0;
@@ -279,7 +279,7 @@ export default function MainMenu() {
                   initial={{ opacity: 0, x: -20 }}
                   animate={{ opacity: 1, x: 0 }}
                   transition={{ delay: index * 0.1 }}
-                  onClick={() => { setTrack(scenario.id); setScreen('lobby'); }}
+                  onClick={() => { setTrack(scenario.id as ScenarioTrack); setScreen('lobby'); }}
                   className="w-full text-left"
                 >
                   <div

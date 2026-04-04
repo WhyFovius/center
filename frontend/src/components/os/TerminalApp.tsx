@@ -1,4 +1,6 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
+import { useGS } from '@/store/useGS';
+import { t } from '@/lib/i18n';
 
 interface CommandEntry {
   type: 'input' | 'output' | 'error' | 'info';
@@ -7,10 +9,12 @@ interface CommandEntry {
 }
 
 export default function TerminalApp() {
+  const lang = useGS(s => s.lang);
+  const T = (key: string) => t(lang, key);
   const isDark = true;
   const [history, setHistory] = useState<CommandEntry[]>([
     { type: 'info', text: 'ZeroOS Terminal v1.0.0', color: '#58a6ff' },
-    { type: 'info', text: 'Введите "help" для списка команд.', color: '#888' },
+    { type: 'info', text: T('osTerminalHelp'), color: '#888' },
     { type: 'info', text: '' },
   ]);
   const [input, setInput] = useState('');
@@ -38,7 +42,7 @@ export default function TerminalApp() {
     switch (c) {
       case 'help':
         result = [
-          { type: 'info', text: 'Доступные команды:', color: '#58a6ff' },
+          { type: 'info', text: T('osTerminalHelp'), color: '#58a6ff' },
           { type: 'output', text: '  help          — список команд' },
           { type: 'output', text: '  ls            — содержимое папки' },
           { type: 'output', text: '  cd <dir>      — перейти в папку' },
@@ -179,7 +183,7 @@ export default function TerminalApp() {
         break;
 
       default:
-        result = [{ type: 'error', text: `Команда не найдена: ${c}. Введите "help" для списка команд.`, color: '#ef4444' }];
+        result = [{ type: 'error', text: `${T('osTerminalNotFound')}: ${c}. ${T('osTerminalHelp')}`, color: '#ef4444' }];
     }
 
     setHistory(prev => [...prev, { type: 'input', text: `$ ${cmd}` }, ...result, { type: 'output', text: '' }]);

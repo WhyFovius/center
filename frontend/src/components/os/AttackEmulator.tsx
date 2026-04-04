@@ -2,6 +2,7 @@ import { useState, useRef, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Shield, Server, Activity, Terminal, Wifi } from 'lucide-react';
 import { useGS } from '@/store/useGS';
+import { t } from '@/lib/i18n';
 
 interface AttackNode {
   id: number;
@@ -56,6 +57,8 @@ const ATTACK_SEQUENCE: LogEntry[] = [
 
 export default function AttackEmulator({ onClose }: { onClose?: () => void }) {
   const theme = useGS(s => s.theme);
+  const lang = useGS(s => s.lang);
+  const T = (key: string) => t(lang, key);
   const isDark = theme === 'dark' || theme === 'bw';
   const [nodes, setNodes] = useState<AttackNode[]>(INITIAL_NODES);
   const [lines, setLines] = useState<AttackLine[]>(INITIAL_LINES);
@@ -141,8 +144,8 @@ export default function AttackEmulator({ onClose }: { onClose?: () => void }) {
           <span className="text-xs font-bold text-white">Attack Simulator — Live</span>
         </div>
         <div className="flex items-center gap-3 text-xs">
-          <span style={{ color: defenseLevel > 70 ? '#22c55e' : '#ef4444' }}>Защита: {defenseLevel}%</span>
-          <span className="text-gray-400">Фаза: {phase === 'idle' ? 'Ожидание' : phase === 'scanning' ? 'Сканирование' : phase === 'attacking' ? 'Атака' : phase === 'defending' ? 'Защита' : 'Отражена'}</span>
+          <span style={{ color: defenseLevel > 70 ? '#22c55e' : '#ef4444' }}>{T('osDefenseLevel')}: {defenseLevel}%</span>
+          <span className="text-gray-400">{T('osScanSystem')}: {phase === 'idle' ? T('osReady') : phase === 'scanning' ? T('osScanning') : phase === 'attacking' ? T('osActiveThreats') : phase === 'defending' ? T('osActivateDefense') : T('osAttackReflected')}</span>
         </div>
       </div>
 
@@ -208,7 +211,7 @@ export default function AttackEmulator({ onClose }: { onClose?: () => void }) {
       <div className="border-t shrink-0" style={{ backgroundColor: '#050510', borderColor: '#1a1a2e' }}>
         <div className="px-3 py-1 flex items-center gap-2">
           <div className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse" />
-          <span className="text-[9px] font-mono text-gray-500">LIVE LOG</span>
+          <span className="text-[9px] font-mono text-gray-500">{T('osLiveLog')}</span>
         </div>
         <div className="h-28 overflow-y-auto px-3 pb-2 font-mono text-[10px] space-y-0.5">
           {logs.map(log => (
@@ -217,7 +220,7 @@ export default function AttackEmulator({ onClose }: { onClose?: () => void }) {
             </div>
           ))}
           {phase === 'idle' && (
-            <div className="text-gray-600">Ожидание атаки...</div>
+            <div className="text-gray-600">{T('osReady')}...</div>
           )}
           <div ref={logsEndRef} />
         </div>

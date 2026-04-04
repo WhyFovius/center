@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { Shield, AlertTriangle, XCircle, Activity, Lock, RefreshCw } from 'lucide-react';
 import { useGS } from '@/store/useGS';
+import { t } from '@/lib/i18n';
 
 interface Threat {
   id: number;
@@ -37,6 +38,8 @@ const ATTACK_MESSAGES: AttackLog[] = [
 
 export default function SecurityCenter() {
   const theme = useGS(s => s.theme);
+  const lang = useGS(s => s.lang);
+  const T = (key: string) => t(lang, key);
   const isDark = theme === 'dark' || theme === 'bw';
   const [threats] = useState<Threat[]>(INITIAL_THREATS);
   const [logs, setLogs] = useState<AttackLog[]>(ATTACK_MESSAGES);
@@ -63,7 +66,7 @@ export default function SecurityCenter() {
         if (prev >= 100) {
           clearInterval(interval);
           setIsScanning(false);
-          setLogs(l => [...l, { id: Date.now(), message: 'Сканирование завершено. Угроз не обнаружено.', type: 'success', time: new Date().toLocaleTimeString('ru-RU') }]);
+          setLogs(l => [...l, { id: Date.now(), message: `${T('osScanSystem')}: ${T('osProtected')}.`, type: 'success', time: new Date().toLocaleTimeString('ru-RU') }]);
           return 100;
         }
         return prev + 2;
@@ -97,7 +100,7 @@ export default function SecurityCenter() {
             style={{ backgroundColor: isDark ? '#2a2a2a' : '#f0f0f0', color: isDark ? '#ccc' : '#333' }}
           >
             <RefreshCw className={`w-3.5 h-3.5 ${isScanning ? 'animate-spin' : ''}`} />
-            {isScanning ? 'Сканирование...' : 'Сканировать'}
+            {isScanning ? T('osScanning') : T('osScanSystem')}
           </button>
           <button onClick={toggleShield}
             className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${shieldActive ? 'text-green-400' : 'text-red-400'}`}
@@ -112,10 +115,10 @@ export default function SecurityCenter() {
       {/* Stats cards */}
       <div className="grid grid-cols-4 gap-2 p-3 shrink-0">
         {[
-          { label: 'Уровень защиты', value: `${defenseLevel}%`, color: defenseLevel > 70 ? '#22c55e' : '#ef4444', icon: Shield },
-          { label: 'Заблокировано', value: String(blockedCount), color: '#3fb950', icon: XCircle },
-          { label: 'Активных угроз', value: String(threats.filter(t => t.status !== 'blocked').length), color: '#f59e0b', icon: AlertTriangle },
-          { label: 'Сканирование', value: isScanning ? `${scanProgress}%` : 'Готово', color: '#58a6ff', icon: Activity },
+          { label: T('osDefenseLevel'), value: `${defenseLevel}%`, color: defenseLevel > 70 ? '#22c55e' : '#ef4444', icon: Shield },
+          { label: T('osBlockedCount'), value: String(blockedCount), color: '#3fb950', icon: XCircle },
+          { label: T('osActiveThreats'), value: String(threats.filter(t => t.status !== 'blocked').length), color: '#f59e0b', icon: AlertTriangle },
+          { label: T('osScanSystem'), value: isScanning ? `${scanProgress}%` : T('osReady'), color: '#58a6ff', icon: Activity },
         ].map((stat, i) => (
           <div key={i} className="p-3 rounded-xl" style={{ backgroundColor: isDark ? '#1e1e1e' : '#ffffff', border: `1px solid ${isDark ? '#333' : '#e5e5e5'}` }}>
             <div className="flex items-center gap-2 mb-1">
@@ -157,7 +160,7 @@ export default function SecurityCenter() {
                 <div className={`text-[10px] px-2 py-0.5 rounded-full shrink-0 ${
                   threat.status === 'blocked' ? 'text-green-500' : threat.status === 'active' ? 'text-red-500' : 'text-yellow-500'
                 }`} style={{ backgroundColor: threat.status === 'blocked' ? 'rgba(34,197,94,0.1)' : threat.status === 'active' ? 'rgba(239,68,68,0.1)' : 'rgba(245,158,11,0.1)' }}>
-                  {threat.status === 'blocked' ? 'Заблокировано' : threat.status === 'active' ? 'Активна' : 'Проверка'}
+                  {threat.status === 'blocked' ? T('osProtected') : threat.status === 'active' ? T('osActiveThreats') : T('osScanning')}
                 </div>
               </motion.div>
             ))}
@@ -169,7 +172,7 @@ export default function SecurityCenter() {
       <div className="border-t shrink-0" style={{ backgroundColor: isDark ? '#0c0c0c' : '#1e1e1e' }}>
         <div className="px-3 py-1.5 flex items-center gap-2">
           <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
-          <span className="text-[10px] font-mono" style={{ color: '#888' }}>Live Log</span>
+          <span className="text-[10px] font-mono" style={{ color: '#888' }}>{T('osLiveLog')}</span>
         </div>
         <div className="h-24 overflow-y-auto px-3 pb-2 space-y-0.5 font-mono text-[10px]">
           {logs.map(log => (

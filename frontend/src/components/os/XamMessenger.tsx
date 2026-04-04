@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { motion } from 'framer-motion';
 import { Send, Search, MoreVertical, Phone, Video, Smile, Paperclip } from 'lucide-react';
 import { useGS } from '@/store/useGS';
+import { t } from '@/lib/i18n';
 import { askAI } from './DesktopOS';
 
 interface Message {
@@ -74,6 +75,8 @@ function getNow() {
 
 export default function XamMessenger() {
   const theme = useGS(s => s.theme);
+  const lang = useGS(s => s.lang);
+  const T = (key: string) => t(lang, key);
   const isDark = theme === 'dark' || theme === 'bw';
   const [selectedChat, setSelectedChat] = useState<string | null>(null);
   const [newMsg, setNewMsg] = useState('');
@@ -138,7 +141,7 @@ export default function XamMessenger() {
         <div className="px-2 py-2">
           <div className="flex items-center gap-2 px-2 py-1.5 rounded-lg" style={{ backgroundColor: isDark ? '#252525' : '#f0f0f0' }}>
             <Search className="w-3.5 h-3.5" style={{ color: isDark ? '#888' : '#999' }} />
-            <input value={searchQuery} onChange={e => setSearchQuery(e.target.value)} placeholder="Поиск..."
+            <input value={searchQuery} onChange={e => setSearchQuery(e.target.value)} placeholder={T('osXamSearch')}
               className="flex-1 bg-transparent text-xs outline-none" style={{ color: isDark ? '#e0e0e0' : '#333' }} />
           </div>
         </div>
@@ -180,7 +183,7 @@ export default function XamMessenger() {
                     <div className="w-8 h-8 rounded-full flex items-center justify-center text-sm" style={{ backgroundColor: isDark ? '#2a2a2a' : '#f0f0f0' }}>{contact.avatar}</div>
                     <div>
                       <p className="text-sm font-semibold" style={{ color: isDark ? '#e0e0e0' : '#333' }}>{contact.name}</p>
-                      <p className="text-[10px]" style={{ color: contact.online ? '#22c55e' : (isDark ? '#666' : '#999') }}>{contact.online ? 'в сети' : 'не в сети'}</p>
+                      <p className="text-[10px]" style={{ color: contact.online ? '#22c55e' : (isDark ? '#666' : '#999') }}>{contact.online ? T('osXamOnline') : T('osXamOffline')}</p>
                     </div>
                   </div>
                   <div className="flex items-center gap-1.5">
@@ -226,7 +229,7 @@ export default function XamMessenger() {
               <button className="p-1.5 rounded-lg hover:bg-black/10"><Paperclip className="w-4 h-4" style={{ color: isDark ? '#888' : '#666' }} /></button>
               <input value={newMsg} onChange={e => setNewMsg(e.target.value)}
                 onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(); } }}
-                placeholder="Введите сообщение..."
+                placeholder={T('osXamMsgPlaceholder')}
                 className="flex-1 px-3 py-1.5 rounded-full text-sm outline-none"
                 style={{ backgroundColor: isDark ? '#2a2a2a' : '#f0f0f0', color: isDark ? '#e0e0e0' : '#333' }}
               />
@@ -243,8 +246,8 @@ export default function XamMessenger() {
           <div className="flex-1 flex items-center justify-center">
             <div className="text-center">
               <div className="w-16 h-16 rounded-2xl flex items-center justify-center text-2xl font-bold text-white mx-auto mb-3" style={{ backgroundColor: '#7c3aed' }}>X</div>
-              <h3 className="text-lg font-semibold mb-1" style={{ color: isDark ? '#e0e0e0' : '#333' }}>Xam Мессенджер</h3>
-              <p className="text-sm" style={{ color: isDark ? '#888' : '#666' }}>Выберите чат для начала общения</p>
+              <h3 className="text-lg font-semibold mb-1" style={{ color: isDark ? '#e0e0e0' : '#333' }}>{T('osMessenger')}</h3>
+              <p className="text-sm" style={{ color: isDark ? '#888' : '#666' }}>{T('osFilesEmpty')}</p>
             </div>
           </div>
         )}

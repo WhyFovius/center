@@ -2,6 +2,7 @@ import { useState, useRef, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ArrowLeft, ArrowRight, RotateCcw, Home, Search, Lock, Unlock, ExternalLink, X, Plus, Globe } from 'lucide-react';
 import { useGS } from '@/store/useGS';
+import { t } from '@/lib/i18n';
 
 interface BrowserTab {
   id: string;
@@ -45,8 +46,10 @@ function addHistory(url: string, title: string) {
 
 export default function BrowserApp() {
   const theme = useGS(s => s.theme);
+  const lang = useGS(s => s.lang);
+  const T = (key: string) => t(lang, key);
   const isDark = theme === 'dark' || theme === 'bw';
-  const [tabs, setTabs] = useState<BrowserTab[]>([{ id: 'tab-1', title: 'Новая вкладка', url: '', loading: false, error: null }]);
+  const [tabs, setTabs] = useState<BrowserTab[]>([{ id: 'tab-1', title: T('osBrowserNewTab'), url: '', loading: false, error: null }]);
   const [activeTabId, setActiveTabId] = useState('tab-1');
   const [urlInput, setUrlInput] = useState('');
   const [bookmarks, setBookmarks] = useState<string[]>(getBookmarks);
@@ -58,7 +61,7 @@ export default function BrowserApp() {
 
   const createTab = () => {
     const id = `tab-${Date.now()}`;
-    const newTab: BrowserTab = { id, title: 'Новая вкладка', url: '', loading: false, error: null };
+    const newTab: BrowserTab = { id, title: T('osBrowserNewTab'), url: '', loading: false, error: null };
     setTabs(prev => [...prev, newTab]);
     setActiveTabId(id);
     setUrlInput('');
@@ -97,7 +100,7 @@ export default function BrowserApp() {
   }, [activeTabId]);
 
   const goHome = () => {
-    setTabs(prev => prev.map(t => t.id === activeTabId ? { ...t, url: '', title: 'Новая вкладка', loading: false, error: null } : t));
+    setTabs(prev => prev.map(t => t.id === activeTabId ? { ...t, url: '', title: T('osBrowserNewTab'), loading: false, error: null } : t));
     setUrlInput('');
   };
 
@@ -181,26 +184,26 @@ export default function BrowserApp() {
             value={urlInput}
             onChange={e => setUrlInput(e.target.value)}
             onKeyDown={e => { if (e.key === 'Enter') navigate(urlInput); }}
-            placeholder="Введите URL или поисковый запрос"
+            placeholder={T('osBrowserUrl')}
             className="flex-1 bg-transparent text-sm outline-none"
             style={{ color: isDark ? '#e0e0e0' : '#333' }}
           />
           {activeTab.url && (
-            <button onClick={toggleBookmark} className="p-0.5 hover:bg-black/10 rounded transition-colors" title={isBookmarked ? 'Убрать из закладок' : 'Добавить в закладки'}>
+            <button onClick={toggleBookmark} className="p-0.5 hover:bg-black/10 rounded transition-colors" title={isBookmarked ? T('osBrowserBookmarks') : T('osBrowserBookmarks')}>
               <Search className={`w-3.5 h-3.5 ${isBookmarked ? 'text-yellow-500' : ''}`} style={{ color: isBookmarked ? undefined : (isDark ? '#888' : '#999') }} />
             </button>
           )}
         </div>
 
-        <button onClick={() => activeTab.url && window.open(activeTab.url, '_blank')} className="p-1.5 rounded hover:bg-black/10 transition-colors" title="Открыть в новом окне">
+        <button onClick={() => activeTab.url && window.open(activeTab.url, '_blank')} className="p-1.5 rounded hover:bg-black/10 transition-colors" title={T('osContinue')}>
           <ExternalLink className="w-4 h-4" style={{ color: isDark ? '#ccc' : '#333' }} />
         </button>
-        <button onClick={() => setShowBookmarks(!showBookmarks)} className="p-1.5 rounded hover:bg-black/10 transition-colors" title="Закладки">
+        <button onClick={() => setShowBookmarks(!showBookmarks)} className="p-1.5 rounded hover:bg-black/10 transition-colors" title={T('osBrowserBookmarks')}>
           <svg className="w-4 h-4" viewBox="0 0 24 24" fill={isBookmarked ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth="2" style={{ color: isBookmarked ? '#fbbf24' : (isDark ? '#ccc' : '#333') }}>
             <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z" />
           </svg>
         </button>
-        <button onClick={() => setShowHistory(!showHistory)} className="p-1.5 rounded hover:bg-black/10 transition-colors" title="История">
+        <button onClick={() => setShowHistory(!showHistory)} className="p-1.5 rounded hover:bg-black/10 transition-colors" title={T('osBrowserHistory')}>
           <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ color: isDark ? '#ccc' : '#333' }}>
             <circle cx="12" cy="12" r="10" /><polyline points="12 6 12 12 16 14" />
           </svg>
@@ -219,7 +222,7 @@ export default function BrowserApp() {
             {showBookmarks && (
               <div className="flex items-center gap-1 px-3 py-1.5 overflow-x-auto">
                 {bookmarks.length === 0 ? (
-                  <p className="text-xs" style={{ color: isDark ? '#888' : '#666' }}>Нет закладок</p>
+                  <p className="text-xs" style={{ color: isDark ? '#888' : '#666' }}>{T('osBrowserBookmarks')}</p>
                 ) : bookmarks.map(bm => {
                   const domain = (() => { try { return new URL(bm).hostname.replace('www.', ''); } catch { return bm.slice(0, 30); } })();
                   return (
@@ -237,7 +240,7 @@ export default function BrowserApp() {
             {showHistory && (
               <div className="flex items-center gap-1 px-3 py-1.5 overflow-x-auto max-h-20 overflow-y-auto">
                 {getHistory().length === 0 ? (
-                  <p className="text-xs" style={{ color: isDark ? '#888' : '#666' }}>История пуста</p>
+                  <p className="text-xs" style={{ color: isDark ? '#888' : '#666' }}>{T('osBrowserHistory')}</p>
                 ) : getHistory().map((h, i) => (
                   <button key={i} onClick={() => navigate(h.url)}
                     className="flex items-center gap-1 px-2 py-0.5 rounded text-xs whitespace-nowrap hover:bg-black/10 transition-colors"
@@ -260,7 +263,7 @@ export default function BrowserApp() {
               <h1 className="text-4xl font-bold mb-2" style={{ color: isDark ? '#e0e0e0' : '#333' }}>
                 Zero<span style={{ color: '#3fb950' }}>Browser</span>
               </h1>
-              <p className="text-sm mb-6" style={{ color: isDark ? '#888' : '#666' }}>Безопасный браузер для работы и исследований</p>
+              <p className="text-sm mb-6" style={{ color: isDark ? '#888' : '#666' }}>ZeroBrowser</p>
 
               {/* Search */}
               <div className="flex items-center gap-2 px-4 py-3 rounded-full mb-6" style={{
@@ -269,7 +272,7 @@ export default function BrowserApp() {
               }}>
                 <Search className="w-4 h-4" style={{ color: isDark ? '#888' : '#999' }} />
                 <input
-                  placeholder="Поиск в интернете..."
+                  placeholder={T('osBrowserSearch')}
                   className="flex-1 bg-transparent text-sm outline-none"
                   style={{ color: isDark ? '#e0e0e0' : '#333' }}
                   onKeyDown={e => { if (e.key === 'Enter') navigate((e.target as HTMLInputElement).value); }}
@@ -296,7 +299,7 @@ export default function BrowserApp() {
               <div className="w-16 h-16 rounded-full bg-red-500/10 flex items-center justify-center mx-auto mb-4">
                 <X className="w-8 h-8 text-red-500" />
               </div>
-              <h2 className="text-xl font-bold mb-2" style={{ color: isDark ? '#e0e0e0' : '#333' }}>Не удалось загрузить страницу</h2>
+              <h2 className="text-xl font-bold mb-2" style={{ color: isDark ? '#e0e0e0' : '#333' }}>{T('osBrowserFailed')}</h2>
               <p className="text-sm mb-4" style={{ color: isDark ? '#888' : '#666' }}>{activeTab.error}</p>
               <button onClick={() => window.open(activeTab.url, '_blank')}
                 className="px-4 py-2 rounded-lg text-sm font-medium text-white" style={{ backgroundColor: '#3fb950' }}
@@ -309,7 +312,7 @@ export default function BrowserApp() {
               <div className="absolute inset-0 flex items-center justify-center z-10" style={{ backgroundColor: isDark ? '#1e1e1e' : '#ffffff' }}>
                 <div className="flex flex-col items-center gap-3">
                   <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin" />
-                  <p className="text-sm" style={{ color: isDark ? '#888' : '#666' }}>Загрузка...</p>
+                  <p className="text-sm" style={{ color: isDark ? '#888' : '#666' }}>{T('osBrowserLoading')}</p>
                 </div>
               </div>
             )}

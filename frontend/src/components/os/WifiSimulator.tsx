@@ -1,6 +1,8 @@
 import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Wifi, Lock, Unlock, Shield, AlertTriangle, Eye, X, ArrowRight, Check, Smartphone, Laptop } from 'lucide-react';
+import { useGS } from '@/store/useGS';
+import { t } from '@/lib/i18n';
 
 type Phase = 'select' | 'connect' | 'browse' | 'attack' | 'result';
 type Choice = 'secure' | 'risky' | null;
@@ -19,15 +21,17 @@ const NETWORKS: Network[] = [
   { id: 'phone', name: 'iPhone_Алексей', secure: true, signal: 45, type: 'WPA3' },
 ];
 
-const PHASE_TEXTS: Record<Phase, { title: string; desc: string }> = {
-  select: { title: 'Выберите Wi-Fi сеть', desc: 'Вы в кофейне «Brew & Byte». Нужно проверить рабочую почту. К какой сети подключиться?' },
-  connect: { title: 'Подключение', desc: 'Сеть подключена. Проверьте параметры безопасности.' },
-  browse: { title: 'Использование интернета', desc: 'Интернет работает. Что будете делать?' },
-  attack: { title: '⚠️ Обнаружена атака!', desc: 'Злоумышленник перехватывает ваш трафик...' },
-  result: { title: 'Результат', desc: '' },
+const PHASE_TEXTS: Record<Phase, { titleKey: string; descKey: string }> = {
+  select: { titleKey: 'osWifiSelect', descKey: 'osWifiSelect' },
+  connect: { titleKey: 'osWifiConnect', descKey: 'osWifiConnect' },
+  browse: { titleKey: 'osWifiBrowse', descKey: 'osWifiBrowse' },
+  attack: { titleKey: 'osWifiAttack', descKey: 'osWifiAttack' },
+  result: { titleKey: 'osWifiResult', descKey: 'osWifiResult' },
 };
 
 export default function WifiSimulator({ onComplete }: { onComplete?: (safe: boolean) => void }) {
+  const lang = useGS(s => s.lang);
+  const T = (key: string) => t(lang, key);
   const [phase, setPhase] = useState<Phase>('select');
   const [selectedNetwork, setSelectedNetwork] = useState<Network | null>(null);
   const [choice, setChoice] = useState<Choice>(null);
@@ -123,8 +127,8 @@ export default function WifiSimulator({ onComplete }: { onComplete?: (safe: bool
           {/* SELECT PHASE */}
           {phase === 'select' && (
             <motion.div key="select" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }} className="space-y-4">
-              <h2 className="text-xl font-bold text-white">{PHASE_TEXTS.select.title}</h2>
-              <p className="text-sm text-gray-400">{PHASE_TEXTS.select.desc}</p>
+              <h2 className="text-xl font-bold text-white">{T(PHASE_TEXTS.select.titleKey)}</h2>
+              <p className="text-sm text-gray-400">{T(PHASE_TEXTS.select.descKey)}</p>
 
               {/* Phone screen mockup */}
               <div className="rounded-2xl border border-gray-800 bg-gray-900/50 p-4 max-w-sm mx-auto">
@@ -163,8 +167,8 @@ export default function WifiSimulator({ onComplete }: { onComplete?: (safe: bool
           {/* CONNECT PHASE */}
           {phase === 'connect' && selectedNetwork && (
             <motion.div key="connect" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }} className="space-y-4">
-              <h2 className="text-xl font-bold text-white">{PHASE_TEXTS.connect.title}</h2>
-              <p className="text-sm text-gray-400">{PHASE_TEXTS.connect.desc}</p>
+              <h2 className="text-xl font-bold text-white">{T(PHASE_TEXTS.connect.titleKey)}</h2>
+              <p className="text-sm text-gray-400">{T(PHASE_TEXTS.connect.descKey)}</p>
 
               <div className="rounded-2xl border border-gray-800 bg-gray-900/50 p-6 max-w-sm mx-auto text-center">
                 <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }} className="w-16 h-16 rounded-full mx-auto mb-4 flex items-center justify-center"
@@ -208,8 +212,8 @@ export default function WifiSimulator({ onComplete }: { onComplete?: (safe: bool
           {/* BROWSE PHASE */}
           {phase === 'browse' && (
             <motion.div key="browse" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }} className="space-y-4">
-              <h2 className="text-xl font-bold text-white">{PHASE_TEXTS.browse.title}</h2>
-              <p className="text-sm text-gray-400">{PHASE_TEXTS.browse.desc}</p>
+              <h2 className="text-xl font-bold text-white">{T(PHASE_TEXTS.browse.titleKey)}</h2>
+              <p className="text-sm text-gray-400">{T(PHASE_TEXTS.browse.descKey)}</p>
 
               <div className="grid grid-cols-2 gap-3 max-w-sm mx-auto">
                 {[
@@ -236,8 +240,8 @@ export default function WifiSimulator({ onComplete }: { onComplete?: (safe: bool
                 <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }} className="w-20 h-20 rounded-full mx-auto mb-4 flex items-center justify-center bg-red-500/10 border border-red-500/30">
                   <AlertTriangle className="w-10 h-10 text-red-400" />
                 </motion.div>
-                <h2 className="text-xl font-bold text-red-400">{PHASE_TEXTS.attack.title}</h2>
-                <p className="text-sm text-gray-400 mt-2">Злоумышленник в той же сети перехватывает ваш трафик</p>
+                <h2 className="text-xl font-bold text-red-400">{T(PHASE_TEXTS.attack.titleKey)}</h2>
+                <p className="text-sm text-gray-400 mt-2">{T(PHASE_TEXTS.attack.descKey)}</p>
               </div>
 
               {/* Visualization */}
@@ -330,7 +334,7 @@ export default function WifiSimulator({ onComplete }: { onComplete?: (safe: bool
                   {safe ? <Check className="w-10 h-10 text-green-400" /> : <X className="w-10 h-10 text-red-400" />}
                 </motion.div>
                 <h2 className="text-xl font-bold" style={{ color: safe ? '#22c55e' : '#ef4444' }}>
-                  {safe ? 'Данные защищены!' : 'Данные скомпрометированы!'}
+                  {safe ? T('osDataProtected') : T('osWifiAttack')}
                 </h2>
               </div>
 
@@ -365,7 +369,7 @@ export default function WifiSimulator({ onComplete }: { onComplete?: (safe: bool
                 className="w-full py-3 rounded-xl text-sm font-bold text-white flex items-center justify-center gap-2"
                 style={{ backgroundColor: '#3fb950' }}
               >
-                Продолжить <ArrowRight className="w-4 h-4" />
+                {T('osContinue')} <ArrowRight className="w-4 h-4" />
               </button>
             </motion.div>
           )}

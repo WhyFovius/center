@@ -5,6 +5,7 @@ import {
   Mail, Globe, MessageSquare, FolderOpen, Terminal, ChevronUp, Settings, Zap, Phone
 } from 'lucide-react';
 import { useGS } from '@/store/useGS';
+import { t } from '@/lib/i18n';
 import OSWindow from './OSWindow';
 import MailApp from './MailApp';
 import BrowserApp from './BrowserApp';
@@ -29,16 +30,6 @@ interface OpenWindow {
   minimized: boolean;
   zIndex: number;
 }
-
-const APPS = [
-  { id: 'mail', label: 'Почта', icon: <Mail className="w-4 h-4" /> },
-  { id: 'browser', label: 'Браузер', icon: <Globe className="w-4 h-4" /> },
-  { id: 'messenger', label: 'Xam', icon: <MessageSquare className="w-4 h-4" /> },
-  { id: 'files', label: 'Файлы', icon: <FolderOpen className="w-4 h-4" /> },
-  { id: 'terminal', label: 'Терминал', icon: <Terminal className="w-4 h-4" /> },
-  { id: 'security', label: 'Безопасность', icon: <Shield className="w-4 h-4" /> },
-  { id: 'settings', label: 'Настройки', icon: <Settings className="w-4 h-4" /> },
-];
 
 const API_KEY = import.meta.env.VITE_OPENROUTER_API_KEY || '';
 const API_MODEL = import.meta.env.VITE_OPENROUTER_MODEL || 'qwen/qwen3-coder-plus:free';
@@ -77,7 +68,19 @@ export default function DesktopOS() {
   const setScreen = useGS(s => s.setScreen);
   const muted = useGS(s => s.muted);
   const toggleMute = useGS(s => s.toggleMute);
+  const lang = useGS(s => s.lang);
   const prevStatus = useGS(s => s.fb?.consequence?.status);
+  const T = (key: string) => t(lang, key);
+
+  const APPS = [
+    { id: 'mail', label: T('osMail'), icon: <Mail className="w-4 h-4" /> },
+    { id: 'browser', label: T('osBrowser'), icon: <Globe className="w-4 h-4" /> },
+    { id: 'messenger', label: T('osMessenger'), icon: <MessageSquare className="w-4 h-4" /> },
+    { id: 'files', label: T('osFiles'), icon: <FolderOpen className="w-4 h-4" /> },
+    { id: 'terminal', label: T('osTerminal'), icon: <Terminal className="w-4 h-4" /> },
+    { id: 'security', label: T('osSecurity'), icon: <Shield className="w-4 h-4" /> },
+    { id: 'settings', label: T('osSettings'), icon: <Settings className="w-4 h-4" /> },
+  ];
 
   const energy = useGS(s => s.energy);
   const shield = useGS(s => s.shield);
@@ -127,13 +130,13 @@ export default function DesktopOS() {
     if (!app) return;
 
     const titles: Record<string, string> = {
-      mail: 'Почта — ZeroOS',
+      mail: `${T('osMail')} — ZeroOS`,
       browser: 'ZeroBrowser',
-      messenger: 'Xam Мессенджер',
-      files: 'Файлы',
-      terminal: 'Терминал',
-      security: 'Центр безопасности',
-      settings: 'Настройки',
+      messenger: `${T('osMessenger')} Мессенджер`,
+      files: T('osFiles'),
+      terminal: T('osTerminal'),
+      security: T('osSecurity'),
+      settings: T('osSettings'),
     };
 
     const id = `w-${Date.now()}`;
@@ -264,7 +267,7 @@ export default function DesktopOS() {
             className="absolute top-3 left-1/2 -translate-x-1/2 z-40 bg-danger/90 text-white px-4 py-2 rounded-lg shadow-lg flex items-center gap-2 text-sm font-semibold"
           >
             <Shield className="w-4 h-4" />
-            СИСТЕМА СКОМПРОМЕТИРОВАНА
+            {T('osAttackDetected')}
             <button onClick={() => setCompromised(false)} className="ml-2 p-0.5 hover:bg-white/20 rounded">
               <X className="w-3.5 h-3.5" />
             </button>
@@ -289,31 +292,31 @@ export default function DesktopOS() {
                 className="w-full flex items-center gap-2.5 px-2.5 py-2 rounded hover:bg-surface-active transition-colors text-sm text-red-400"
               >
                 <span className="text-text-secondary"><Zap className="w-4 h-4" /></span>
-                <span>Эмуляция атаки</span>
+                <span>{T('osEmulation')}</span>
               </button>
               <button onClick={() => { setActiveSimulator('wifi'); setStartMenuOpen(false); }}
                 className="w-full flex items-center gap-2.5 px-2.5 py-2 rounded hover:bg-surface-active transition-colors text-sm text-yellow-400"
               >
                 <span className="text-text-secondary"><Wifi className="w-4 h-4" /></span>
-                <span>Wi-Fi симулятор</span>
+                <span>{T('osWifiSim')}</span>
               </button>
               <button onClick={() => { setActiveSimulator('deepfake'); setStartMenuOpen(false); }}
                 className="w-full flex items-center gap-2.5 px-2.5 py-2 rounded hover:bg-surface-active transition-colors text-sm text-purple-400"
               >
                 <span className="text-text-secondary"><Phone className="w-4 h-4" /></span>
-                <span>Дипфейк симулятор</span>
+                <span>{T('osDeepfakeSim')}</span>
               </button>
               <button onClick={() => { setScreen('corporate'); setStartMenuOpen(false); }}
                 className="w-full flex items-center gap-2.5 px-2.5 py-2 rounded hover:bg-surface-active transition-colors text-sm text-blue-400"
               >
                 <span className="text-text-secondary"><Monitor className="w-4 h-4" /></span>
-                <span>Corporate Dashboard</span>
+                <span>{T('osCorporate')}</span>
               </button>
               <button onClick={() => handleOpenApp('settings')}
                 className="w-full flex items-center gap-2.5 px-2.5 py-2 rounded hover:bg-surface-active transition-colors text-sm"
               >
                 <span className="text-text-secondary"><Settings className="w-4 h-4" /></span>
-                <span>Настройки</span>
+                <span>{T('osSettings')}</span>
               </button>
             </div>
 
@@ -321,7 +324,7 @@ export default function DesktopOS() {
               <button onClick={handleGoMenu}
                 className="text-xs text-text-secondary hover:text-text px-2 py-1 rounded hover:bg-surface-active transition-colors"
               >
-                Главное меню
+                {T('osHome')}
               </button>
               <button onClick={() => {
                 setScreen('profile');
@@ -329,7 +332,7 @@ export default function DesktopOS() {
               }}
                 className="text-xs text-text-secondary hover:text-text px-2 py-1 rounded hover:bg-surface-active transition-colors"
               >
-                Профиль
+                {T('osProfile')}
               </button>
             </div>
           </motion.div>
@@ -345,7 +348,7 @@ export default function DesktopOS() {
               className="flex items-center gap-1.5 px-2.5 py-1.5 rounded hover:bg-surface-active transition-colors group"
             >
               <Monitor className="w-4 h-4 text-ci-green group-hover:text-ci-green-light transition-colors" />
-              <span className="text-xs font-semibold hidden sm:inline">Пуск</span>
+              <span className="text-xs font-semibold hidden sm:inline">{T('osStart')}</span>
             </button>
 
             <div className="w-px h-5 bg-border mx-0.5" />
@@ -393,18 +396,18 @@ export default function DesktopOS() {
                   className="absolute bottom-full right-0 mb-2 w-64 bg-surface border border-border rounded-lg shadow-xl p-3"
                 >
                   <div className="space-y-2">
-                    <p className="text-xs font-semibold">Состояние системы</p>
+                    <p className="text-xs font-semibold">{T('osSettingsSystem')}</p>
                     <div className="flex justify-between items-center text-xs">
-                      <span className="text-text-secondary">Энергия</span>
+                      <span className="text-text-secondary">{T('hudEnergy')}</span>
                       <span className="text-ci-green">{energy}%</span>
                     </div>
                     <div className="flex justify-between items-center text-xs">
-                      <span className="text-text-secondary">Щит</span>
+                      <span className="text-text-secondary">{T('hudShield')}</span>
                       <span className="text-ci-green">{shield}%</span>
                     </div>
                     <button onClick={toggleMute} className="w-full text-xs text-text-secondary hover:text-text px-2 py-1 rounded hover:bg-surface-active transition-colors flex items-center gap-1.5">
                       {muted ? <VolumeX className="w-3 h-3" /> : <Volume2 className="w-3 h-3" />}
-                      {muted ? 'Включить звук' : 'Выключить звук'}
+                      {muted ? T('osSettingsUnmuted') : T('osSettingsMuted')}
                     </button>
                   </div>
                 </motion.div>
