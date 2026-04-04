@@ -182,8 +182,8 @@ export default function FileManager() {
 
         {/* Status bar */}
         <div className="flex items-center justify-between px-3 py-1.5 border-t text-[10px]" style={{ backgroundColor: 'var(--color-surface)', borderColor: 'var(--color-border)', color: 'var(--color-text-muted)' }}>
-          <span>{filtered.length} элементов</span>
-          {selectedFile && <span>Выбрано: {selectedFile}</span>}
+          <span>{filtered.length} {T('profileSteps')}</span>
+          {selectedFile && <span>{T('lessonResult')}: {selectedFile}</span>}
         </div>
       </div>
     </div>

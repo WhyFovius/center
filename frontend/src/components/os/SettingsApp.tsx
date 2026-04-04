@@ -92,7 +92,7 @@ export default function SettingsApp() {
               {muted ? <VolumeX className="w-5 h-5 text-red-400" /> : <Volume2 className="w-5 h-5 text-green-400" />}
               <div>
                 <p className="text-xs font-medium" style={{ color: 'var(--color-text)' }}>{muted ? T('osSettingsMuted') : T('osSettingsUnmuted')}</p>
-                <p className="text-[10px]" style={{ color: 'var(--color-text-muted)' }}>Звуковые эффекты интерфейса</p>
+                <p className="text-[10px]" style={{ color: 'var(--color-text-muted)' }}>{T('osSettingsSound')}</p>
               </div>
             </div>
             <button onClick={toggleMute}
@@ -105,7 +105,7 @@ export default function SettingsApp() {
 
         {/* Language */}
         <div>
-          <h3 className="text-sm font-bold mb-3" style={{ color: 'var(--color-text)' }}>Язык</h3>
+          <h3 className="text-sm font-bold mb-3" style={{ color: 'var(--color-text)' }}>{T('osSettingsLang')}</h3>
           <div className="grid grid-cols-3 gap-3">
             {([
               { value: 'ru' as Lang, label: 'Русский', flag: '🇷🇺' },

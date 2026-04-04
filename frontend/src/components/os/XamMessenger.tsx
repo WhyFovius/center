@@ -247,7 +247,7 @@ export default function XamMessenger() {
             <div className="text-center">
               <div className="w-16 h-16 rounded-2xl flex items-center justify-center text-2xl font-bold text-white mx-auto mb-3" style={{ backgroundColor: '#7c3aed' }}>X</div>
               <h3 className="text-lg font-semibold mb-1" style={{ color: isDark ? '#e0e0e0' : '#333' }}>{T('osMessenger')}</h3>
-              <p className="text-sm" style={{ color: isDark ? '#888' : '#666' }}>{T('osFilesEmpty')}</p>
+              <p className="text-sm" style={{ color: isDark ? '#888' : '#666' }}>{T('osXamSearch')}</p>
             </div>
           </div>
         )}

@@ -162,7 +162,7 @@ export function ConsequenceOverlay() {
               className="inline-flex items-center gap-2 px-4 py-2 rounded-full border border-red-300 bg-white text-sm font-semibold text-red-600 hover:bg-red-50 transition-colors"
             >
               <RotateCcw className="w-4 h-4" />
-              Пройти заново
+              {T('consequenceRetryTest')}
             </button>
           )}
 
@@ -171,7 +171,7 @@ export function ConsequenceOverlay() {
               onClick={handleNext}
               className="inline-flex items-center gap-2 px-5 py-2 rounded-full bg-green-600 text-white text-sm font-semibold hover:bg-green-700 transition-colors"
             >
-              {allMissionsComplete ? 'В меню миссий' : 'Следующий эпизод'}
+              {allMissionsComplete ? T('consequenceToMissionMenu') : T('consequenceNextEpisode')}
               <ArrowRight className="w-4 h-4" />
             </button>
           ) : (
@@ -180,7 +180,7 @@ export function ConsequenceOverlay() {
               className="inline-flex items-center gap-2 px-5 py-2 rounded-full bg-red-600 text-white text-sm font-semibold hover:bg-red-700 transition-colors"
             >
               <RotateCcw className="w-4 h-4" />
-              Пройти заново
+              {T('hudReset')}
             </button>
           )}
         </div>

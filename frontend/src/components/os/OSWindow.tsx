@@ -28,8 +28,7 @@ export default function OSWindow({
     x: initialX ?? 120,
     y: initialY ?? 80,
   }));
-  const [size, setSize] = useState({ width: initialWidth, height: initialHeight });
-  void setSize;
+  const [size] = useState({ width: initialWidth, height: initialHeight });
   const [isMaximized, setIsMaximized] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
   const dragStart = useRef({ x: 0, y: 0, posX: 0, posY: 0 });

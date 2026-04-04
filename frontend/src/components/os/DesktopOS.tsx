@@ -144,7 +144,7 @@ export default function DesktopOS() {
     setActiveWindow(id);
     setNextZ(z => z + 1);
     setStartMenuOpen(false);
-  }, [openWindows, nextZ]);
+  }, [openWindows, nextZ, T, APPS]);
 
   const handleClose = useCallback((id: string) => {
     setOpenWindows(prev => prev.filter(w => w.id !== id));

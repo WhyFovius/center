@@ -154,7 +154,7 @@ export default function AuthForm() {
                   type="password"
                   value={password}
                   onChange={e => setPassword(e.target.value)}
-                  placeholder={T('passwordHint')}
+                  placeholder={T('password')}
                   className="w-full pl-12 pr-5 py-3.5 bg-bg-secondary border border-border rounded-xl text-text placeholder:text-text-muted focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-all text-base"
                   required
                   minLength={8}

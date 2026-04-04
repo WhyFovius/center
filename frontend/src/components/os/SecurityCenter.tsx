@@ -90,8 +90,8 @@ export default function SecurityCenter() {
             <Shield className={`w-5 h-5 ${shieldActive ? 'text-green-500' : 'text-red-500'}`} />
           </div>
           <div>
-            <h2 className="text-sm font-bold" style={{ color: isDark ? '#e0e0e0' : '#333' }}>Центр безопасности</h2>
-            <p className="text-xs" style={{ color: isDark ? '#888' : '#666' }}>Мониторинг угроз в реальном времени</p>
+            <h2 className="text-sm font-bold" style={{ color: isDark ? '#e0e0e0' : '#333' }}>{T('osSecurity')}</h2>
+            <p className="text-xs" style={{ color: isDark ? '#888' : '#666' }}>{T('osLiveLog')}</p>
           </div>
         </div>
         <div className="flex items-center gap-2">
@@ -107,7 +107,7 @@ export default function SecurityCenter() {
             style={{ backgroundColor: shieldActive ? 'rgba(63,185,80,0.15)' : 'rgba(239,68,68,0.15)' }}
           >
             <Lock className="w-3.5 h-3.5" />
-            {shieldActive ? 'Защита активна' : 'Защита выключена'}
+            {shieldActive ? T('osProtected') : T('osActivateDefense')}
           </button>
         </div>
       </div>

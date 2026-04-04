@@ -276,7 +276,7 @@ export default function Lobby() {
                               className="rounded-full px-6 py-3 text-base font-bold"
                             >
                               <Monitor className="w-5 h-5 mr-2" />
-                              Рабочий стол
+                              {T('osStart')}
                             </Button>
                             <Button
                               onClick={() => {

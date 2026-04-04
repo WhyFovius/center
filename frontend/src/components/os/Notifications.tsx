@@ -11,6 +11,7 @@ import {
   Check,
 } from 'lucide-react';
 import { useGS } from '@/store/useGS';
+import { t } from '@/lib/i18n';
 
 export interface OSNotification {
   id: string;
@@ -86,18 +87,20 @@ export function useNotifications() {
 // Game-driven notifications
 function useGameNotifications() {
   const { addNotification } = useNotifications();
+  const lang = useGS((s) => s.lang);
   const fb = useGS((s) => s.fb);
   const energy = useGS((s) => s.energy);
   const shield = useGS((s) => s.shield);
   const prevEnergy = useRef(energy);
   const prevShield = useRef(shield);
+  const T = (key: string) => t(lang, key);
 
   useEffect(() => {
     if (prevEnergy.current !== energy) {
       if (energy < prevEnergy.current && energy < 50) {
         addNotification({
-          title: 'Внимание',
-          message: `Уровень энергии снизился до ${energy}%`,
+          title: T('notifAttention'),
+          message: T('notifEnergyLow').replace('{value}', String(energy)),
           type: 'warning',
           icon: <AlertTriangle className="w-5 h-5" />,
           duration: 4000,
@@ -105,14 +108,14 @@ function useGameNotifications() {
       }
       prevEnergy.current = energy;
     }
-  }, [energy, addNotification]);
+  }, [energy, addNotification, lang]);
 
   useEffect(() => {
     if (prevShield.current !== shield) {
       if (shield < prevShield.current && shield < 50) {
         addNotification({
-          title: 'Предупреждение',
-          message: `Щит безопасности ослаблен: ${shield}%`,
+          title: T('notifWarning'),
+          message: T('notifShieldWeak').replace('{value}', String(shield)),
           type: 'error',
           icon: <ShieldAlert className="w-5 h-5" />,
           duration: 5000,
@@ -120,33 +123,35 @@ function useGameNotifications() {
       }
       prevShield.current = shield;
     }
-  }, [shield, addNotification]);
+  }, [shield, addNotification, lang]);
 
   useEffect(() => {
     if (fb?.kind === 'warning') {
       addNotification({
-        title: fb.title || 'Внимание',
-        message: fb.message || 'Обнаружена угроза',
+        title: fb.title || T('notifAttention'),
+        message: fb.message || T('notifThreat'),
         type: 'error',
         icon: <ShieldAlert className="w-5 h-5" />,
         duration: 6000,
       });
     } else if (fb?.kind === 'success') {
       addNotification({
-        title: fb.title || 'Отлично',
-        message: fb.message || 'Угроза нейтрализована',
+        title: fb.title || T('notifGreat'),
+        message: fb.message || T('notifThreatNeutralized'),
         type: 'success',
         icon: <Check className="w-5 h-5" />,
         duration: 4000,
       });
     }
-  }, [fb, addNotification]);
+  }, [fb, addNotification, lang]);
 }
 
 // Demo notifications on mount
 function useDemoNotifications() {
   const { addNotification } = useNotifications();
+  const lang = useGS((s) => s.lang);
   const [shown, setShown] = useState(false);
+  const T = (key: string) => t(lang, key);
 
   useEffect(() => {
     if (shown) return;
@@ -155,7 +160,7 @@ function useDemoNotifications() {
     const timers = [
       setTimeout(() => {
         addNotification({
-          title: 'Новое письмо',
+          title: T('notifNewMail'),
           message: 'СРОЧНО: Подтвердите данные учетной записи',
           type: 'warning',
           icon: <Mail className="w-5 h-5" />,
@@ -164,7 +169,7 @@ function useDemoNotifications() {
       }, 2000),
       setTimeout(() => {
         addNotification({
-          title: 'Сообщение',
+          title: T('notifMessage'),
           message: 'Алексей Иванов: Привет! Как дела с отчетом?',
           type: 'info',
           icon: <MessageSquare className="w-5 h-5" />,
@@ -173,7 +178,7 @@ function useDemoNotifications() {
       }, 5000),
       setTimeout(() => {
         addNotification({
-          title: 'Обновление системы',
+          title: T('notifSystemUpdate'),
           message: 'Доступно обновление антивирусной базы',
           type: 'info',
           icon: <Shield className="w-5 h-5" />,
@@ -183,7 +188,7 @@ function useDemoNotifications() {
     ];
 
     return () => timers.forEach(clearTimeout);
-  }, [shown, addNotification]);
+  }, [shown, addNotification, lang]);
 }
 
 function NotificationItem({
