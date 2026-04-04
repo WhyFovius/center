@@ -1,7 +1,7 @@
 import { useGS } from '@/store/useGS';
 import type { Theme, Lang } from '@/types';
 import { t } from '@/lib/i18n';
-import { Palette, Volume2, VolumeX, Globe, Cpu, HardDrive, Wifi, Monitor } from 'lucide-react';
+import { Palette, Volume2, VolumeX, Globe, Cpu, HardDrive, Wifi, Monitor, CheckCircle } from 'lucide-react';
 
 export default function SettingsApp() {
   const theme = useGS(s => s.theme);
@@ -10,8 +10,20 @@ export default function SettingsApp() {
   const setLang = useGS(s => s.setLang);
   const muted = useGS(s => s.muted);
   const toggleMute = useGS(s => s.toggleMute);
+  const completeTask = useGS(s => s.completeTask);
+  const osTasks = useGS(s => s.osTasks);
   const T = (key: string) => t(lang, key);
   const isDark = theme === 'dark' || theme === 'bw';
+
+  const handleSetTheme = (t: Theme) => {
+    setTheme(t);
+    completeTask('settings_theme');
+  };
+
+  const handleSetLang = (l: Lang) => {
+    setLang(l);
+    completeTask('settings_lang');
+  };
 
   return (
     <div className="h-full flex overflow-hidden" style={{ backgroundColor: 'var(--color-bg)' }}>
@@ -65,13 +77,13 @@ export default function SettingsApp() {
         {/* Appearance */}
         <div>
           <h3 className="text-sm font-bold mb-3" style={{ color: 'var(--color-text)' }}>{T('osSettingsAppearance')}</h3>
-          <div className="grid grid-cols-3 gap-3">
+          <div className="grid grid-cols-3 gap-3 relative">
             {([
               { value: 'light' as Theme, label: T('osSettingsLight'), bg: '#f8f6ee' },
               { value: 'dark' as Theme, label: T('osSettingsDark'), bg: '#0d1117' },
               { value: 'bw' as Theme, label: T('osSettingsBw'), bg: '#0a0a0a' },
             ]).map(t => (
-              <button key={t.value} onClick={() => setTheme(t.value)}
+              <button key={t.value} onClick={() => handleSetTheme(t.value)}
                 className={`flex flex-col items-center gap-2 p-4 rounded-xl border-2 transition-all ${
                   theme === t.value ? 'border-green-500' : 'border-transparent hover:border-gray-300'
                 }`}
@@ -81,6 +93,11 @@ export default function SettingsApp() {
                 <span className="text-xs" style={{ color: 'var(--color-text-secondary)' }}>{t.label}</span>
               </button>
             ))}
+            {osTasks.settings_theme && (
+              <div className="absolute -top-2 -right-2 flex items-center gap-1 px-2 py-1 rounded-full" style={{ backgroundColor: 'rgba(34,197,94,0.2)' }}>
+                <CheckCircle className="w-3.5 h-3.5 text-green-500" />
+              </div>
+            )}
           </div>
         </div>
 
@@ -106,13 +123,13 @@ export default function SettingsApp() {
         {/* Language */}
         <div>
           <h3 className="text-sm font-bold mb-3" style={{ color: 'var(--color-text)' }}>{T('osSettingsLang')}</h3>
-          <div className="grid grid-cols-3 gap-3">
+          <div className="grid grid-cols-3 gap-3 relative">
             {([
               { value: 'ru' as Lang, label: 'Русский', flag: '🇷🇺' },
               { value: 'kz' as Lang, label: 'Қазақша', flag: '🇰🇿' },
               { value: 'en' as Lang, label: 'English', flag: '🇬🇧' },
             ]).map(l => (
-              <button key={l.value} onClick={() => setLang(l.value)}
+              <button key={l.value} onClick={() => handleSetLang(l.value)}
                 className={`flex flex-col items-center gap-2 p-4 rounded-xl border-2 transition-all ${
                   lang === l.value ? 'border-green-500' : 'border-transparent hover:border-gray-300'
                 }`}
@@ -122,6 +139,11 @@ export default function SettingsApp() {
                 <span className="text-xs" style={{ color: 'var(--color-text-secondary)' }}>{l.label}</span>
               </button>
             ))}
+            {osTasks.settings_lang && (
+              <div className="absolute -top-2 -right-2 flex items-center gap-1 px-2 py-1 rounded-full" style={{ backgroundColor: 'rgba(34,197,94,0.2)' }}>
+                <CheckCircle className="w-3.5 h-3.5 text-green-500" />
+              </div>
+            )}
           </div>
         </div>
       </div>

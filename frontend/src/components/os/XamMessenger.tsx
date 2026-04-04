@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { motion } from 'framer-motion';
-import { Send, Search, MoreVertical, Phone, Video, Smile, Paperclip } from 'lucide-react';
+import { Send, Search, MoreVertical, Phone, Video, Smile, Paperclip, ShieldAlert, CheckCircle } from 'lucide-react';
 import { useGS } from '@/store/useGS';
 import { t } from '@/lib/i18n';
 import { askAI } from './DesktopOS';
@@ -76,6 +76,8 @@ function getNow() {
 export default function XamMessenger() {
   const theme = useGS(s => s.theme);
   const lang = useGS(s => s.lang);
+  const completeTask = useGS(s => s.completeTask);
+  const osTasks = useGS(s => s.osTasks);
   const T = (key: string) => t(lang, key);
   const isDark = theme === 'dark' || theme === 'bw';
   const [selectedChat, setSelectedChat] = useState<string | null>(null);
@@ -86,6 +88,11 @@ export default function XamMessenger() {
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => { messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' }); }, [selectedChat, chats]);
+
+  const handleReportSuspicious = () => {
+    completeTask('messenger_social_eng');
+    alert('Вы отметили подозрительное сообщение. Задание выполнено!');
+  };
 
   const sendMessage = async () => {
     if (!newMsg.trim() || !selectedChat) return;
@@ -187,6 +194,16 @@ export default function XamMessenger() {
                     </div>
                   </div>
                   <div className="flex items-center gap-1.5">
+                    {!osTasks.messenger_social_eng && (
+                      <button onClick={handleReportSuspicious} className="p-1.5 rounded-lg hover:bg-black/10 text-yellow-500" title="Это подозрительно!">
+                        <ShieldAlert className="w-3.5 h-3.5" />
+                      </button>
+                    )}
+                    {osTasks.messenger_social_eng && (
+                      <div className="flex items-center gap-1 px-1.5 py-1 rounded-lg" style={{ backgroundColor: 'rgba(34,197,94,0.15)' }}>
+                        <CheckCircle className="w-3 h-3 text-green-500" />
+                      </div>
+                    )}
                     <button onClick={() => alert('Звонки пока недоступны в демо-режиме')} className="p-1.5 rounded-lg hover:bg-black/10"><Phone className="w-3.5 h-3.5" style={{ color: isDark ? '#aaa' : '#666' }} /></button>
                     <button onClick={() => alert('Видеозвонки пока недоступны в демо-режиме')} className="p-1.5 rounded-lg hover:bg-black/10"><Video className="w-3.5 h-3.5" style={{ color: isDark ? '#aaa' : '#666' }} /></button>
                     <button onClick={() => alert('Меню контакта')} className="p-1.5 rounded-lg hover:bg-black/10"><MoreVertical className="w-3.5 h-3.5" style={{ color: isDark ? '#aaa' : '#666' }} /></button>

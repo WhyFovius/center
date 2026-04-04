@@ -32,6 +32,13 @@ interface GS {
   setEncTrig: (v: boolean) => void; setEncStep: (s: ScenarioStep | null) => void;
   setEnergy: (v: number) => void; setShield: (v: number) => void;
   resetCurrentMission: () => Promise<void>;
+
+  // OS Tasks
+  osTasks: Record<string, boolean>;
+  completeTask: (taskId: string) => void;
+  resetTasks: () => void;
+  getTaskProgress: () => number;
+  areAllTasksComplete: () => boolean;
 }
 
 function ssFor(m: Map<number, StepState>, id: number): StepState {
@@ -75,6 +82,20 @@ export const useGS = create<GS>((set, get) => ({
   track: 'network',
   gp: 'explore', px: 550, py: 405, pdir: 'down', pmov: false,
   encTriggered: false, encStep: null, energy: 100, shield: 100,
+  osTasks: {
+    mail_phishing: false,
+    browser_suspicious: false,
+    messenger_social_eng: false,
+    terminal_scan: false,
+    terminal_protect: false,
+    security_scan: false,
+    security_defense: false,
+    wifi_vpn: false,
+    deepfake_callback: false,
+    settings_theme: false,
+    settings_lang: false,
+    attack_emulator: false,
+  },
 
   setAuthed: v => set({ authed: v }), setScreen: s => set({ screen: s }),
   setLoading: v => set({ loading: v }), setError: v => set({ error: v }),
@@ -213,6 +234,42 @@ export const useGS = create<GS>((set, get) => ({
   setGp: p => set({ gp: p }), setPPos: (x, y) => set({ px: x, py: y }), setPDir: d => set({ pdir: d }), setPMov: v => set({ pmov: v }),
   setEncTrig: v => set({ encTriggered: v }), setEncStep: s => set({ encStep: s, gp: s ? 'lesson' : 'explore' }),
   setEnergy: v => set({ energy: v }), setShield: v => set({ shield: v }),
+
+  // OS Tasks
+  completeTask: (taskId: string) => {
+    const { osTasks } = get();
+    if (osTasks[taskId] !== undefined && !osTasks[taskId]) {
+      set({ osTasks: { ...osTasks, [taskId]: true } });
+    }
+  },
+  resetTasks: () => {
+    set({
+      osTasks: {
+        mail_phishing: false,
+        browser_suspicious: false,
+        messenger_social_eng: false,
+        terminal_scan: false,
+        terminal_protect: false,
+        security_scan: false,
+        security_defense: false,
+        wifi_vpn: false,
+        deepfake_callback: false,
+        settings_theme: false,
+        settings_lang: false,
+        attack_emulator: false,
+      },
+    });
+  },
+  getTaskProgress: () => {
+    const { osTasks } = get();
+    const total = Object.keys(osTasks).length;
+    const completed = Object.values(osTasks).filter(Boolean).length;
+    return total > 0 ? Math.round((completed / total) * 100) : 0;
+  },
+  areAllTasksComplete: () => {
+    const { osTasks } = get();
+    return Object.values(osTasks).every(Boolean);
+  },
 }));
 
 export { ssFor, family, bLabel };

@@ -58,6 +58,7 @@ const ATTACK_SEQUENCE: LogEntry[] = [
 export default function AttackEmulator({ onClose }: { onClose?: () => void }) {
   const theme = useGS(s => s.theme);
   const lang = useGS(s => s.lang);
+  const completeTask = useGS(s => s.completeTask);
   const T = (key: string) => t(lang, key);
   const isDark = theme === 'dark' || theme === 'bw';
   const [nodes, setNodes] = useState<AttackNode[]>(INITIAL_NODES);
@@ -79,6 +80,7 @@ export default function AttackEmulator({ onClose }: { onClose?: () => void }) {
   }, [logs]);
 
   const startAttack = () => {
+    completeTask('attack_emulator');
     setPhase('scanning');
     setNodes(prev => prev.map(n => n.id === 0 || n.id === 1 ? { ...n, status: 'under_attack' } : n));
     setLines(prev => prev.map(l => (l.from === 0 || l.from === 1) ? { ...l, active: true } : l));

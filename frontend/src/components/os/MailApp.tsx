@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { motion } from 'framer-motion';
-import { Inbox, Send, AlertTriangle, Shield, Mail, Star, Trash2, Archive, RefreshCw, Search } from 'lucide-react';
+import { Inbox, Send, AlertTriangle, Shield, Mail, Star, Trash2, Archive, RefreshCw, Search, Reply, Forward, CheckCircle } from 'lucide-react';
 import { useGS } from '@/store/useGS';
 import { t } from '@/lib/i18n';
 
@@ -53,6 +53,8 @@ const EMAILS: Record<string, Array<{ id: number; from: string; subject: string; 
 
 export default function MailApp() {
   const lang = useGS(s => s.lang);
+  const completeTask = useGS(s => s.completeTask);
+  const osTasks = useGS(s => s.osTasks);
   const T = (key: string) => t(lang, key);
 
   const FOLDERS = [
@@ -78,12 +80,23 @@ export default function MailApp() {
     : emails;
 
   const handleReportSOC = () => {
+    if (email?.isPhishing) {
+      completeTask('mail_phishing');
+    }
     alert('Жалоба отправлена в SOC. Письмо будет проанализировано.');
   };
 
   const handleDelete = () => {
     setSelectedEmail(null);
     setSelectedFolder('trash');
+  };
+
+  const handleReply = () => {
+    alert('Функция ответа будет добавлена');
+  };
+
+  const handleForward = () => {
+    alert('Функция пересылки будет добавлена');
   };
 
   return (
@@ -248,19 +261,33 @@ export default function MailApp() {
                 backgroundColor: 'rgba(239,68,68,0.05)',
                 borderColor: 'rgba(239,68,68,0.2)',
               }}>
-                <div className="flex items-center gap-2 mb-2">
-                  <AlertTriangle className="w-4 h-4 text-red-500" />
-                  <span className="text-sm font-bold text-red-500">{T('osMailSuspicious')}</span>
+                <div className="flex items-center justify-between mb-2">
+                  <div className="flex items-center gap-2">
+                    <AlertTriangle className="w-4 h-4 text-red-500" />
+                    <span className="text-sm font-bold text-red-500">{T('osMailSuspicious')}</span>
+                  </div>
+                  {osTasks.mail_phishing && (
+                    <div className="flex items-center gap-1 text-green-500">
+                      <CheckCircle className="w-4 h-4" />
+                      <span className="text-xs font-medium">{T('osTasksCompleted')}</span>
+                    </div>
+                  )}
                 </div>
                 <p className="text-xs text-red-400/80 mb-3">
                   {T('osMailSuspicious')}: Reply-To, SPF FAIL, DKIM none
                 </p>
-                <div className="flex gap-2">
+                <div className="flex gap-2 flex-wrap">
                   <button onClick={handleReportSOC} className="px-3 py-1.5 rounded-lg text-xs font-medium bg-red-500 text-white hover:bg-red-600 transition-colors">
                     {T('osMailReportSOC')}
                   </button>
                   <button onClick={handleDelete} className="px-3 py-1.5 rounded-lg text-xs font-medium border border-red-300 text-red-500 hover:bg-red-50 transition-colors">
                     {T('osMailDelete')}
+                  </button>
+                  <button onClick={handleReply} className="px-3 py-1.5 rounded-lg text-xs font-medium border border-gray-300 hover:bg-gray-50 transition-colors flex items-center gap-1">
+                    <Reply className="w-3 h-3" /> Reply
+                  </button>
+                  <button onClick={handleForward} className="px-3 py-1.5 rounded-lg text-xs font-medium border border-gray-300 hover:bg-gray-50 transition-colors flex items-center gap-1">
+                    <Forward className="w-3 h-3" /> Forward
                   </button>
                 </div>
               </div>

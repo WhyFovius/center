@@ -103,12 +103,18 @@ export default function ZeroMobile() {
                 <div className="flex items-center justify-between px-6 py-1 text-[11px] font-semibold text-white/80">
                   <span>{time.toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' })}</span>
                   <div className="flex items-center gap-1.5">
-                    <Signal className="w-3.5 h-3.5" />
-                    <Wifi className="w-3.5 h-3.5" />
+                    <button onClick={() => alert('Сигнал: Отлично')} className="hover:opacity-70 transition-opacity">
+                      <Signal className="w-3.5 h-3.5" />
+                    </button>
+                    <button onClick={() => alert('Wi-Fi: CoffeeShop_Free (подключено)')} className="hover:opacity-70 transition-opacity">
+                      <Wifi className="w-3.5 h-3.5" />
+                    </button>
                     <div className="flex items-center gap-0.5">
-                      <div className="w-[22px] h-[10px] rounded-sm border border-white/50 flex items-center p-[1px]">
-                        <div className="w-[70%] h-full rounded-[1px]" style={{ backgroundColor: '#34C759' }} />
-                      </div>
+                      <button onClick={() => alert('Батарея: 87%')} className="hover:opacity-70 transition-opacity flex items-center">
+                        <div className="w-[22px] h-[10px] rounded-sm border border-white/50 flex items-center p-[1px]">
+                          <div className="w-[70%] h-full rounded-[1px]" style={{ backgroundColor: '#34C759' }} />
+                        </div>
+                      </button>
                     </div>
                   </div>
                 </div>

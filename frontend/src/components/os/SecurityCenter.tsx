@@ -39,6 +39,7 @@ const ATTACK_MESSAGES: AttackLog[] = [
 export default function SecurityCenter() {
   const theme = useGS(s => s.theme);
   const lang = useGS(s => s.lang);
+  const completeTask = useGS(s => s.completeTask);
   const T = (key: string) => t(lang, key);
   const isDark = theme === 'dark' || theme === 'bw';
   const [threats] = useState<Threat[]>(INITIAL_THREATS);
@@ -66,6 +67,7 @@ export default function SecurityCenter() {
         if (prev >= 100) {
           clearInterval(interval);
           setIsScanning(false);
+          completeTask('security_scan');
           setLogs(l => [...l, { id: Date.now(), message: `${T('osScanSystem')}: ${T('osProtected')}.`, type: 'success', time: new Date().toLocaleTimeString('ru-RU') }]);
           return 100;
         }
@@ -75,8 +77,12 @@ export default function SecurityCenter() {
   };
 
   const toggleShield = () => {
-    setShieldActive(!shieldActive);
-    setDefenseLevel(!shieldActive ? 100 : 45);
+    const newShieldState = !shieldActive;
+    setShieldActive(newShieldState);
+    setDefenseLevel(newShieldState ? 100 : 45);
+    if (newShieldState) {
+      completeTask('security_defense');
+    }
   };
 
   const blockedCount = threats.filter(t => t.status === 'blocked').length;

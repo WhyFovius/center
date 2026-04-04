@@ -31,6 +31,7 @@ const PHASE_TEXTS: Record<Phase, { titleKey: string; descKey: string }> = {
 
 export default function WifiSimulator({ onComplete }: { onComplete?: (safe: boolean) => void }) {
   const lang = useGS(s => s.lang);
+  const completeTask = useGS(s => s.completeTask);
   const T = (key: string) => t(lang, key);
   const [phase, setPhase] = useState<Phase>('select');
   const [selectedNetwork, setSelectedNetwork] = useState<Network | null>(null);
@@ -47,6 +48,9 @@ export default function WifiSimulator({ onComplete }: { onComplete?: (safe: bool
 
   const makeChoice = (c: Choice) => {
     setChoice(c);
+    if (c === 'secure') {
+      completeTask('wifi_vpn');
+    }
     if (c === 'secure') {
       setPhase('attack');
       startAttack(true);

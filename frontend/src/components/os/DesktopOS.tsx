@@ -2,7 +2,8 @@ import { useState, useCallback, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   Monitor, Wifi, Battery, Volume2, VolumeX, Shield, X, Minimize2,
-  Mail, Globe, MessageSquare, FolderOpen, Terminal, ChevronUp, Settings, Zap, Phone
+  Mail, Globe, MessageSquare, FolderOpen, Terminal, ChevronUp, Settings, Zap, Phone,
+  Trophy, Calendar as CalendarIcon
 } from 'lucide-react';
 import { useGS } from '@/store/useGS';
 import { t } from '@/lib/i18n';
@@ -20,6 +21,7 @@ import DeepfakeSimulator from './DeepfakeSimulator';
 import OSTutorial from './OSTutorial';
 import Notifications, { NotificationProvider } from './Notifications';
 import GlitchEffect from './GlitchEffect';
+import CertificateGenerator from './CertificateGenerator';
 import { ToggleTheme } from '@/components/ui/toggle-theme';
 
 interface OpenWindow {
@@ -84,11 +86,26 @@ export default function DesktopOS() {
 
   const energy = useGS(s => s.energy);
   const shield = useGS(s => s.shield);
+  const getTaskProgress = useGS(s => s.getTaskProgress);
+  const areAllTasksComplete = useGS(s => s.areAllTasksComplete);
+  const osTasks = useGS(s => s.osTasks);
+  const taskProgress = getTaskProgress();
+  const allTasksComplete = areAllTasksComplete();
+  const completedCount = Object.values(osTasks).filter(Boolean).length;
+  const totalCount = Object.keys(osTasks).length;
+
   const [openWindows, setOpenWindows] = useState<OpenWindow[]>([]);
   const [activeWindow, setActiveWindow] = useState<string | null>(null);
   const [nextZ, setNextZ] = useState(10);
   const [startMenuOpen, setStartMenuOpen] = useState(false);
   const [showTray, setShowTray] = useState(false);
+  const [showTaskPanel, setShowTaskPanel] = useState(false);
+  const [showCertModal, setShowCertModal] = useState(false);
+  const [showWifiPopup, setShowWifiPopup] = useState(false);
+  const [showBatteryPopup, setShowBatteryPopup] = useState(false);
+  const [showVolumePopup, setShowVolumePopup] = useState(false);
+  const [showShieldPopup, setShowShieldPopup] = useState(false);
+  const [showCalendar, setShowCalendar] = useState(false);
   const [showCompromised, setCompromised] = useState(false);
   const [showGlitch, setShowGlitch] = useState(false);
   const [time, setTime] = useState(new Date());
@@ -211,6 +228,13 @@ export default function DesktopOS() {
                 {activeSimulator === 'deepfake' && <DeepfakeSimulator onComplete={() => setActiveSimulator(null)} />}
               </div>
             </motion.div>
+          )}
+        </AnimatePresence>
+
+        {/* Certificate Generator */}
+        <AnimatePresence>
+          {showCertModal && (
+            <CertificateGenerator onClose={() => setShowCertModal(false)} />
           )}
         </AnimatePresence>
 
@@ -381,19 +405,159 @@ export default function DesktopOS() {
 
             {/* System tray */}
             <div className="relative flex items-center gap-1">
-              <button onClick={() => setShowTray(!showTray)} className="flex items-center gap-1.5 px-2 py-1 rounded hover:bg-surface-active transition-colors">
+              <button onClick={() => { setShowTray(!showTray); setShowTaskPanel(false); }} className="flex items-center gap-1.5 px-2 py-1 rounded hover:bg-surface-active transition-colors">
                 <ChevronUp className="w-3.5 h-3.5 text-text-muted" />
               </button>
               <div className="flex items-center gap-2 px-2 py-1">
-                <Shield className="w-4 h-4 text-ci-green" />
-                <Wifi className="w-4 h-4 text-text-secondary" />
-                {muted ? <VolumeX className="w-4 h-4 text-text-muted" /> : <Volume2 className="w-4 h-4 text-text-secondary" />}
-                <Battery className="w-4 h-4 text-text-secondary" />
+                <button onClick={() => { setShowShieldPopup(!showShieldPopup); setShowTaskPanel(false); setShowWifiPopup(false); setShowBatteryPopup(false); setShowVolumePopup(false); setShowCalendar(false); }} className="hover:bg-surface-active p-1 rounded transition-colors">
+                  <Shield className="w-4 h-4 text-ci-green" />
+                </button>
+                <button onClick={() => { setShowWifiPopup(!showWifiPopup); setShowTaskPanel(false); setShowShieldPopup(false); setShowBatteryPopup(false); setShowVolumePopup(false); setShowCalendar(false); }} className="hover:bg-surface-active p-1 rounded transition-colors">
+                  <Wifi className="w-4 h-4 text-text-secondary" />
+                </button>
+                <button onClick={() => { setShowVolumePopup(!showVolumePopup); setShowTaskPanel(false); setShowWifiPopup(false); setShowShieldPopup(false); setShowBatteryPopup(false); setShowCalendar(false); }} className="hover:bg-surface-active p-1 rounded transition-colors">
+                  {muted ? <VolumeX className="w-4 h-4 text-text-muted" /> : <Volume2 className="w-4 h-4 text-text-secondary" />}
+                </button>
+                <button onClick={() => { setShowBatteryPopup(!showBatteryPopup); setShowTaskPanel(false); setShowWifiPopup(false); setShowShieldPopup(false); setShowVolumePopup(false); setShowCalendar(false); }} className="hover:bg-surface-active p-1 rounded transition-colors">
+                  <Battery className="w-4 h-4 text-text-secondary" />
+                </button>
+                {/* Task progress button */}
+                <button onClick={() => { setShowTaskPanel(!showTaskPanel); setShowTray(false); setShowWifiPopup(false); setShowShieldPopup(false); setShowBatteryPopup(false); setShowVolumePopup(false); setShowCalendar(false); }} className="hover:bg-surface-active p-1 rounded transition-colors relative">
+                  <Trophy className={`w-4 h-4 ${allTasksComplete ? 'text-yellow-400' : 'text-text-secondary'}`} />
+                  {allTasksComplete && (
+                    <div className="absolute -top-1 -right-1 w-2 h-2 rounded-full bg-green-500 animate-pulse" />
+                  )}
+                </button>
               </div>
+
+              {/* WiFi Popup */}
+              {showWifiPopup && (
+                <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 8 }}
+                  className="absolute bottom-full right-8 mb-2 w-56 bg-surface border border-border rounded-lg shadow-xl p-3 z-50"
+                >
+                  <p className="text-xs font-semibold mb-2">{T('osWifiInfo')}</p>
+                  <div className="space-y-1.5 text-xs">
+                    <div className="flex justify-between"><span className="text-text-secondary">SSID:</span><span>ZeroOS_Network</span></div>
+                    <div className="flex justify-between"><span className="text-text-secondary">Status:</span><span className="text-green-500">Connected</span></div>
+                    <div className="flex justify-between"><span className="text-text-secondary">Security:</span><span>WPA3</span></div>
+                  </div>
+                </motion.div>
+              )}
+
+              {/* Battery Popup */}
+              {showBatteryPopup && (
+                <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 8 }}
+                  className="absolute bottom-full right-8 mb-2 w-56 bg-surface border border-border rounded-lg shadow-xl p-3 z-50"
+                >
+                  <p className="text-xs font-semibold mb-2">{T('osBatteryInfo')}</p>
+                  <div className="space-y-1.5 text-xs">
+                    <div className="flex justify-between"><span className="text-text-secondary">Level:</span><span className="text-green-500">87%</span></div>
+                    <div className="flex justify-between"><span className="text-text-secondary">Status:</span><span>Discharging</span></div>
+                    <div className="w-full h-2 rounded-full bg-gray-700 overflow-hidden">
+                      <div className="h-full rounded-full bg-green-500" style={{ width: '87%' }} />
+                    </div>
+                  </div>
+                </motion.div>
+              )}
+
+              {/* Volume Popup */}
+              {showVolumePopup && (
+                <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 8 }}
+                  className="absolute bottom-full right-8 mb-2 w-56 bg-surface border border-border rounded-lg shadow-xl p-3 z-50"
+                >
+                  <p className="text-xs font-semibold mb-2">{T('osVolumeInfo')}</p>
+                  <button onClick={toggleMute} className="w-full py-2 rounded-lg text-xs font-medium text-white flex items-center justify-center gap-2" style={{ backgroundColor: muted ? '#ef4444' : '#3fb950' }}>
+                    {muted ? <VolumeX className="w-3.5 h-3.5" /> : <Volume2 className="w-3.5 h-3.5" />}
+                    {muted ? T('osSettingsUnmuted') : T('osSettingsMuted')}
+                  </button>
+                </motion.div>
+              )}
+
+              {/* Shield Popup */}
+              {showShieldPopup && (
+                <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 8 }}
+                  className="absolute bottom-full right-8 mb-2 w-56 bg-surface border border-border rounded-lg shadow-xl p-3 z-50"
+                >
+                  <p className="text-xs font-semibold mb-2">{T('osShieldInfo')}</p>
+                  <div className="space-y-1.5 text-xs">
+                    <div className="flex justify-between"><span className="text-text-secondary">Level:</span><span className="text-green-500">{shield}%</span></div>
+                    <div className="flex justify-between"><span className="text-text-secondary">Status:</span><span className="text-green-500">Active</span></div>
+                    <div className="w-full h-2 rounded-full bg-gray-700 overflow-hidden">
+                      <div className="h-full rounded-full bg-green-500" style={{ width: `${shield}%` }} />
+                    </div>
+                  </div>
+                </motion.div>
+              )}
+
+              {/* Task Panel Popup */}
+              {showTaskPanel && (
+                <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 8 }}
+                  className="absolute bottom-full right-0 mb-2 w-72 bg-surface border border-border rounded-lg shadow-xl p-4 z-50"
+                >
+                  <div className="flex items-center justify-between mb-3">
+                    <div className="flex items-center gap-2">
+                      <Trophy className="w-5 h-5 text-yellow-400" />
+                      <p className="text-sm font-bold">{T('osTaskProgress')}</p>
+                    </div>
+                    <span className="text-xs font-medium" style={{ color: allTasksComplete ? '#22c55e' : 'var(--color-text-secondary)' }}>
+                      {completedCount}/{totalCount} {T('osTasksCompleted')}
+                    </span>
+                  </div>
+
+                  {/* Progress bar */}
+                  <div className="w-full h-3 rounded-full mb-3 overflow-hidden" style={{ backgroundColor: 'var(--color-bg)' }}>
+                    <div className="h-full rounded-full transition-all" style={{ width: `${taskProgress}%`, backgroundColor: allTasksComplete ? '#22c55e' : '#3fb950' }} />
+                  </div>
+
+                  {/* Tasks list */}
+                  <div className="space-y-1 max-h-48 overflow-y-auto mb-3">
+                    {[
+                      { id: 'mail_phishing', label: T('osTaskMail') },
+                      { id: 'browser_suspicious', label: T('osTaskBrowser') },
+                      { id: 'messenger_social_eng', label: T('osTaskMessenger') },
+                      { id: 'terminal_scan', label: T('osTaskTerminalScan') },
+                      { id: 'terminal_protect', label: T('osTaskTerminalProtect') },
+                      { id: 'security_scan', label: T('osTaskSecurityScan') },
+                      { id: 'security_defense', label: T('osTaskSecurityDefense') },
+                      { id: 'wifi_vpn', label: T('osTaskWifi') },
+                      { id: 'deepfake_callback', label: T('osTaskDeepfake') },
+                      { id: 'settings_theme', label: T('osTaskTheme') },
+                      { id: 'settings_lang', label: T('osTaskLang') },
+                      { id: 'attack_emulator', label: T('osTaskAttack') },
+                    ].map(task => (
+                      <div key={task.id} className="flex items-center gap-2 text-xs">
+                        <div className={`w-4 h-4 rounded flex items-center justify-center ${osTasks[task.id] ? 'bg-green-500/20' : 'bg-gray-700'}`}>
+                          {osTasks[task.id] ? (
+                            <svg className="w-3 h-3 text-green-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3">
+                              <polyline points="20 6 9 17 4 12" />
+                            </svg>
+                          ) : (
+                            <div className="w-2 h-2 rounded-full bg-gray-500" />
+                          )}
+                        </div>
+                        <span style={{ color: osTasks[task.id] ? 'var(--color-text)' : 'var(--color-text-muted)', textDecoration: osTasks[task.id] ? 'none' : 'none' }}>{task.label}</span>
+                      </div>
+                    ))}
+                  </div>
+
+                  {allTasksComplete ? (
+                    <button onClick={() => { setShowCertModal(true); setShowTaskPanel(false); }}
+                      className="w-full py-2 rounded-lg text-xs font-bold text-white flex items-center justify-center gap-2 transition-colors hover:opacity-90"
+                      style={{ backgroundColor: '#3fb950' }}
+                    >
+                      <Trophy className="w-3.5 h-3.5" /> {T('osCertificate')}
+                    </button>
+                  ) : (
+                    <p className="text-xs text-center" style={{ color: 'var(--color-text-muted)' }}>
+                      {T('osAllTasksPartial')?.replace('{completed}', String(completedCount)).replace('{total}', String(totalCount)) || `Выполнено ${completedCount} из ${totalCount}`}
+                    </p>
+                  )}
+                </motion.div>
+              )}
 
               {showTray && (
                 <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 8 }}
-                  className="absolute bottom-full right-0 mb-2 w-64 bg-surface border border-border rounded-lg shadow-xl p-3"
+                  className="absolute bottom-full right-0 mb-2 w-64 bg-surface border border-border rounded-lg shadow-xl p-3 z-50"
                 >
                   <div className="space-y-2">
                     <p className="text-xs font-semibold">{T('osSettingsSystem')}</p>
@@ -420,12 +584,28 @@ export default function DesktopOS() {
             </div>
 
             {/* Clock */}
-            <div className="px-2 py-1 border-l border-border ml-0.5 flex flex-col items-end leading-tight">
+            <button onClick={() => { setShowCalendar(!showCalendar); setShowTaskPanel(false); setShowWifiPopup(false); setShowShieldPopup(false); setShowBatteryPopup(false); setShowVolumePopup(false); }} className="px-2 py-1 border-l border-border ml-0.5 flex flex-col items-end leading-tight hover:bg-surface-active rounded transition-colors">
               <span className="text-sm font-medium">{timeStr}</span>
               <span className="text-[10px] text-text-muted">{dateStr}</span>
-            </div>
+            </button>
           </motion.div>
         </div>
+
+        {/* Calendar Popup */}
+        {showCalendar && (
+          <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 8 }}
+            className="absolute bottom-12 right-2 w-64 bg-surface border border-border rounded-lg shadow-xl p-4 z-50"
+          >
+            <div className="flex items-center gap-2 mb-3">
+              <CalendarIcon className="w-4 h-4" style={{ color: 'var(--color-text-secondary)' }} />
+              <p className="text-xs font-semibold">{time.toLocaleDateString('ru-RU', { month: 'long', year: 'numeric' })}</p>
+            </div>
+            <div className="text-center py-4">
+              <p className="text-3xl font-bold" style={{ color: 'var(--color-text)' }}>{time.getDate()}</p>
+              <p className="text-xs mt-1" style={{ color: 'var(--color-text-muted)' }}>{time.toLocaleDateString('ru-RU', { weekday: 'long' })}</p>
+            </div>
+          </motion.div>
+        )}
       </div>
     </NotificationProvider>
   );

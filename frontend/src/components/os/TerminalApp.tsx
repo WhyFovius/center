@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
 import { useGS } from '@/store/useGS';
 import { t } from '@/lib/i18n';
+import { CheckCircle } from 'lucide-react';
 
 interface CommandEntry {
   type: 'input' | 'output' | 'error' | 'info';
@@ -10,6 +11,8 @@ interface CommandEntry {
 
 export default function TerminalApp() {
   const lang = useGS(s => s.lang);
+  const completeTask = useGS(s => s.completeTask);
+  const osTasks = useGS(s => s.osTasks);
   const T = (key: string) => t(lang, key);
   const isDark = true;
   const [history, setHistory] = useState<CommandEntry[]>([
@@ -132,6 +135,7 @@ export default function TerminalApp() {
           { type: 'output', text: '└─────────────────────────────────┘' },
           { type: 'info', text: '✓ Угроз не обнаружено. Система в безопасности.', color: '#22c55e' },
         ];
+        setTimeout(() => completeTask('terminal_scan'), 2000);
         break;
 
       case 'firewall':
@@ -162,6 +166,7 @@ export default function TerminalApp() {
           { type: 'output', text: '  → IDS: мониторинг включён' },
           { type: 'info', text: '✓ Защита на максимальном уровне!', color: '#22c55e' },
         ];
+        completeTask('terminal_protect');
         break;
 
       case 'neofetch':
@@ -222,9 +227,23 @@ export default function TerminalApp() {
       onClick={() => inputRef.current?.focus()}
     >
       {/* Tab bar */}
-      <div className="flex items-center gap-1 px-2 py-1" style={{ backgroundColor: '#1a1a1a' }}>
+      <div className="flex items-center justify-between gap-1 px-2 py-1" style={{ backgroundColor: '#1a1a1a' }}>
         <div className="flex items-center gap-1.5 px-3 py-1 rounded text-xs" style={{ backgroundColor: '#0c0c0c', color: '#e0e0e0' }}>
           <span>⬛</span> Terminal
+        </div>
+        <div className="flex items-center gap-1">
+          {osTasks.terminal_scan && (
+            <div className="flex items-center gap-1 px-1.5 py-0.5 rounded" style={{ backgroundColor: 'rgba(34,197,94,0.15)' }}>
+              <CheckCircle className="w-3 h-3 text-green-500" />
+              <span className="text-[9px] text-green-500">scan</span>
+            </div>
+          )}
+          {osTasks.terminal_protect && (
+            <div className="flex items-center gap-1 px-1.5 py-0.5 rounded" style={{ backgroundColor: 'rgba(34,197,94,0.15)' }}>
+              <CheckCircle className="w-3 h-3 text-green-500" />
+              <span className="text-[9px] text-green-500">protect</span>
+            </div>
+          )}
         </div>
       </div>
 

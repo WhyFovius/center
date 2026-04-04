@@ -1,6 +1,6 @@
 import { useState, useRef, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ArrowLeft, ArrowRight, RotateCcw, Home, Search, Lock, Unlock, ExternalLink, X, Plus, Globe } from 'lucide-react';
+import { ArrowLeft, ArrowRight, RotateCcw, Home, Search, Lock, Unlock, ExternalLink, X, Plus, Globe, CheckCircle } from 'lucide-react';
 import { useGS } from '@/store/useGS';
 import { t } from '@/lib/i18n';
 
@@ -47,6 +47,8 @@ function addHistory(url: string, title: string) {
 export default function BrowserApp() {
   const theme = useGS(s => s.theme);
   const lang = useGS(s => s.lang);
+  const completeTask = useGS(s => s.completeTask);
+  const osTasks = useGS(s => s.osTasks);
   const T = (key: string) => t(lang, key);
   const isDark = theme === 'dark' || theme === 'bw';
   const [tabs, setTabs] = useState<BrowserTab[]>([{ id: 'tab-1', title: T('osBrowserNewTab'), url: '', loading: false, error: null }]);
@@ -94,10 +96,17 @@ export default function BrowserApp() {
       }
     }
 
+    // Check if URL is safe (not suspicious)
+    const isSuspicious = finalUrl.includes('verify-secure') || finalUrl.includes('protonmail');
+    const isSafe = finalUrl.includes('google.com') || finalUrl.includes('wikipedia.org') || finalUrl.includes('habr.com') || finalUrl.includes('github.com') || finalUrl.includes('youtube.com') || finalUrl.includes('reddit.com') || finalUrl.includes('duckduckgo.com') || finalUrl.includes('stackoverflow.com');
+    if (isSafe && !isSuspicious) {
+      completeTask('browser_suspicious');
+    }
+
     setTabs(prev => prev.map(t => t.id === tid ? { ...t, url: finalUrl, title: finalUrl, loading: true, error: null } : t));
     setUrlInput(finalUrl);
     addHistory(finalUrl, finalUrl);
-  }, [activeTabId]);
+  }, [activeTabId, completeTask]);
 
   const goHome = () => {
     setTabs(prev => prev.map(t => t.id === activeTabId ? { ...t, url: '', title: T('osBrowserNewTab'), loading: false, error: null } : t));
@@ -208,6 +217,12 @@ export default function BrowserApp() {
             <circle cx="12" cy="12" r="10" /><polyline points="12 6 12 12 16 14" />
           </svg>
         </button>
+        {osTasks.browser_suspicious && (
+          <div className="flex items-center gap-1 px-2 py-1 rounded-lg" style={{ backgroundColor: 'rgba(34,197,94,0.15)' }}>
+            <CheckCircle className="w-3.5 h-3.5 text-green-500" />
+            <span className="text-[10px] font-medium text-green-500">{T('osTasksCompleted')}</span>
+          </div>
+        )}
       </div>
 
       {/* Bookmarks / History bar */}

@@ -8,6 +8,7 @@ type Phase = 'ringing' | 'conversation' | 'decision' | 'result';
 
 export default function DeepfakeSimulator({ onComplete }: { onComplete?: (safe: boolean) => void }) {
   const lang = useGS(s => s.lang);
+  const completeTask = useGS(s => s.completeTask);
   const T = (key: string) => t(lang, key);
   const [phase, setPhase] = useState<Phase>('ringing');
   const [msgIndex, setMsgIndex] = useState(0);
@@ -31,6 +32,9 @@ export default function DeepfakeSimulator({ onComplete }: { onComplete?: (safe: 
 
   const makeChoice = (c: 'transfer' | 'callback' | 'ignore') => {
     setChoice(c);
+    if (c === 'callback' || c === 'ignore') {
+      completeTask('deepfake_callback');
+    }
     if (c === 'transfer') {
       setTransferAnim(true);
       setTimeout(() => setPhase('result'), 3000);
