@@ -66,8 +66,9 @@ export default function AttackEmulator({ onClose }: { onClose?: () => void }) {
 
   useEffect(() => {
     if (phase !== 'idle') return;
-    const t = setTimeout(() => startAttack(), 1000);
-    return () => clearTimeout(t);
+    let cancelled = false;
+    const t = setTimeout(() => { if (!cancelled) startAttack(); }, 1000);
+    return () => { cancelled = true; clearTimeout(t); };
   }, [phase]);
 
   useEffect(() => {

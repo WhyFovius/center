@@ -150,7 +150,7 @@ def serialize_missions(missions: list[Mission]) -> list[dict[str, Any]]:
                         "option_key": option.option_key,
                         "label": option.label,
                         "details": option.details,
-                        "is_correct": bool(option.is_correct),
+                        # is_correct intentionally excluded to prevent answer exposure
                         "hint": option.hint,
                         "impact_text": option.impact_text,
                         "points": option.points,

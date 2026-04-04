@@ -92,12 +92,20 @@ async def reset_mission(
         db.execute(delete(UserStepState).where(UserStepState.user_id == current_user.id, UserStepState.step_id.in_(step_ids)))
         db.execute(delete(Attempt).where(Attempt.user_id == current_user.id, Attempt.step_id.in_(step_ids)))
 
-    # Decrement resolved_steps by the number of resolved steps in this mission
+    # Decrement resolved_steps by the number of resolved steps and first_try_resolved correctly
     progress = progress_service.get_or_create_progress(db, current_user.id)
     if resolved_count > 0:
         progress.resolved_steps = max(0, progress.resolved_steps - resolved_count)
-        # Recalculate first_try_resolved (simplified: subtract resolved_count as approximation)
-        progress.first_try_resolved = max(0, progress.first_try_resolved - resolved_count)
+        # Correctly recalculate first_try_resolved
+        states_to_check = db.scalars(
+            select(UserStepState).where(
+                UserStepState.user_id == current_user.id,
+                UserStepState.step_id.in_(step_ids),
+                UserStepState.first_try_success == True,
+            )
+        ).all()
+        first_try_count = len(states_to_check)
+        progress.first_try_resolved = max(0, progress.first_try_resolved - first_try_count)
 
     db.flush()
     db.commit()

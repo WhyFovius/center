@@ -113,7 +113,9 @@ export const useGS = create<GS>((set, get) => ({
   submit: async (sid, oid, huc) => {
     set({ submitting: true });
     try {
-      const r = await api.sim.attempt({ step_id: sid, option_id: oid, hints_used: huc });
+      // Use actual hints count from store instead of relying on passed huc
+      const actualHintsUsed = get().getHints(sid);
+      const r = await api.sim.attempt({ step_id: sid, option_id: oid, hints_used: actualHintsUsed });
       const { ss, sim, lessons } = get();
       const nss = new Map(ss); nss.set(r.step_state.step_id, r.step_state);
       const b = band(r.progress, r.progress.resolved_steps);

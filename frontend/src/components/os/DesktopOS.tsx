@@ -38,10 +38,13 @@ const APPS = [
   { id: 'settings', label: 'Настройки', icon: <Settings className="w-4 h-4" /> },
 ];
 
-const API_KEY = import.meta.env.VITE_OPENROUTER_API_KEY || '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';
+const API_KEY = import.meta.env.VITE_OPENROUTER_API_KEY || '';
 const API_MODEL = import.meta.env.VITE_OPENROUTER_MODEL || 'qwen/qwen3-coder-plus:free';
 
 export async function askAI(prompt: string, systemPrompt?: string): Promise<string> {
+  if (!API_KEY) {
+    return 'AI не настроен. Укажите VITE_OPENROUTER_API_KEY в .env файле.';
+  }
   try {
     const resp = await fetch('https://openrouter.ai/api/v1/chat/completions', {
       method: 'POST',
@@ -74,6 +77,8 @@ export default function DesktopOS() {
   const toggleMute = useGS(s => s.toggleMute);
   const prevStatus = useGS(s => s.fb?.consequence?.status);
 
+  const energy = useGS(s => s.energy);
+  const shield = useGS(s => s.shield);
   const [openWindows, setOpenWindows] = useState<OpenWindow[]>([]);
   const [activeWindow, setActiveWindow] = useState<string | null>(null);
   const [nextZ, setNextZ] = useState(10);
@@ -357,11 +362,11 @@ export default function DesktopOS() {
                     <p className="text-xs font-semibold">Состояние системы</p>
                     <div className="flex justify-between items-center text-xs">
                       <span className="text-text-secondary">Энергия</span>
-                      <span className="text-ci-green">{useGS.getState().energy}%</span>
+                      <span className="text-ci-green">{energy}%</span>
                     </div>
                     <div className="flex justify-between items-center text-xs">
                       <span className="text-text-secondary">Щит</span>
-                      <span className="text-ci-green">{useGS.getState().shield}%</span>
+                      <span className="text-ci-green">{shield}%</span>
                     </div>
                     <button onClick={toggleMute} className="w-full text-xs text-text-secondary hover:text-text px-2 py-1 rounded hover:bg-surface-active transition-colors flex items-center gap-1.5">
                       {muted ? <VolumeX className="w-3 h-3" /> : <Volume2 className="w-3 h-3" />}

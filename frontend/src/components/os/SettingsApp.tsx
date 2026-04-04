@@ -99,7 +99,7 @@ export default function SettingsApp() {
             <button onClick={toggleMute}
               className={`relative w-11 h-6 rounded-full transition-colors ${muted ? 'bg-gray-600' : 'bg-green-500'}`}
             >
-              <div className={`absolute top-0.5 w-5 h-5 rounded-full bg-white shadow transition-all ${muted ? 'left-0.5' : 'left-5.5'}`} />
+              <div className="absolute top-0.5 w-5 h-5 rounded-full bg-white shadow transition-all" style={{ left: muted ? '2px' : '22px' }} />
             </button>
           </div>
         </div>
