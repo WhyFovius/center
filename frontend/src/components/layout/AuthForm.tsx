@@ -6,7 +6,7 @@ import { api } from '@/lib/api';
 import { t } from '@/lib/i18n';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import SkyToggle from '@/components/ui/sky-toggle';
+import { ToggleTheme } from '@/components/ui/toggle-theme';
 import logo from '@/assets/logo.png';
 
 export default function AuthForm() {
@@ -87,7 +87,7 @@ export default function AuthForm() {
               </div>
               <div className="flex items-center gap-2">
                 <Palette className="w-4 h-4 text-text-muted" />
-                <SkyToggle />
+                <ToggleTheme />
               </div>
             </div>
 

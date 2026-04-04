@@ -4,7 +4,7 @@ import { ArrowLeft, Play, CheckCircle2, Lock, BookOpen, MapPinned, ShieldCheck, 
 import { useGS, ssFor } from '@/store/useGS';
 import { t } from '@/lib/i18n';
 import { Button } from '@/components/ui/button';
-import SkyToggle from '@/components/ui/sky-toggle';
+import { ToggleTheme } from '@/components/ui/toggle-theme';
 import Footer from '@/components/layout/Footer';
 import type { Mission, ScenarioTrack } from '@/types';
 import { api } from '@/lib/api';
@@ -155,7 +155,7 @@ export default function Lobby() {
             <p className="text-xs md:text-sm text-text-muted hidden sm:block">{T('lobbyTrackDesc')}</p>
           </div>
         </div>
-        <SkyToggle />
+        <ToggleTheme />
       </header>
 
       {/* Mission Cards */}

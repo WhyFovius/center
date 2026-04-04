@@ -4,7 +4,7 @@ import { Loader2, Trophy, User, Crown, Medal, Sparkles, ArrowLeft, Zap } from 'l
 import { useGS } from '@/store/useGS';
 import { t } from '@/lib/i18n';
 import { api } from '@/lib/api';
-import SkyToggle from '@/components/ui/sky-toggle';
+import { ToggleTheme } from '@/components/ui/toggle-theme';
 
 export default function LeaderboardView() {
   const lang = useGS(s => s.lang);
@@ -57,7 +57,7 @@ export default function LeaderboardView() {
             </div>
           </div>
         </div>
-        <SkyToggle />
+        <ToggleTheme />
       </header>
 
       {/* Content */}

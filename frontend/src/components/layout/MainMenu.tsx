@@ -13,11 +13,12 @@ import {
   Play,
   ChevronRight,
   Shield,
+  Target,
   User,
 } from 'lucide-react';
 import { useGS } from '@/store/useGS';
 import { t } from '@/lib/i18n';
-import SkyToggle from '@/components/ui/sky-toggle';
+import { ToggleTheme } from '@/components/ui/toggle-theme';
 import type { ScenarioTrack } from '@/types';
 import logo from '@/assets/logo.png';
 
@@ -119,7 +120,7 @@ export default function MainMenu() {
                 </button>
               ))}
             </div>
-            <SkyToggle />
+            <ToggleTheme />
           </div>
         </header>
 
@@ -160,12 +161,12 @@ export default function MainMenu() {
               </div>
             </motion.div>
 
-            {/* Main Action Button */}
+            {/* Main Action Button - ZeroOS */}
             <motion.button
               initial={{ opacity: 0, scale: 0.97 }}
               animate={{ opacity: 1, scale: 1 }}
               transition={{ delay: 0.1 }}
-              onClick={() => setView('scenarios')}
+              onClick={() => setScreen('os')}
               className="w-full group flex items-center gap-6 p-7 rounded-3xl bg-gradient-to-r from-primary to-primary-hover text-white hover:shadow-xl hover:shadow-primary/25 transition-all duration-300 hover:-translate-y-0.5"
             >
               <div className="w-16 h-16 rounded-2xl bg-white/20 backdrop-blur-sm flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform">
@@ -173,9 +174,27 @@ export default function MainMenu() {
               </div>
               <div className="flex-1 text-left">
                 <h3 className="text-xl font-bold">{T('menuStartGame')}</h3>
-                <p className="text-base text-white/70 mt-1">{T('menuStartGameDesc')}</p>
+                <p className="text-base text-white/70 mt-1">ZeroOS — интерактивный симулятор</p>
               </div>
               <ChevronRight className="w-8 h-8 group-hover:translate-x-2 transition-transform duration-300" />
+            </motion.button>
+
+            {/* Missions Button */}
+            <motion.button
+              initial={{ opacity: 0, scale: 0.97 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ delay: 0.15 }}
+              onClick={() => setView('scenarios')}
+              className="w-full group flex items-center gap-5 p-5 rounded-2xl bg-surface border border-border hover:border-primary/30 transition-all duration-200 text-left"
+            >
+              <div className="w-12 h-12 rounded-xl bg-accent/10 flex items-center justify-center shrink-0">
+                <Target className="w-6 h-6 text-accent" />
+              </div>
+              <div className="flex-1">
+                <h3 className="text-lg font-bold text-text">{T('menuMissions')}</h3>
+                <p className="text-sm text-text-muted">Выбор миссий и сценариев</p>
+              </div>
+              <ChevronRight className="w-6 h-6 text-text-muted" />
             </motion.button>
 
             {/* Grid Actions */}
@@ -274,7 +293,7 @@ export default function MainMenu() {
             {T('back')}
           </button>
           <h1 className="text-lg font-bold text-text">{T('charTitle')}</h1>
-          <SkyToggle />
+          <ToggleTheme />
         </header>
 
         <div className="flex-1 overflow-y-auto">
@@ -324,7 +343,7 @@ export default function MainMenu() {
             {T('back')}
           </button>
           <h1 className="text-lg font-bold text-text">{T('scenTitle')}</h1>
-          <SkyToggle />
+          <ToggleTheme />
         </header>
 
         <div className="flex-1 overflow-y-auto">
@@ -405,7 +424,7 @@ export default function MainMenu() {
           {T('back')}
         </button>
         <h1 className="text-lg font-bold text-text">{T('docsTitle')}</h1>
-        <SkyToggle />
+        <ToggleTheme />
       </header>
 
       <div className="flex-1 overflow-y-auto">

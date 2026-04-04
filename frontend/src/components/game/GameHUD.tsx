@@ -3,7 +3,7 @@ import { Shield, BatteryCharging, Target, ArrowLeft, RotateCcw } from 'lucide-re
 import type { Progress } from '@/types';
 import { useGS } from '@/store/useGS';
 import { t } from '@/lib/i18n';
-import SkyToggle from '@/components/ui/sky-toggle';
+import { ToggleTheme } from '@/components/ui/toggle-theme';
 import { api } from '@/lib/api';
 
 type MetricCardProps = {
@@ -170,7 +170,7 @@ export function GameHUD({
           <ArrowLeft className="w-5 h-5 text-primary" />
           {T('hudBackToLevels')}
         </button>
-        <SkyToggle />
+        <ToggleTheme />
       </div>
     </div>
   );

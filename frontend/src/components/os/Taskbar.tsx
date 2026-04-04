@@ -11,7 +11,7 @@ import {
   Minimize2,
 } from 'lucide-react';
 import { useGS } from '@/store/useGS';
-import SkyToggle from '@/components/ui/sky-toggle';
+import { ToggleTheme } from '@/components/ui/toggle-theme';
 
 interface OpenWindow {
   id: string;
@@ -180,7 +180,7 @@ export default function Taskbar({
 
       {/* Theme toggle */}
       <div className="px-1 py-1 border-l border-border mx-0.5">
-        <SkyToggle />
+        <ToggleTheme />
       </div>
 
       {/* Clock */}

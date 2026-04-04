@@ -1,7 +1,6 @@
 import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { Inbox, Send, AlertTriangle, Shield, Mail, Star, Trash2, Archive, RefreshCw, Search } from 'lucide-react';
-import { useGS } from '@/store/useGS';
 
 const FOLDERS = [
   { id: 'inbox', label: 'Входящие', icon: Inbox, count: 3 },
@@ -61,8 +60,6 @@ const EMAILS: Record<string, Array<{ id: number; from: string; subject: string; 
 };
 
 export default function MailApp() {
-  const theme = useGS(s => s.theme);
-  const isDark = theme === 'dark' || theme === 'bw';
   const [selectedFolder, setSelectedFolder] = useState('inbox');
   const [selectedEmail, setSelectedEmail] = useState<number | null>(null);
   const [showHeaders, setShowHeaders] = useState(false);
@@ -76,13 +73,13 @@ export default function MailApp() {
     : emails;
 
   return (
-    <div className="flex h-full" style={{ backgroundColor: isDark ? '#1e1e1e' : '#ffffff' }}>
+    <div className="flex h-full" style={{ backgroundColor: 'var(--color-bg)' }}>
       {/* Folders sidebar */}
-      <div className="w-48 border-r flex flex-col" style={{ borderColor: isDark ? '#333' : '#e5e5e5' }}>
-        <div className="px-3 py-3 border-b" style={{ borderColor: isDark ? '#333' : '#e5e5e5' }}>
+      <div className="w-48 border-r flex flex-col shrink-0" style={{ borderColor: 'var(--color-border)' }}>
+        <div className="px-3 py-3 border-b" style={{ borderColor: 'var(--color-border)' }}>
           <div className="flex items-center gap-2">
-            <Mail className="w-5 h-5" style={{ color: isDark ? '#e0e0e0' : '#333' }} />
-            <span className="text-sm font-bold" style={{ color: isDark ? '#e0e0e0' : '#333' }}>Почта</span>
+            <Mail className="w-5 h-5" style={{ color: 'var(--color-text)' }} />
+            <span className="text-sm font-bold" style={{ color: 'var(--color-text)' }}>Почта</span>
           </div>
         </div>
 
@@ -95,10 +92,10 @@ export default function MailApp() {
                 onClick={() => { setSelectedFolder(folder.id); setSelectedEmail(null); setShowHeaders(false); }}
                 className={`w-full flex items-center justify-between px-3 py-2 text-sm transition-colors ${
                   selectedFolder === folder.id
-                    ? (isDark ? 'bg-white/10' : 'bg-gray-100')
-                    : (isDark ? 'hover:bg-white/5' : 'hover:bg-gray-50')
+                    ? 'bg-accent/10'
+                    : 'hover:bg-accent/5'
                 }`}
-                style={{ color: isDark ? '#ccc' : '#333' }}
+                style={{ color: 'var(--color-text-secondary)' }}
               >
                 <div className="flex items-center gap-2">
                   <Icon className="w-4 h-4" />
@@ -106,7 +103,7 @@ export default function MailApp() {
                 </div>
                 {folder.count && (
                   <span className="text-xs px-1.5 py-0.5 rounded-full" style={{
-                    backgroundColor: isDark ? 'rgba(63,185,80,0.2)' : 'rgba(63,185,80,0.1)',
+                    backgroundColor: 'rgba(63,185,80,0.2)',
                     color: '#3fb950',
                   }}>
                     {folder.count}
@@ -119,21 +116,21 @@ export default function MailApp() {
       </div>
 
       {/* Email list */}
-      <div className="w-72 border-r flex flex-col" style={{ borderColor: isDark ? '#333' : '#e5e5e5' }}>
-        <div className="px-3 py-2 border-b" style={{ borderColor: isDark ? '#333' : '#e5e5e5' }}>
+      <div className="w-72 border-r flex flex-col shrink-0" style={{ borderColor: 'var(--color-border)' }}>
+        <div className="px-3 py-2 border-b" style={{ borderColor: 'var(--color-border)' }}>
           <div className="flex items-center gap-2 px-2 py-1.5 rounded-lg" style={{
-            backgroundColor: isDark ? '#252525' : '#f0f0f0',
+            backgroundColor: 'var(--color-surface)',
           }}>
-            <Search className="w-3.5 h-3.5" style={{ color: isDark ? '#888' : '#999' }} />
+            <Search className="w-3.5 h-3.5" style={{ color: 'var(--color-text-muted)' }} />
             <input
               value={searchQuery}
               onChange={e => setSearchQuery(e.target.value)}
               placeholder="Поиск..."
               className="flex-1 bg-transparent text-xs outline-none"
-              style={{ color: isDark ? '#e0e0e0' : '#333' }}
+              style={{ color: 'var(--color-text)' }}
             />
             <button className="p-1 rounded hover:bg-black/10">
-              <RefreshCw className="w-3.5 h-3.5" style={{ color: isDark ? '#888' : '#999' }} />
+              <RefreshCw className="w-3.5 h-3.5" style={{ color: 'var(--color-text-muted)' }} />
             </button>
           </div>
         </div>
@@ -145,17 +142,17 @@ export default function MailApp() {
               onClick={() => { setSelectedEmail(e.id); setShowHeaders(false); }}
               className={`w-full text-left px-3 py-3 border-b transition-colors ${
                 selectedEmail === e.id
-                  ? (isDark ? 'bg-purple-500/15 border-purple-500/20' : 'bg-purple-50 border-purple-100')
-                  : (isDark ? 'hover:bg-white/5 border-gray-800' : 'hover:bg-gray-50 border-gray-100')
+                  ? 'bg-accent/10 border-accent/20'
+                  : 'hover:bg-accent/5'
               }`}
-              style={{ borderColor: isDark ? '#2a2a2a' : '#f0f0f0' }}
+              style={{ borderColor: 'var(--color-border-subtle)' }}
             >
               <div className="flex items-center justify-between mb-1">
-                <span className="text-xs font-medium truncate" style={{ color: e.isPhishing ? '#ef4444' : (isDark ? '#ccc' : '#333') }}>{e.from}</span>
-                <span className="text-[10px] shrink-0 ml-2" style={{ color: isDark ? '#666' : '#999' }}>{e.time}</span>
+                <span className="text-xs font-medium truncate" style={{ color: e.isPhishing ? '#ef4444' : 'var(--color-text-secondary)' }}>{e.from}</span>
+                <span className="text-[10px] shrink-0 ml-2" style={{ color: 'var(--color-text-muted)' }}>{e.time}</span>
               </div>
-              <p className="text-xs font-semibold truncate" style={{ color: isDark ? '#e0e0e0' : '#333' }}>{e.subject}</p>
-              <p className="text-xs truncate mt-0.5" style={{ color: isDark ? '#888' : '#666' }}>{e.preview}</p>
+              <p className="text-xs font-semibold truncate" style={{ color: 'var(--color-text)' }}>{e.subject}</p>
+              <p className="text-xs truncate mt-0.5" style={{ color: 'var(--color-text-muted)' }}>{e.preview}</p>
               {e.isPhishing && (
                 <span className="inline-flex items-center gap-1 mt-1 text-[10px] px-1.5 py-0.5 rounded-full" style={{
                   backgroundColor: 'rgba(239,68,68,0.1)',
@@ -170,30 +167,30 @@ export default function MailApp() {
       </div>
 
       {/* Email content */}
-      <div className="flex-1 overflow-y-auto">
+      <div className="flex-1 overflow-y-auto min-w-0">
         {email ? (
           <div className="p-6">
             {/* Header */}
             <div className="mb-6">
-              <h2 className="text-xl font-bold mb-2" style={{ color: isDark ? '#e0e0e0' : '#333' }}>{email.subject}</h2>
+              <h2 className="text-xl font-bold mb-2" style={{ color: 'var(--color-text)' }}>{email.subject}</h2>
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
                   <div className="w-10 h-10 rounded-full flex items-center justify-center text-sm font-bold" style={{
-                    backgroundColor: email.isPhishing ? 'rgba(239,68,68,0.15)' : (isDark ? '#2a2a2a' : '#f0f0f0'),
-                    color: email.isPhishing ? '#ef4444' : (isDark ? '#ccc' : '#333'),
+                    backgroundColor: email.isPhishing ? 'rgba(239,68,68,0.15)' : 'var(--color-surface)',
+                    color: email.isPhishing ? '#ef4444' : 'var(--color-text-secondary)',
                   }}>
                     {email.from[0].toUpperCase()}
                   </div>
                   <div>
-                    <p className="text-sm font-medium" style={{ color: isDark ? '#e0e0e0' : '#333' }}>{email.from}</p>
-                    <p className="text-xs" style={{ color: isDark ? '#888' : '#666' }}>{email.time}</p>
+                    <p className="text-sm font-medium" style={{ color: 'var(--color-text)' }}>{email.from}</p>
+                    <p className="text-xs" style={{ color: 'var(--color-text-muted)' }}>{email.time}</p>
                   </div>
                 </div>
                 {email.headers && (
                   <button
                     onClick={() => setShowHeaders(!showHeaders)}
                     className="text-xs px-3 py-1.5 rounded-lg hover:bg-black/10 transition-colors"
-                    style={{ color: isDark ? '#aaa' : '#666' }}
+                    style={{ color: 'var(--color-text-secondary)' }}
                   >
                     {showHeaders ? 'Скрыть заголовки' : 'Показать заголовки'}
                   </button>
@@ -207,15 +204,15 @@ export default function MailApp() {
                 initial={{ opacity: 0, height: 0 }}
                 animate={{ opacity: 1, height: 'auto' }}
                 className="mb-4 p-4 rounded-xl"
-                style={{ backgroundColor: isDark ? '#252525' : '#f5f5f5' }}
+                style={{ backgroundColor: 'var(--color-surface)' }}
               >
-                <h4 className="text-xs font-bold mb-2 uppercase" style={{ color: isDark ? '#888' : '#666' }}>Заголовки безопасности</h4>
+                <h4 className="text-xs font-bold mb-2 uppercase" style={{ color: 'var(--color-text-muted)' }}>Заголовки безопасности</h4>
                 <div className="space-y-1.5 text-xs font-mono">
                   {Object.entries(email.headers).map(([key, value]) => (
                     <div key={key} className="flex items-center gap-2">
-                      <span style={{ color: isDark ? '#888' : '#666' }}>{key}:</span>
+                      <span style={{ color: 'var(--color-text-muted)' }}>{key}:</span>
                       <span style={{
-                        color: value === 'PASS' || value === 'pass' ? '#22c55e' : value === 'FAIL' || value === 'none' ? '#ef4444' : (isDark ? '#ccc' : '#333'),
+                        color: value === 'PASS' || value === 'pass' ? '#22c55e' : value === 'FAIL' || value === 'none' ? '#ef4444' : 'var(--color-text-secondary)',
                         fontWeight: value === 'FAIL' || value === 'none' ? 'bold' : 'normal',
                       }}>
                         {value}
@@ -227,7 +224,7 @@ export default function MailApp() {
             )}
 
             {/* Body */}
-            <div className="whitespace-pre-wrap text-sm leading-relaxed" style={{ color: isDark ? '#ccc' : '#444' }}>
+            <div className="whitespace-pre-wrap text-sm leading-relaxed" style={{ color: 'var(--color-text-secondary)' }}>
               {email.body}
             </div>
 
@@ -258,8 +255,8 @@ export default function MailApp() {
         ) : (
           <div className="flex items-center justify-center h-full">
             <div className="text-center">
-              <Mail className="w-16 h-16 mx-auto mb-4 opacity-20" style={{ color: isDark ? '#fff' : '#333' }} />
-              <p className="text-sm" style={{ color: isDark ? '#888' : '#666' }}>Выберите письмо для просмотра</p>
+              <Mail className="w-16 h-16 mx-auto mb-4 opacity-20" style={{ color: 'var(--color-text)' }} />
+              <p className="text-sm" style={{ color: 'var(--color-text-muted)' }}>Выберите письмо для просмотра</p>
             </div>
           </div>
         )}

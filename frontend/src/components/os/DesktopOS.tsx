@@ -14,12 +14,11 @@ import TerminalApp from './TerminalApp';
 import SecurityCenter from './SecurityCenter';
 import SettingsApp from './SettingsApp';
 import AttackEmulator from './AttackEmulator';
-import StoryIntro from './StoryIntro';
 import WifiSimulator from './WifiSimulator';
 import DeepfakeSimulator from './DeepfakeSimulator';
 import Notifications, { NotificationProvider } from './Notifications';
 import GlitchEffect from './GlitchEffect';
-import SkyToggle from '@/components/ui/sky-toggle';
+import { ToggleTheme } from '@/components/ui/toggle-theme';
 
 interface OpenWindow {
   id: string;
@@ -89,7 +88,6 @@ export default function DesktopOS() {
   const [showCompromised, setCompromised] = useState(false);
   const [showGlitch, setShowGlitch] = useState(false);
   const [time, setTime] = useState(new Date());
-  const [showIntro, setShowIntro] = useState(() => !localStorage.getItem('zd_intro_seen'));
   const [showAttackEmulator, setShowAttackEmulator] = useState(false);
   const [activeSimulator, setActiveSimulator] = useState<'wifi' | 'deepfake' | null>(null);
 
@@ -165,23 +163,12 @@ export default function DesktopOS() {
     setScreen('menu');
   }, [setScreen]);
 
-  const handleIntroDone = useCallback(() => {
-    localStorage.setItem('zd_intro_seen', '1');
-    setShowIntro(false);
-    setShowAttackEmulator(true);
-  }, []);
-
   const timeStr = time.toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' });
   const dateStr = time.toLocaleDateString('ru-RU', { day: 'numeric', month: 'short', year: 'numeric' });
 
   return (
     <NotificationProvider>
       <div className="relative w-full h-full overflow-hidden select-none">
-        {/* Story Intro */}
-        <AnimatePresence>
-          {showIntro && <StoryIntro onStart={handleIntroDone} />}
-        </AnimatePresence>
-
         {/* Attack Emulator */}
         <AnimatePresence>
           {showAttackEmulator && (
@@ -417,7 +404,7 @@ export default function DesktopOS() {
 
             {/* Theme toggle */}
             <div className="px-1 py-1 border-l border-border mx-0.5">
-              <SkyToggle />
+              <ToggleTheme />
             </div>
 
             {/* Clock */}
