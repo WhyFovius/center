@@ -1,0 +1,87 @@
+erDiagram
+    USERS ||--|| USER_PROGRESS : has
+    USERS ||--o{ ATTEMPTS : makes
+    USERS ||--o{ USER_STEP_STATES : tracks
+    MISSIONS ||--o{ SCENARIO_STEPS : contains
+    SCENARIO_STEPS ||--o{ STEP_OPTIONS : offers
+    SCENARIO_STEPS ||--o{ ATTEMPTS : receives
+    SCENARIO_STEPS ||--o{ USER_STEP_STATES : tracked_by
+    STEP_OPTIONS ||--o{ ATTEMPTS : chosen_in
+
+    USERS {
+        int id PK
+        string username UNIQUE
+        string full_name
+        string password_hash
+        datetime created_at
+    }
+
+    USER_PROGRESS {
+        int id PK
+        int user_id FK UNIQUE
+        int security_level
+        int reputation
+        int resolved_steps
+        int first_try_resolved
+        int total_mistakes
+        datetime updated_at
+    }
+
+    MISSIONS {
+        int id PK
+        string code UNIQUE
+        string title
+        string subtitle
+        text description
+        int order_index
+    }
+
+    SCENARIO_STEPS {
+        int id PK
+        int mission_id FK
+        string code UNIQUE
+        string title
+        string attack_type
+        string location
+        text brief
+        text payload
+        text explanation
+        text why_dangerous
+        json reference_items
+        int order_index
+    }
+
+    STEP_OPTIONS {
+        int id PK
+        int step_id FK
+        string option_key
+        text label
+        text details
+        bool is_correct
+        text hint
+        text impact_text
+        int points
+        int security_delta
+        int order_index
+    }
+
+    ATTEMPTS {
+        int id PK
+        int user_id FK
+        int step_id FK
+        int option_id FK
+        bool is_correct
+        datetime created_at
+    }
+
+    USER_STEP_STATES {
+        int id PK
+        int user_id FK
+        int step_id FK
+        int attempts_count
+        int mistakes_count
+        bool resolved
+        bool first_try_success
+        int chosen_option_id FK
+        datetime resolved_at
+    }

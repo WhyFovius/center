@@ -1,0 +1,62 @@
+@import "tailwindcss";
+
+@theme {
+  --font-sans: 'Inter', system-ui, -apple-system, sans-serif;
+  --font-mono: 'JetBrains Mono', ui-monospace, monospace;
+
+  /* Centre Invest pastel palette */
+  --color-ci-green: #2d8b4d;
+  --color-ci-green-light: #5cc56e;
+  --color-ci-green-pale: #e8f5e9;
+  --color-ci-gold: #d3a53f;
+  --color-ci-gold-light: #f7e2a3;
+
+  /* Light theme (default - bank style) */
+  --color-bg: #f8f6ee;
+  --color-bg-secondary: #f0ece1;
+  --color-surface: #ffffff;
+  --color-surface-hover: #fcfbf6;
+  --color-surface-active: #f4efe4;
+  --color-border: #e2ddcf;
+  --color-border-strong: #cdbf9d;
+  --color-text: #1a1a1a;
+  --color-text-secondary: #514a3d;
+  --color-text-muted: #857a67;
+  --color-primary: #2d8b4d;
+  --color-primary-hover: #21743f;
+  --color-primary-container: #e0f5e6;
+  --color-on-primary-container: #176131;
+  --color-accent: #d3a53f;
+  --color-danger: #d13f52;
+  --color-danger-soft: #ffe8eb;
+  --color-success: #2d8b4d;
+  --color-success-soft: #e3f6ea;
+  --color-warning: #cb8f07;
+  --color-warning-soft: #fff4d1;
+  --color-info: #1f78cf;
+  --color-info-soft: #e7f2ff;
+
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 14px;
+  --radius-xl: 20px;
+  --radius-full: 9999px;
+}
+
+html { background: var(--color-bg); color: var(--color-text); font-family: var(--font-sans); -webkit-font-smoothing: antialiased; }
+body { margin: 0; min-height: 100vh; background: var(--color-bg); }
+#root { width: 100vw; height: 100vh; overflow: hidden; }
+* { box-sizing: border-box; }
+::-webkit-scrollbar { width: 5px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--color-border-strong); border-radius: 999px; }
+
+@keyframes slide-up { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+@keyframes fade-in { from { opacity: 0; } to { opacity: 1; } }
+@keyframes scale-in { from { opacity: 0; transform: scale(0.95); } to { opacity: 1; transform: scale(1); } }
+@keyframes float { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-6px); } }
+
+.slide-up { animation: slide-up 0.4s cubic-bezier(0.16, 1, 0.3, 1) both; }
+.fade-in { animation: fade-in 0.3s ease both; }
+.scale-in { animation: scale-in 0.35s cubic-bezier(0.16, 1, 0.3, 1) both; }
+.float { animation: float 3s ease-in-out infinite; }

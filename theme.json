@@ -1,0 +1,89 @@
+{
+  "defaultTheme": "light",
+  "themes": {
+    "light": {
+      "colors": {
+        "primary": {
+          "DEFAULT": "#2e7d32",
+          "foreground": "#ffffff"
+        },
+        "secondary": {
+          "DEFAULT": "#e8f5e9",
+          "foreground": "#1b5e20"
+        },
+        "accent": {
+          "DEFAULT": "#c8e6c9",
+          "foreground": "#1b5e20"
+        },
+        "muted": {
+          "DEFAULT": "#f0e9e0",
+          "foreground": "#6d4c41"
+        },
+        "base": {
+          "background": "#f8f5f0",
+          "foreground": "#3e2723",
+          "card": "#f8f5f0",
+          "card-foreground": "#3e2723"
+        },
+        "ui": {
+          "border": "#e0d6c9",
+          "input": "#e0d6c9",
+          "ring": "#2e7d32"
+        },
+        "charts": {
+          "chart-1": "#4caf50",
+          "chart-2": "#388e3c",
+          "chart-3": "#2e7d32",
+          "chart-4": "#1b5e20",
+          "chart-5": "#0a1f0c"
+        }
+      },
+      "properties": {
+        "borderRadius": "0.5rem",
+        "fontFamily": "Montserrat"
+      }
+    },
+    "dark": {
+      "colors": {
+        "primary": {
+          "DEFAULT": "#5EDC78",
+          "foreground": "#0E1512"
+        },
+        "secondary": {
+          "DEFAULT": "#1F3329",
+          "foreground": "#E6F4EC"
+        },
+        "accent": {
+          "DEFAULT": "#1F3329",
+          "foreground": "#E6F4EC"
+        },
+        "muted": {
+          "DEFAULT": "#16241D",
+          "foreground": "#A8CBB7"
+        },
+        "base": {
+          "background": "#0E1512",
+          "foreground": "#E6F4EC",
+          "card": "#16241D",
+          "card-foreground": "#E6F4EC"
+        },
+        "ui": {
+          "border": "#22352B",
+          "input": "#22352B",
+          "ring": "#5EDC78"
+        },
+        "charts": {
+          "chart-1": "#5EDC78",
+          "chart-2": "#4BC96A",
+          "chart-3": "#3AA75A",
+          "chart-4": "#E5B66A",
+          "chart-5": "#F08A8A"
+        }
+      },
+      "properties": {
+        "borderRadius": "0.5rem",
+        "fontFamily": "Montserrat"
+      }
+    }
+  }
+}
