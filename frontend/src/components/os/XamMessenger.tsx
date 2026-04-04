@@ -187,9 +187,9 @@ export default function XamMessenger() {
                     </div>
                   </div>
                   <div className="flex items-center gap-1.5">
-                    <button className="p-1.5 rounded-lg hover:bg-black/10"><Phone className="w-3.5 h-3.5" style={{ color: isDark ? '#aaa' : '#666' }} /></button>
-                    <button className="p-1.5 rounded-lg hover:bg-black/10"><Video className="w-3.5 h-3.5" style={{ color: isDark ? '#aaa' : '#666' }} /></button>
-                    <button className="p-1.5 rounded-lg hover:bg-black/10"><MoreVertical className="w-3.5 h-3.5" style={{ color: isDark ? '#aaa' : '#666' }} /></button>
+                    <button onClick={() => alert('Звонки пока недоступны в демо-режиме')} className="p-1.5 rounded-lg hover:bg-black/10"><Phone className="w-3.5 h-3.5" style={{ color: isDark ? '#aaa' : '#666' }} /></button>
+                    <button onClick={() => alert('Видеозвонки пока недоступны в демо-режиме')} className="p-1.5 rounded-lg hover:bg-black/10"><Video className="w-3.5 h-3.5" style={{ color: isDark ? '#aaa' : '#666' }} /></button>
+                    <button onClick={() => alert('Меню контакта')} className="p-1.5 rounded-lg hover:bg-black/10"><MoreVertical className="w-3.5 h-3.5" style={{ color: isDark ? '#aaa' : '#666' }} /></button>
                   </div>
                 </div>
               );
@@ -226,14 +226,14 @@ export default function XamMessenger() {
             </div>
 
             <div className="flex items-center gap-1.5 px-3 py-2 border-t shrink-0" style={{ backgroundColor: isDark ? '#1e1e1e' : '#fff', borderColor: isDark ? '#333' : '#e5e5e5' }}>
-              <button className="p-1.5 rounded-lg hover:bg-black/10"><Paperclip className="w-4 h-4" style={{ color: isDark ? '#888' : '#666' }} /></button>
+              <button onClick={() => alert('Прикрепление файлов пока недоступно')} className="p-1.5 rounded-lg hover:bg-black/10"><Paperclip className="w-4 h-4" style={{ color: isDark ? '#888' : '#666' }} /></button>
               <input value={newMsg} onChange={e => setNewMsg(e.target.value)}
                 onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(); } }}
                 placeholder={T('osXamMsgPlaceholder')}
                 className="flex-1 px-3 py-1.5 rounded-full text-sm outline-none"
                 style={{ backgroundColor: isDark ? '#2a2a2a' : '#f0f0f0', color: isDark ? '#e0e0e0' : '#333' }}
               />
-              <button className="p-1.5 rounded-lg hover:bg-black/10"><Smile className="w-4 h-4" style={{ color: isDark ? '#888' : '#666' }} /></button>
+              <button onClick={() => alert('Эмодзи пока недоступны')} className="p-1.5 rounded-lg hover:bg-black/10"><Smile className="w-4 h-4" style={{ color: isDark ? '#888' : '#666' }} /></button>
               <button onClick={sendMessage} disabled={!newMsg.trim()}
                 className="p-2 rounded-full disabled:opacity-30 transition-all"
                 style={{ backgroundColor: newMsg.trim() ? '#7c3aed' : 'transparent' }}

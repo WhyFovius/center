@@ -227,11 +227,11 @@ export default function BrowserApp() {
                   const domain = (() => { try { return new URL(bm).hostname.replace('www.', ''); } catch { return bm.slice(0, 30); } })();
                   return (
                     <button key={bm} onClick={() => navigate(bm)}
-                      className="flex items-center gap-1 px-2 py-0.5 rounded text-xs whitespace-nowrap hover:bg-black/10 transition-colors"
+                      className="group flex items-center gap-1 px-2 py-0.5 rounded text-xs whitespace-nowrap hover:bg-black/10 transition-colors"
                       style={{ color: isDark ? '#aaa' : '#555' }}
                     >
                       {domain}
-                      <X className="w-3 h-3 opacity-0 group-hover:opacity-100" onClick={e => { e.stopPropagation(); setBookmarks(prev => prev.filter(b => b !== bm)); saveBookmarks(bookmarks.filter(b => b !== bm)); }} />
+                      <X className="w-3 h-3 opacity-0 group-hover:opacity-100" onClick={e => { e.stopPropagation(); const next = bookmarks.filter(b => b !== bm); setBookmarks(next); saveBookmarks(next); }} />
                     </button>
                   );
                 })}

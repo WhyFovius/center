@@ -77,6 +77,15 @@ export default function MailApp() {
     ? emails.filter(e => e.subject.toLowerCase().includes(searchQuery.toLowerCase()) || e.from.toLowerCase().includes(searchQuery.toLowerCase()))
     : emails;
 
+  const handleReportSOC = () => {
+    alert('Жалоба отправлена в SOC. Письмо будет проанализировано.');
+  };
+
+  const handleDelete = () => {
+    setSelectedEmail(null);
+    setSelectedFolder('trash');
+  };
+
   return (
     <div className="flex h-full" style={{ backgroundColor: 'var(--color-bg)' }}>
       {/* Folders sidebar */}
@@ -247,10 +256,10 @@ export default function MailApp() {
                   {T('osMailSuspicious')}: Reply-To, SPF FAIL, DKIM none
                 </p>
                 <div className="flex gap-2">
-                  <button className="px-3 py-1.5 rounded-lg text-xs font-medium bg-red-500 text-white hover:bg-red-600 transition-colors">
+                  <button onClick={handleReportSOC} className="px-3 py-1.5 rounded-lg text-xs font-medium bg-red-500 text-white hover:bg-red-600 transition-colors">
                     {T('osMailReportSOC')}
                   </button>
-                  <button className="px-3 py-1.5 rounded-lg text-xs font-medium border border-red-300 text-red-500 hover:bg-red-50 transition-colors">
+                  <button onClick={handleDelete} className="px-3 py-1.5 rounded-lg text-xs font-medium border border-red-300 text-red-500 hover:bg-red-50 transition-colors">
                     {T('osMailDelete')}
                   </button>
                 </div>

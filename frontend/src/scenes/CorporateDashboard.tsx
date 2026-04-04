@@ -52,7 +52,7 @@ export default function CorporateDashboard() {
             <p className="text-xs" style={{ color: isDark ? '#888' : '#666' }}>Панель мониторинга кибербезопасности</p>
           </div>
         </div>
-        <button className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium" style={{ backgroundColor: isDark ? '#2a2a2a' : '#f0f0f0', color: isDark ? '#ccc' : '#333' }}>
+        <button onClick={() => alert('Экспорт отчёта в PDF начат')} className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium" style={{ backgroundColor: isDark ? '#2a2a2a' : '#f0f0f0', color: isDark ? '#ccc' : '#333' }}>
           <Download className="w-4 h-4" /> Экспорт
         </button>
       </div>
@@ -144,7 +144,7 @@ export default function CorporateDashboard() {
                   className="flex-1 bg-transparent text-sm outline-none" style={{ color: isDark ? '#e0e0e0' : '#333' }}
                 />
               </div>
-              <button className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm" style={{ backgroundColor: isDark ? '#1e1e1e' : '#ffffff', border: `1px solid ${isDark ? '#333' : '#e5e5e5'}`, color: isDark ? '#ccc' : '#333' }}>
+              <button onClick={() => alert('Фильтр по сотрудникам')} className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm" style={{ backgroundColor: isDark ? '#1e1e1e' : '#ffffff', border: `1px solid ${isDark ? '#333' : '#e5e5e5'}`, color: isDark ? '#ccc' : '#333' }}>
                 <Filter className="w-4 h-4" /> Фильтр
               </button>
             </div>
@@ -195,7 +195,7 @@ export default function CorporateDashboard() {
                         <span className="text-xs" style={{ color: isDark ? '#888' : '#666' }}>{emp.lastActive}</span>
                       </td>
                       <td className="px-4 py-3">
-                        <button className="p-1.5 rounded-lg hover:bg-black/10 transition-colors">
+                        <button onClick={() => alert(`Профиль сотрудника: ${emp.name}`)} className="p-1.5 rounded-lg hover:bg-black/10 transition-colors">
                           <Eye className="w-4 h-4" style={{ color: isDark ? '#888' : '#666' }} />
                         </button>
                       </td>
@@ -248,10 +248,10 @@ export default function CorporateDashboard() {
                     <span className="text-lg font-bold" style={{ color: '#fbbf24' }}>{emp.certs} 🏆</span>
                   </div>
                   <div className="flex gap-2">
-                    <button className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium" style={{ backgroundColor: isDark ? '#252525' : '#f5f5f5', color: isDark ? '#ccc' : '#333' }}>
+                    <button onClick={() => alert(`QR валидация сертификата: ${emp.name}`)} className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium" style={{ backgroundColor: isDark ? '#252525' : '#f5f5f5', color: isDark ? '#ccc' : '#333' }}>
                       <QrCode className="w-3.5 h-3.5" /> QR Валидация
                     </button>
-                    <button className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium" style={{ backgroundColor: isDark ? '#252525' : '#f5f5f5', color: isDark ? '#ccc' : '#333' }}>
+                    <button onClick={() => alert(`Скачивание сертификата: ${emp.name}`)} className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium" style={{ backgroundColor: isDark ? '#252525' : '#f5f5f5', color: isDark ? '#ccc' : '#333' }}>
                       <Download className="w-3.5 h-3.5" /> Скачать
                     </button>
                   </div>
