@@ -15,6 +15,11 @@ class StepOptionOut(BaseModel):
     option_key: str
     label: str
     details: str
+    is_correct: bool
+    hint: str
+    impact_text: str
+    points: int
+    security_delta: int
 
 
 class ScenarioStepOut(BaseModel):

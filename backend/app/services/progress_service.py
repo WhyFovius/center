@@ -154,6 +154,11 @@ def serialize_missions(missions: list[Mission]) -> list[dict[str, Any]]:
                         "option_key": option.option_key,
                         "label": option.label,
                         "details": option.details,
+                        "is_correct": bool(option.is_correct),
+                        "hint": option.hint,
+                        "impact_text": option.impact_text,
+                        "points": option.points,
+                        "security_delta": option.security_delta,
                     }
                 )
             mission_payload["steps"].append(step_payload)
@@ -256,12 +261,8 @@ def apply_attempt(
     state_map = {state.step_id: state for state in all_states}
     unlocked = compute_unlocked_mission_index(missions, state_map)
     mission_index_map = mission_index_by_id(missions)
-    step_mission_index = mission_index_map.get(step.mission_id)
-    if step_mission_index is None:
+    if mission_index_map.get(step.mission_id) is None:
         raise ValueError("Scenario mission not found")
-    if step_mission_index > unlocked:
-        raise ValueError("Mission is locked until previous mission is complete")
-
     progress = get_or_create_progress(db, user.id)
     step_state = get_or_create_step_state(db, user.id, step_id)
 
