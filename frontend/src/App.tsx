@@ -21,6 +21,10 @@ const ProfileView = lazy(async () => {
   return { default: mod.ProfileView };
 });
 const LeaderboardView = lazy(() => import('@/scenes/LeaderboardView'));
+const CorporateDashboard = lazy(async () => {
+  const mod = await import('@/scenes/CorporateDashboard');
+  return { default: mod.default };
+});
 
 export default function App() {
   const authed = useGS(s => s.authed);
@@ -77,6 +81,8 @@ export default function App() {
             <motion.div key="profile" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }} transition={{ duration: 0.2 }} className="h-full"><ScreenLoader><ProfileView /></ScreenLoader></motion.div>
           ) : screen === 'leaderboard' ? (
             <motion.div key="lb" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }} transition={{ duration: 0.2 }} className="h-full"><ScreenLoader><LeaderboardView /></ScreenLoader></motion.div>
+          ) : screen === 'corporate' ? (
+            <motion.div key="corporate" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }} transition={{ duration: 0.2 }} className="h-full"><ScreenLoader><CorporateDashboard /></ScreenLoader></motion.div>
           ) : null}
         </AnimatePresence>
       </div>

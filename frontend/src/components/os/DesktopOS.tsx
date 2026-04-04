@@ -2,7 +2,7 @@ import { useState, useCallback, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   Monitor, Wifi, Battery, Volume2, VolumeX, Shield, X, Minimize2,
-  Mail, Globe, MessageSquare, FolderOpen, Terminal, ChevronUp, Settings, Zap
+  Mail, Globe, MessageSquare, FolderOpen, Terminal, ChevronUp, Settings, Zap, Phone
 } from 'lucide-react';
 import { useGS } from '@/store/useGS';
 import OSWindow from './OSWindow';
@@ -15,6 +15,8 @@ import SecurityCenter from './SecurityCenter';
 import SettingsApp from './SettingsApp';
 import AttackEmulator from './AttackEmulator';
 import StoryIntro from './StoryIntro';
+import WifiSimulator from './WifiSimulator';
+import DeepfakeSimulator from './DeepfakeSimulator';
 import Notifications, { NotificationProvider } from './Notifications';
 import GlitchEffect from './GlitchEffect';
 import SkyToggle from '@/components/ui/sky-toggle';
@@ -89,6 +91,7 @@ export default function DesktopOS() {
   const [time, setTime] = useState(new Date());
   const [showIntro, setShowIntro] = useState(() => !localStorage.getItem('zd_intro_seen'));
   const [showAttackEmulator, setShowAttackEmulator] = useState(false);
+  const [activeSimulator, setActiveSimulator] = useState<'wifi' | 'deepfake' | null>(null);
 
   useEffect(() => {
     const timer = setInterval(() => setTime(new Date()), 1000);
@@ -195,6 +198,23 @@ export default function DesktopOS() {
           )}
         </AnimatePresence>
 
+        {/* Simulators */}
+        <AnimatePresence>
+          {activeSimulator && (
+            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+              className="absolute inset-0 z-[150]" onClick={() => setActiveSimulator(null)}
+            >
+              <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" />
+              <div className="absolute inset-8 md:inset-16 rounded-2xl overflow-hidden shadow-2xl border border-gray-800"
+                onClick={e => e.stopPropagation()}
+              >
+                {activeSimulator === 'wifi' && <WifiSimulator onComplete={() => setActiveSimulator(null)} />}
+                {activeSimulator === 'deepfake' && <DeepfakeSimulator onComplete={() => setActiveSimulator(null)} />}
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
         {/* Desktop background */}
         <div className="absolute inset-0" style={{ paddingBottom: '44px' }}
           onClick={() => { setStartMenuOpen(false); setShowTray(false); }}
@@ -274,6 +294,24 @@ export default function DesktopOS() {
               >
                 <span className="text-text-secondary"><Zap className="w-4 h-4" /></span>
                 <span>Эмуляция атаки</span>
+              </button>
+              <button onClick={() => { setActiveSimulator('wifi'); setStartMenuOpen(false); }}
+                className="w-full flex items-center gap-2.5 px-2.5 py-2 rounded hover:bg-surface-active transition-colors text-sm text-yellow-400"
+              >
+                <span className="text-text-secondary"><Wifi className="w-4 h-4" /></span>
+                <span>Wi-Fi симулятор</span>
+              </button>
+              <button onClick={() => { setActiveSimulator('deepfake'); setStartMenuOpen(false); }}
+                className="w-full flex items-center gap-2.5 px-2.5 py-2 rounded hover:bg-surface-active transition-colors text-sm text-purple-400"
+              >
+                <span className="text-text-secondary"><Phone className="w-4 h-4" /></span>
+                <span>Дипфейк симулятор</span>
+              </button>
+              <button onClick={() => { setScreen('corporate'); setStartMenuOpen(false); }}
+                className="w-full flex items-center gap-2.5 px-2.5 py-2 rounded hover:bg-surface-active transition-colors text-sm text-blue-400"
+              >
+                <span className="text-text-secondary"><Monitor className="w-4 h-4" /></span>
+                <span>Corporate Dashboard</span>
               </button>
               <button onClick={() => handleOpenApp('settings')}
                 className="w-full flex items-center gap-2.5 px-2.5 py-2 rounded hover:bg-surface-active transition-colors text-sm"
