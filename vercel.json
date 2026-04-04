@@ -1,11 +1,22 @@
 {
+  "experimentalServices": {
+    "frontend": {
+      "entrypoint": "frontend",
+      "routePrefix": "/",
+      "framework": "vite"
+    },
+    "backend": {
+      "entrypoint": "backend",
+      "routePrefix": "/api/v1"
+    }
+  },
   "buildCommand": "cd frontend && npm install && npm run build",
   "outputDirectory": "frontend/dist",
   "installCommand": "cd frontend && npm install",
   "rewrites": [
     {
       "source": "/api/v1/:path*",
-      "destination": "https://YOUR_BACKEND_URL/api/v1/:path*"
+      "destination": "/_/backend/:path*"
     },
     {
       "source": "/assets/:path*",
@@ -39,7 +50,7 @@
     }
   ],
   "env": {
-    "VITE_API_URL": ""
+    "VITE_API_URL": "/api/v1"
   },
   "github": {
     "silent": true
