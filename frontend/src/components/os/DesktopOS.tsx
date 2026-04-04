@@ -2,7 +2,7 @@ import { useState, useCallback, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   Monitor, Wifi, Battery, Volume2, VolumeX, Shield, X, Minimize2,
-  Mail, Globe, MessageSquare, FolderOpen, Terminal, ChevronUp, Settings
+  Mail, Globe, MessageSquare, FolderOpen, Terminal, ChevronUp, Settings, Zap
 } from 'lucide-react';
 import { useGS } from '@/store/useGS';
 import OSWindow from './OSWindow';
@@ -13,6 +13,8 @@ import FileManager from './FileManager';
 import TerminalApp from './TerminalApp';
 import SecurityCenter from './SecurityCenter';
 import SettingsApp from './SettingsApp';
+import AttackEmulator from './AttackEmulator';
+import StoryIntro from './StoryIntro';
 import Notifications, { NotificationProvider } from './Notifications';
 import GlitchEffect from './GlitchEffect';
 import SkyToggle from '@/components/ui/sky-toggle';
@@ -80,6 +82,8 @@ export default function DesktopOS() {
   const [showCompromised, setCompromised] = useState(false);
   const [showGlitch, setShowGlitch] = useState(false);
   const [time, setTime] = useState(new Date());
+  const [showIntro, setShowIntro] = useState(() => !localStorage.getItem('zd_intro_seen'));
+  const [showAttackEmulator, setShowAttackEmulator] = useState(false);
 
   useEffect(() => {
     const timer = setInterval(() => setTime(new Date()), 1000);
@@ -153,12 +157,39 @@ export default function DesktopOS() {
     setScreen('menu');
   }, [setScreen]);
 
+  const handleIntroDone = useCallback(() => {
+    localStorage.setItem('zd_intro_seen', '1');
+    setShowIntro(false);
+    setShowAttackEmulator(true);
+  }, []);
+
   const timeStr = time.toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' });
   const dateStr = time.toLocaleDateString('ru-RU', { day: 'numeric', month: 'short', year: 'numeric' });
 
   return (
     <NotificationProvider>
       <div className="relative w-full h-full overflow-hidden select-none">
+        {/* Story Intro */}
+        <AnimatePresence>
+          {showIntro && <StoryIntro onStart={handleIntroDone} />}
+        </AnimatePresence>
+
+        {/* Attack Emulator */}
+        <AnimatePresence>
+          {showAttackEmulator && (
+            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+              className="absolute inset-0 z-[150]" onClick={() => setShowAttackEmulator(false)}
+            >
+              <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" />
+              <div className="absolute inset-8 md:inset-16 rounded-2xl overflow-hidden shadow-2xl border border-gray-800"
+                onClick={e => e.stopPropagation()}
+              >
+                <AttackEmulator onClose={() => setShowAttackEmulator(false)} />
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
         {/* Desktop background */}
         <div className="absolute inset-0" style={{ paddingBottom: '44px' }}
           onClick={() => { setStartMenuOpen(false); setShowTray(false); }}
@@ -233,6 +264,12 @@ export default function DesktopOS() {
                   <span>{item.label}</span>
                 </button>
               ))}
+              <button onClick={() => { setShowAttackEmulator(true); setStartMenuOpen(false); }}
+                className="w-full flex items-center gap-2.5 px-2.5 py-2 rounded hover:bg-surface-active transition-colors text-sm text-red-400"
+              >
+                <span className="text-text-secondary"><Zap className="w-4 h-4" /></span>
+                <span>Эмуляция атаки</span>
+              </button>
               <button onClick={() => handleOpenApp('settings')}
                 className="w-full flex items-center gap-2.5 px-2.5 py-2 rounded hover:bg-surface-active transition-colors text-sm"
               >
