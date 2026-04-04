@@ -38,7 +38,7 @@ function ssFor(m: Map<number, StepState>, id: number): StepState {
 }
 function firstMission(p: Progress | null, ms: Mission[]) { return p ? Math.min(p.unlocked_mission_index, Math.max(ms.length - 1, 0)) : 0; }
 function firstUnresolved(m: Mission, ss: Map<number, StepState>) { const i = m.steps.findIndex(s => !ssFor(ss, s.id).resolved); return i >= 0 ? i : Math.max(0, m.steps.length - 1); }
-function playerSpawn() { return { px: 550, py: 405 }; }
+function playerSpawn() { return { px: 640, py: 430 }; }
 function band(p: Progress | null, rc: number): LearningBand { const r = p?.success_rate ?? 0; return rc < 2 || r < 45 ? 'novice' : r < 78 ? 'intermediate' : 'advanced'; }
 function family(s?: ScenarioStep | null): string {
   if (!s) return 'generic';
@@ -122,7 +122,15 @@ export const useGS = create<GS>((set, get) => ({
       };
       set({ fb: { kind: r.correct ? 'success' : 'warning', title: r.title, message: r.message, detail: r.detail, references: r.references || [], stepId: r.step_state.step_id, consequence: con }, submitting: false, gp: 'consequence', energy: r.progress.security_level, shield: r.progress.security_level });
     } catch (e: any) {
-      set({ fb: { kind: 'warning', title: 'Ошибка', message: e.message, detail: '', references: [], stepId: null, consequence: null }, submitting: false });
+      const message = e?.message || 'Ошибка';
+      if (typeof message === 'string' && message.toLowerCase().includes('locked')) {
+        try {
+          await get().load();
+          set({ submitting: false, fb: null, gp: 'explore', screen: 'lobby', ...playerSpawn(), encTriggered: false, encStep: null });
+          return;
+        } catch {}
+      }
+      set({ fb: { kind: 'warning', title: 'Ошибка', message, detail: '', references: [], stepId: null, consequence: null }, submitting: false });
     }
   },
 
@@ -134,14 +142,6 @@ export const useGS = create<GS>((set, get) => ({
     if (si < m.steps.length - 1) {
       set({ si: si + 1, selOpt: null, fb: null, gp: 'explore', encTriggered: false, encStep: null, ...playerSpawn() });
       return;
-    }
-    if (mi < ms.length - 1) {
-      const ni = mi + 1; const p = get().prog;
-      if (p && ni <= p.unlocked_mission_index) {
-        const nm = ms[ni];
-        set({ mi: ni, si: firstUnresolved(nm, ss), selOpt: null, fb: null, gp: 'explore', encTriggered: false, encStep: null, screen: 'game', ...playerSpawn() });
-        return;
-      }
     }
     set({ fb: null, gp: 'explore', encTriggered: false, encStep: null, screen: 'lobby', ...playerSpawn() });
   },

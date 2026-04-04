@@ -1,5 +1,5 @@
 import type { ComponentType } from 'react';
-import { Shield, BatteryCharging, Target, Home } from 'lucide-react';
+import { Shield, BatteryCharging, Target, ArrowLeft } from 'lucide-react';
 import type { Progress } from '@/types';
 import { useGS } from '@/store/useGS';
 
@@ -90,12 +90,12 @@ export function GameHUD({
             setFb(null);
             setEncTrig(false);
             setEncStep(null);
-            setScreen('menu');
+            setScreen('lobby');
           }}
           className="inline-flex items-center gap-2 rounded-full border border-border bg-white/92 px-4 py-2 text-sm font-semibold text-text shadow-sm transition-all hover:-translate-y-0.5 hover:bg-white"
         >
-          <Home className="w-4 h-4 text-primary" />
-          В меню
+          <ArrowLeft className="w-4 h-4 text-primary" />
+          Назад к уровням
         </button>
       </div>
     </div>

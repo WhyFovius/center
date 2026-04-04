@@ -6,6 +6,7 @@ import { api } from '@/lib/api';
 import { t } from '@/lib/i18n';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import logo from '@/assets/logo.png';
 
 export default function AuthForm() {
   const [mode, setMode] = useState<'login' | 'register'>('login');
@@ -71,9 +72,7 @@ export default function AuthForm() {
 
         <Card className="border-border/60 shadow-lg">
           <CardHeader className="text-center pb-2">
-            <div className="mx-auto mb-3 w-14 h-14 rounded-2xl flex items-center justify-center" style={{ background: 'linear-gradient(135deg, #4a9e5c, #6dbf7e)' }}>
-              <Shield className="w-7 h-7 text-white" />
-            </div>
+            <img src={logo} alt="Логотип Центр Инвест" className="mx-auto mb-3 h-14 w-auto object-contain" />
             <CardTitle className="text-2xl">{T('appName')}</CardTitle>
             <CardDescription>{T('tagline')}</CardDescription>
           </CardHeader>

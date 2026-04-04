@@ -1,13 +1,21 @@
-import { useEffect, useState } from 'react';
+import { Suspense, lazy, useEffect, type ReactNode } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Loader2, AlertTriangle, Trophy, User } from 'lucide-react';
+import { Loader2, AlertTriangle } from 'lucide-react';
 import { useGS } from '@/store/useGS';
 import { api } from '@/lib/api';
 import AuthForm from '@/components/layout/AuthForm';
-import MainMenu from '@/components/layout/MainMenu';
-import Lobby from '@/components/layout/Lobby';
-import { GameCanvas } from '@/scenes/GameCanvas';
-import { ProfileView } from '@/scenes/ProfileView';
+
+const MainMenu = lazy(() => import('@/components/layout/MainMenu'));
+const Lobby = lazy(() => import('@/components/layout/Lobby'));
+const GameCanvas = lazy(async () => {
+  const mod = await import('@/scenes/GameCanvas');
+  return { default: mod.GameCanvas };
+});
+const ProfileView = lazy(async () => {
+  const mod = await import('@/scenes/ProfileView');
+  return { default: mod.ProfileView };
+});
+const LeaderboardView = lazy(() => import('@/scenes/LeaderboardView'));
 
 export default function App() {
   const authed = useGS(s => s.authed);
@@ -38,67 +46,30 @@ export default function App() {
               <button onClick={() => load().catch(() => logout())} className="px-6 py-2.5 bg-primary text-white font-semibold rounded-lg text-sm">Повторить</button></div>
           </motion.div>
         ) : screen === 'menu' ? (
-          <motion.div key="menu" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="h-full"><MainMenu /></motion.div>
+          <motion.div key="menu" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="h-full"><ScreenLoader><MainMenu /></ScreenLoader></motion.div>
         ) : screen === 'lobby' ? (
-          <motion.div key="lobby" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="h-full"><Lobby /></motion.div>
+          <motion.div key="lobby" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="h-full"><ScreenLoader><Lobby /></ScreenLoader></motion.div>
         ) : screen === 'game' ? (
-          <motion.div key="game" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="h-full"><GameCanvas /></motion.div>
+          <motion.div key="game" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="h-full"><ScreenLoader><GameCanvas /></ScreenLoader></motion.div>
         ) : screen === 'profile' ? (
-          <motion.div key="profile" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="h-full"><ProfileView /></motion.div>
+          <motion.div key="profile" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="h-full"><ScreenLoader><ProfileView /></ScreenLoader></motion.div>
         ) : screen === 'leaderboard' ? (
-          <motion.div key="lb" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="h-full"><LeaderboardView /></motion.div>
+          <motion.div key="lb" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="h-full"><ScreenLoader><LeaderboardView /></ScreenLoader></motion.div>
         ) : null}
       </AnimatePresence>
     </div>
   );
 }
-
-function LeaderboardView() {
-  const setScreen = useGS(s => s.setScreen);
-  const [entries, setEntries] = useState<any[]>([]);
-  const [lbLoading, setLbLoading] = useState(true);
-
-  useEffect(() => {
-    api.lb.get().then(r => { setEntries(r.entries || []); setLbLoading(false); }).catch(() => setLbLoading(false));
-  }, []);
-
-  const leagueColors: Record<string, string> = { 'Новичок': '#9ca3af', 'Аналитик': '#60a5fa', 'Охотник за угрозами': '#a78bfa', 'Эксперт': '#fbbf24' };
-
+function ScreenLoader({ children }: { children: ReactNode }) {
   return (
-    <div className="h-full flex flex-col bg-bg overflow-hidden">
-      <header className="flex items-center gap-3 px-6 py-3 border-b border-border bg-surface">
-        <button onClick={() => setScreen('menu')} className="text-sm text-text-secondary hover:text-text transition-colors">← Назад</button>
-        <h1 className="text-base font-bold text-text flex items-center gap-2"><Trophy className="w-5 h-5 text-accent" />Лидерборд</h1>
-      </header>
-      <div className="flex-1 overflow-y-auto p-4 md:p-6">
-        <div className="max-w-2xl mx-auto">
-          {lbLoading ? (
-            <div className="flex items-center justify-center py-20"><Loader2 className="w-8 h-8 text-primary animate-spin" /></div>
-          ) : entries.length === 0 ? (
-            <div className="text-center py-20 text-text-muted">Нет данных</div>
-          ) : (
-            <div className="space-y-2">
-              {entries.map((e: any) => (
-                <div key={e.user_id} className="flex items-center gap-4 p-4 bg-surface border border-border rounded-xl">
-                  <span className="text-lg font-bold text-text-muted w-8 text-center">#{e.rank}</span>
-                  <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center"><User className="w-5 h-5 text-primary" /></div>
-                  <div className="flex-1">
-                    <p className="text-sm font-semibold text-text">{e.full_name || e.username}</p>
-                    <p className="text-xs text-text-muted">@{e.username}</p>
-                  </div>
-                  <div className="text-right">
-                    <p className="text-sm font-bold text-text">{e.reputation} реп.</p>
-                    <span className="text-xs px-2 py-0.5 rounded-full" style={{
-                      background: (leagueColors[e.league || 'Новичок'] || '#9ca3af') + '20',
-                      color: leagueColors[e.league || 'Новичок'] || '#9ca3af'
-                    }}>{e.league || 'Новичок'}</span>
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
+    <Suspense
+      fallback={
+        <div className="flex h-full items-center justify-center">
+          <Loader2 className="w-8 h-8 text-primary animate-spin" />
         </div>
-      </div>
-    </div>
+      }
+    >
+      {children}
+    </Suspense>
   );
 }

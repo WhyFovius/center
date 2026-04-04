@@ -7,8 +7,8 @@ import { EncounterDialog } from '@/components/game/EncounterDialog';
 import { ConsequenceOverlay } from '@/components/game/ConsequenceOverlay';
 import { GameHUD } from '@/components/game/GameHUD';
 
-const WORLD_WIDTH = 1100;
-const WORLD_HEIGHT = 720;
+const WORLD_WIDTH = 1320;
+const WORLD_HEIGHT = 840;
 
 type LocationNode = {
   name: string;
@@ -29,29 +29,29 @@ type MissionLayout = {
 };
 
 const LOCATIONS: Record<string, LocationNode> = {
-  'office-hq': { name: 'office-hq', x: 44, y: 54, w: 304, h: 198, bg: '#e9f8ff', border: '#88d4ef', accent: '#167ca2', label: 'ШТАБ', desc: 'Рабочие письма и задачи' },
-  'soc-room': { name: 'soc-room', x: 398, y: 54, w: 304, h: 198, bg: '#eef5ff', border: '#a7c6f2', accent: '#3567b6', label: 'SOC', desc: 'Проверка инцидентов и логов' },
-  'meeting-room': { name: 'meeting-room', x: 752, y: 54, w: 304, h: 198, bg: '#fff1f4', border: '#f0afbe', accent: '#ae4261', label: 'ПЕРЕГОВОРКА', desc: 'Звонки и запросы от руководства' },
+  'office-hq': { name: 'office-hq', x: 56, y: 72, w: 382, h: 230, bg: '#e9f8ff', border: '#88d4ef', accent: '#167ca2', label: 'ШТАБ', desc: 'Рабочие письма и задачи' },
+  'soc-room': { name: 'soc-room', x: 462, y: 432, w: 392, h: 240, bg: '#eef5ff', border: '#a7c6f2', accent: '#3567b6', label: 'SOC', desc: 'Проверка инцидентов и логов' },
+  'meeting-room': { name: 'meeting-room', x: 882, y: 82, w: 382, h: 228, bg: '#fff1f4', border: '#f0afbe', accent: '#ae4261', label: 'ПЕРЕГОВОРКА', desc: 'Звонки и запросы от руководства' },
 
-  apartment: { name: 'apartment', x: 52, y: 80, w: 308, h: 206, bg: '#fff0f7', border: '#efadd2', accent: '#af3b72', label: 'КВАРТИРА', desc: 'Личный ноутбук и смартфон' },
-  courtyard: { name: 'courtyard', x: 404, y: 60, w: 296, h: 194, bg: '#efffee', border: '#9edaa7', accent: '#2a8b46', label: 'ДВОР', desc: 'Повседневные уведомления и звонки' },
-  mailbox: { name: 'mailbox', x: 744, y: 88, w: 316, h: 210, bg: '#fff8e6', border: '#ecd07b', accent: '#b78810', label: 'ПОЧТОМАТ', desc: 'Доставка, коды и личные сервисы' },
+  apartment: { name: 'apartment', x: 62, y: 84, w: 372, h: 226, bg: '#fff0f7', border: '#efadd2', accent: '#af3b72', label: 'КВАРТИРА', desc: 'Личный ноутбук и смартфон' },
+  courtyard: { name: 'courtyard', x: 456, y: 430, w: 386, h: 236, bg: '#efffee', border: '#9edaa7', accent: '#2a8b46', label: 'ДВОР', desc: 'Повседневные уведомления и звонки' },
+  mailbox: { name: 'mailbox', x: 884, y: 94, w: 378, h: 230, bg: '#fff8e6', border: '#ecd07b', accent: '#b78810', label: 'ПОЧТОМАТ', desc: 'Доставка, коды и личные сервисы' },
 
-  'coffee-bar': { name: 'coffee-bar', x: 54, y: 60, w: 312, h: 202, bg: '#fff4de', border: '#ebc66a', accent: '#b17700', label: 'КОФЕЙНЯ', desc: 'Открытый Wi-Fi и быстрые покупки' },
-  'station-hall': { name: 'station-hall', x: 404, y: 70, w: 294, h: 192, bg: '#eef6ff', border: '#a2c7ef', accent: '#2d6cab', label: 'ВОКЗАЛ', desc: 'Публичные точки доступа' },
-  metro: { name: 'metro', x: 742, y: 84, w: 320, h: 208, bg: '#f3edff', border: '#ccb3f0', accent: '#715bb7', label: 'МЕТРО', desc: 'QR, уведомления и спешка' },
+  'coffee-bar': { name: 'coffee-bar', x: 58, y: 80, w: 378, h: 226, bg: '#fff4de', border: '#ebc66a', accent: '#b17700', label: 'КОФЕЙНЯ', desc: 'Открытый Wi-Fi и быстрые покупки' },
+  'station-hall': { name: 'station-hall', x: 468, y: 432, w: 388, h: 236, bg: '#eef6ff', border: '#a2c7ef', accent: '#2d6cab', label: 'ВОКЗАЛ', desc: 'Публичные точки доступа' },
+  metro: { name: 'metro', x: 888, y: 98, w: 374, h: 228, bg: '#f3edff', border: '#ccb3f0', accent: '#715bb7', label: 'МЕТРО', desc: 'QR, уведомления и спешка' },
 
-  'bank-branch': { name: 'bank-branch', x: 48, y: 64, w: 316, h: 204, bg: '#fff0f1', border: '#efacb5', accent: '#ac3546', label: 'ОТДЕЛЕНИЕ', desc: 'Платежи и переводы' },
-  'atm-zone': { name: 'atm-zone', x: 406, y: 62, w: 292, h: 198, bg: '#fff7e8', border: '#ecd288', accent: '#b38313', label: 'ЗОНА ATM', desc: 'Карты, PIN и проверка операций' },
-  'market-square': { name: 'market-square', x: 744, y: 70, w: 314, h: 214, bg: '#eefdf7', border: '#95debf', accent: '#20855c', label: 'ПЛОЩАДЬ', desc: 'Переводы и покупки на ходу' },
+  'bank-branch': { name: 'bank-branch', x: 54, y: 86, w: 380, h: 228, bg: '#fff0f1', border: '#efacb5', accent: '#ac3546', label: 'ОТДЕЛЕНИЕ', desc: 'Платежи и переводы' },
+  'atm-zone': { name: 'atm-zone', x: 462, y: 428, w: 392, h: 236, bg: '#fff7e8', border: '#ecd288', accent: '#b38313', label: 'ЗОНА ATM', desc: 'Карты, PIN и проверка операций' },
+  'market-square': { name: 'market-square', x: 886, y: 96, w: 376, h: 230, bg: '#eefdf7', border: '#95debf', accent: '#20855c', label: 'ПЛОЩАДЬ', desc: 'Переводы и покупки на ходу' },
 
-  airport: { name: 'airport', x: 54, y: 54, w: 314, h: 206, bg: '#eaf8ff', border: '#8fd6ef', accent: '#167da3', label: 'ТЕРМИНАЛ', desc: 'Посадка, багаж и уведомления' },
-  hotel: { name: 'hotel', x: 410, y: 62, w: 292, h: 198, bg: '#fff7e8', border: '#ebd18a', accent: '#b58916', label: 'ОТЕЛЬ', desc: 'Заселение и звонки с ресепшена' },
-  lounge: { name: 'lounge', x: 748, y: 76, w: 308, h: 208, bg: '#f2edff', border: '#c6b3ef', accent: '#6a57b2', label: 'ЛАУНЖ', desc: 'Публичные зарядки и USB-риски' },
+  airport: { name: 'airport', x: 56, y: 76, w: 382, h: 232, bg: '#eaf8ff', border: '#8fd6ef', accent: '#167da3', label: 'ТЕРМИНАЛ', desc: 'Посадка, багаж и уведомления' },
+  hotel: { name: 'hotel', x: 462, y: 430, w: 392, h: 238, bg: '#fff7e8', border: '#ebd18a', accent: '#b58916', label: 'ОТЕЛЬ', desc: 'Заселение и звонки с ресепшена' },
+  lounge: { name: 'lounge', x: 884, y: 92, w: 380, h: 232, bg: '#f2edff', border: '#c6b3ef', accent: '#6a57b2', label: 'ЛАУНЖ', desc: 'Публичные зарядки и USB-риски' },
 
-  coworking: { name: 'coworking', x: 50, y: 62, w: 312, h: 202, bg: '#efffe8', border: '#a8df88', accent: '#5d8d12', label: 'КОВОРКИНГ', desc: 'Работа рядом с незнакомыми людьми' },
-  'home-office': { name: 'home-office', x: 402, y: 62, w: 300, h: 202, bg: '#eef6ff', border: '#a8c8f0', accent: '#3369b1', label: 'ДОМАШНИЙ ОФИС', desc: 'VPN и личные устройства' },
-  'vpn-console': { name: 'vpn-console', x: 746, y: 72, w: 314, h: 212, bg: '#fff0f6', border: '#f0b1cf', accent: '#b33e77', label: 'VPN-ПОРТАЛ', desc: 'Удаленный доступ и обновления' },
+  coworking: { name: 'coworking', x: 60, y: 80, w: 376, h: 228, bg: '#efffe8', border: '#a8df88', accent: '#5d8d12', label: 'КОВОРКИНГ', desc: 'Работа рядом с незнакомыми людьми' },
+  'home-office': { name: 'home-office', x: 464, y: 434, w: 388, h: 236, bg: '#eef6ff', border: '#a8c8f0', accent: '#3369b1', label: 'ДОМАШНИЙ ОФИС', desc: 'VPN и личные устройства' },
+  'vpn-console': { name: 'vpn-console', x: 886, y: 96, w: 376, h: 232, bg: '#fff0f6', border: '#f0b1cf', accent: '#b33e77', label: 'VPN-ПОРТАЛ', desc: 'Удаленный доступ и обновления' },
 };
 
 const MISSION_LAYOUTS: Record<string, MissionLayout> = {
@@ -68,6 +68,7 @@ const MISSION_LAYOUTS: Record<string, MissionLayout> = {
     conns: [
       { f: 'apartment', t: 'courtyard' },
       { f: 'courtyard', t: 'mailbox' },
+      { f: 'apartment', t: 'mailbox' },
     ],
   },
   wifi: {
@@ -83,6 +84,7 @@ const MISSION_LAYOUTS: Record<string, MissionLayout> = {
     conns: [
       { f: 'bank-branch', t: 'atm-zone' },
       { f: 'atm-zone', t: 'market-square' },
+      { f: 'bank-branch', t: 'market-square' },
     ],
   },
   travel: {
@@ -114,6 +116,12 @@ type EncounterPoint = {
   locName: string;
 };
 
+type JoystickState = {
+  x: number;
+  y: number;
+  active: boolean;
+};
+
 function rr(ctx: CanvasRenderingContext2D, x: number, y: number, w: number, h: number, r: number) {
   ctx.beginPath();
   ctx.moveTo(x + r, y);
@@ -136,13 +144,32 @@ function shorten(text: string, max = 24) {
   return text.length > max ? `${text.slice(0, max - 1)}…` : text;
 }
 
+function fitTextByWidth(ctx: CanvasRenderingContext2D, text: string, maxWidth: number) {
+  if (ctx.measureText(text).width <= maxWidth) return text;
+  let next = text;
+  while (next.length > 1 && ctx.measureText(`${next}…`).width > maxWidth) {
+    next = next.slice(0, -1);
+  }
+  return `${next}…`;
+}
+
+function bezierPoint(fx: number, fy: number, cx: number, cy: number, tx: number, ty: number, t: number) {
+  const nt = 1 - t;
+  return {
+    x: nt * nt * fx + 2 * nt * t * cx + t * t * tx,
+    y: nt * nt * fy + 2 * nt * t * cy + t * t * ty,
+  };
+}
+
 function getEncounterSpots(location: LocationNode) {
+  const rowBottom = location.y + location.h - 50;
+  const rowUpper = location.y + location.h - 86;
   return [
-    { x: location.x + 78, y: location.y + 130 },
-    { x: location.x + location.w / 2, y: location.y + 150 },
-    { x: location.x + location.w - 78, y: location.y + 130 },
-    { x: location.x + 140, y: location.y + location.h - 52 },
-    { x: location.x + location.w - 140, y: location.y + location.h - 52 },
+    { x: location.x + 90, y: rowBottom },
+    { x: location.x + location.w / 2, y: rowBottom },
+    { x: location.x + location.w - 90, y: rowBottom },
+    { x: location.x + location.w * 0.34, y: rowUpper },
+    { x: location.x + location.w * 0.66, y: rowUpper },
   ];
 }
 
@@ -173,7 +200,7 @@ function getEncounters(stepStates: Map<number, StepState>, missionCode?: string,
       return {
         x: spot.x,
         y: spot.y,
-        r: 26,
+        r: 24,
         step,
         color: colors[type] || colors.generic,
         label: step.attack_type,
@@ -301,7 +328,9 @@ export function GameCanvas() {
   const animRef = useRef<number>(0);
   const keysRef = useRef<Set<string>>(new Set());
   const dismissedEncounterIdRef = useRef<number | null>(null);
-  const playerRef = useRef({ x: 550, y: 405, dir: 'down' as 'up' | 'down' | 'left' | 'right', moving: false, frame: 0 });
+  const playerRef = useRef({ x: 640, y: 430, dir: 'down' as 'up' | 'down' | 'left' | 'right', moving: false, frame: 0 });
+  const joystickRef = useRef({ x: 0, y: 0 });
+  const joystickPadRef = useRef<HTMLDivElement>(null);
 
   const sim = useGS(s => s.sim);
   const stepStates = useGS(s => s.ss);
@@ -329,6 +358,7 @@ export function GameCanvas() {
   );
   const [encounterStep, setEncounterStepState] = useState<ScenarioStep | null>(null);
   const [hovered, setHovered] = useState<EncounterPoint | null>(null);
+  const [joystick, setJoystick] = useState<JoystickState>({ x: 0, y: 0, active: false });
 
   const layout = currentMission ? MISSION_LAYOUTS[currentMission.code] : null;
   const activeLocations = useMemo(
@@ -347,11 +377,34 @@ export function GameCanvas() {
     return grouped;
   }, [encounters]);
 
+  const resetJoystick = useCallback(() => {
+    joystickRef.current = { x: 0, y: 0 };
+    setJoystick({ x: 0, y: 0, active: false });
+  }, []);
+
+  const updateJoystick = useCallback((clientX: number, clientY: number) => {
+    const pad = joystickPadRef.current;
+    if (!pad) return;
+    const rect = pad.getBoundingClientRect();
+    const centerX = rect.left + rect.width / 2;
+    const centerY = rect.top + rect.height / 2;
+    const range = rect.width * 0.33;
+    let x = (clientX - centerX) / range;
+    let y = (clientY - centerY) / range;
+    const magnitude = Math.hypot(x, y);
+    if (magnitude > 1) {
+      x /= magnitude;
+      y /= magnitude;
+    }
+    joystickRef.current = { x, y };
+    setJoystick({ x, y, active: true });
+  }, []);
+
   const resizeCanvas = useCallback(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
     const rect = canvas.getBoundingClientRect();
-    const dpr = Math.max(1, Math.min(window.devicePixelRatio || 1, 2));
+    const dpr = Math.max(1, Math.min(window.devicePixelRatio || 1, 3));
     canvas.width = Math.round(rect.width * dpr);
     canvas.height = Math.round(rect.height * dpr);
   }, []);
@@ -389,7 +442,15 @@ export function GameCanvas() {
     dismissedEncounterIdRef.current = null;
     keysRef.current.clear();
     setHovered(null);
-  }, [currentMission?.id]);
+    resetJoystick();
+  }, [currentMission?.id, resetJoystick]);
+
+  useEffect(() => {
+    if (gamePhase !== 'explore') {
+      keysRef.current.clear();
+      resetJoystick();
+    }
+  }, [gamePhase, resetJoystick]);
 
   const draw = useCallback(() => {
     const canvas = canvasRef.current;
@@ -411,32 +472,37 @@ export function GameCanvas() {
         dismissedEncounterIdRef.current = null;
       }
 
-      const speed = 2.45;
-      let dx = 0;
-      let dy = 0;
+      const speed = 2.6;
+      let inputX = 0;
+      let inputY = 0;
 
-      if (keysRef.current.has('w') || keysRef.current.has('ц') || keysRef.current.has('arrowup')) {
-        dy = -speed;
-        player.dir = 'up';
+      if (keysRef.current.has('w') || keysRef.current.has('ц') || keysRef.current.has('arrowup')) inputY -= 1;
+      if (keysRef.current.has('s') || keysRef.current.has('ы') || keysRef.current.has('arrowdown')) inputY += 1;
+      if (keysRef.current.has('a') || keysRef.current.has('ф') || keysRef.current.has('arrowleft')) inputX -= 1;
+      if (keysRef.current.has('d') || keysRef.current.has('в') || keysRef.current.has('arrowright')) inputX += 1;
+
+      inputX += joystickRef.current.x;
+      inputY += joystickRef.current.y;
+
+      const magnitude = Math.hypot(inputX, inputY);
+      if (magnitude > 1) {
+        inputX /= magnitude;
+        inputY /= magnitude;
       }
-      if (keysRef.current.has('s') || keysRef.current.has('ы') || keysRef.current.has('arrowdown')) {
-        dy = speed;
-        player.dir = 'down';
-      }
-      if (keysRef.current.has('a') || keysRef.current.has('ф') || keysRef.current.has('arrowleft')) {
-        dx = -speed;
-        player.dir = 'left';
-      }
-      if (keysRef.current.has('d') || keysRef.current.has('в') || keysRef.current.has('arrowright')) {
-        dx = speed;
-        player.dir = 'right';
-      }
+
+      const dx = inputX * speed;
+      const dy = inputY * speed;
 
       if (dx || dy) {
         player.x = clamp(player.x + dx, 24, WORLD_WIDTH - 24);
         player.y = clamp(player.y + dy, 26, WORLD_HEIGHT - 20);
         player.moving = true;
         player.frame += 0.12;
+        if (Math.abs(dx) > Math.abs(dy)) {
+          player.dir = dx > 0 ? 'right' : 'left';
+        } else {
+          player.dir = dy > 0 ? 'down' : 'up';
+        }
         setPPos(player.x, player.y);
         setPDir(player.dir);
         setPMov(true);
@@ -463,13 +529,13 @@ export function GameCanvas() {
 
     ctx.strokeStyle = 'rgba(0,0,0,0.03)';
     ctx.lineWidth = 1;
-    for (let gx = 0; gx < WORLD_WIDTH; gx += 44) {
+    for (let gx = 0; gx < WORLD_WIDTH; gx += 48) {
       ctx.beginPath();
       ctx.moveTo(gx, 0);
       ctx.lineTo(gx, WORLD_HEIGHT);
       ctx.stroke();
     }
-    for (let gy = 0; gy < WORLD_HEIGHT; gy += 44) {
+    for (let gy = 0; gy < WORLD_HEIGHT; gy += 48) {
       ctx.beginPath();
       ctx.moveTo(0, gy);
       ctx.lineTo(WORLD_WIDTH, gy);
@@ -485,19 +551,32 @@ export function GameCanvas() {
       const tx = to.x + to.w / 2;
       const ty = to.y + to.h / 2;
 
-      ctx.strokeStyle = 'rgba(30,30,30,0.08)';
-      ctx.lineWidth = 1.6;
-      ctx.setLineDash([8, 8]);
+      const curveOffset = (index % 2 === 0 ? 1 : -1) * 84;
+      const cx = (fx + tx) / 2 + (index % 3 === 0 ? 28 : -28);
+      const cy = (fy + ty) / 2 + curveOffset;
+
+      ctx.strokeStyle = 'rgba(201,185,150,0.56)';
+      ctx.lineWidth = 20;
+      ctx.lineCap = 'round';
       ctx.beginPath();
       ctx.moveTo(fx, fy);
-      ctx.lineTo(tx, ty);
+      ctx.quadraticCurveTo(cx, cy, tx, ty);
+      ctx.stroke();
+
+      ctx.strokeStyle = 'rgba(255,255,255,0.46)';
+      ctx.lineWidth = 2.4;
+      ctx.setLineDash([12, 12]);
+      ctx.beginPath();
+      ctx.moveTo(fx, fy);
+      ctx.quadraticCurveTo(cx, cy, tx, ty);
       ctx.stroke();
       ctx.setLineDash([]);
 
       const t = (time * 0.2 + index * 0.2) % 1;
       ctx.fillStyle = 'rgba(45,139,77,0.18)';
+      const marker = bezierPoint(fx, fy, cx, cy, tx, ty, t);
       ctx.beginPath();
-      ctx.arc(fx + (tx - fx) * t, fy + (ty - fy) * t, 3.5, 0, Math.PI * 2);
+      ctx.arc(marker.x, marker.y, 4, 0, Math.PI * 2);
       ctx.fill();
     });
 
@@ -520,40 +599,43 @@ export function GameCanvas() {
       ctx.fill();
 
       ctx.fillStyle = location.accent;
-      ctx.font = '700 25px "Segoe UI", sans-serif';
+      ctx.font = '700 24px "Segoe UI", sans-serif';
       ctx.textAlign = 'left';
       ctx.textBaseline = 'top';
-      ctx.fillText(location.label, location.x + 28, location.y + 28);
+      ctx.fillText(fitTextByWidth(ctx, location.label, location.w - 150), location.x + 28, location.y + 27);
 
       ctx.font = '13px "Segoe UI", sans-serif';
-      ctx.fillStyle = 'rgba(0,0,0,0.56)';
-      ctx.fillText(location.desc, location.x + 28, location.y + 56);
+      ctx.fillStyle = 'rgba(0,0,0,0.58)';
+      ctx.fillText(fitTextByWidth(ctx, location.desc, location.w - 56), location.x + 28, location.y + 58);
 
       const badgeText = locationEncounters.length ? `${locationEncounters.length} активные угрозы` : 'зона под контролем';
-      const badgeWidth = locationEncounters.length ? 132 : 146;
+      const badgeWidth = 166;
       ctx.fillStyle = locationEncounters.length ? `${location.accent}16` : 'rgba(45,139,77,0.13)';
-      rr(ctx, location.x + location.w - badgeWidth - 24, location.y + 28, badgeWidth, 28, 14);
+      rr(ctx, location.x + location.w - badgeWidth - 24, location.y + 28, badgeWidth, 30, 15);
       ctx.fill();
       ctx.fillStyle = locationEncounters.length ? location.accent : '#217545';
       ctx.font = '600 11px "Segoe UI", sans-serif';
-      ctx.fillText(badgeText, location.x + location.w - badgeWidth - 12, location.y + 36);
+      ctx.fillText(fitTextByWidth(ctx, badgeText, badgeWidth - 16), location.x + location.w - badgeWidth - 12, location.y + 37);
 
       const chips = locationEncounters.length
         ? locationEncounters.slice(0, 3)
         : [{ label: 'В этой зоне сейчас нет новых угроз', color: '#2d8b4d' }] as Array<{ label: string; color: string }>;
 
       chips.forEach((chip, index) => {
-        const chipY = location.y + 96 + index * 38;
+        const chipY = location.y + 98 + index * 40;
+        const chipX = location.x + 24;
+        const chipW = location.w - 48;
+        const chipH = 32;
         ctx.fillStyle = `${chip.color}12`;
-        rr(ctx, location.x + 24, chipY, location.w - 48, 30, 12);
+        rr(ctx, chipX, chipY, chipW, chipH, 12);
         ctx.fill();
         ctx.strokeStyle = `${chip.color}30`;
         ctx.lineWidth = 1;
-        rr(ctx, location.x + 24, chipY, location.w - 48, 30, 12);
+        rr(ctx, chipX, chipY, chipW, chipH, 12);
         ctx.stroke();
         ctx.fillStyle = chip.color;
         ctx.font = '600 12px "Segoe UI", sans-serif';
-        ctx.fillText(shorten(chip.label, 42), location.x + 36, chipY + 8);
+        ctx.fillText(fitTextByWidth(ctx, chip.label, chipW - 26), chipX + 12, chipY + 9);
       });
     });
 
@@ -596,7 +678,7 @@ export function GameCanvas() {
     drawCharacter(ctx, player.x, player.y, player.dir, player.moving, player.frame);
 
     if (hovered && gamePhase === 'explore') {
-      const tooltipWidth = 270;
+      const tooltipWidth = 286;
       const tooltipHeight = 68;
       const tooltipX = clamp(hovered.x - tooltipWidth / 2, 12, WORLD_WIDTH - tooltipWidth - 12);
       const tooltipY = clamp(hovered.y - tooltipHeight - 46, 12, WORLD_HEIGHT - tooltipHeight - 12);
@@ -610,25 +692,29 @@ export function GameCanvas() {
       ctx.font = '700 12px "Segoe UI", sans-serif';
       ctx.textAlign = 'left';
       ctx.textBaseline = 'top';
-      ctx.fillText(shorten(hovered.label, 32), tooltipX + 14, tooltipY + 14);
+      ctx.fillText(shorten(hovered.label, 34), tooltipX + 14, tooltipY + 14);
       ctx.fillStyle = 'rgba(0,0,0,0.62)';
       ctx.font = '12px "Segoe UI", sans-serif';
-      ctx.fillText(shorten(hovered.step.title, 36), tooltipX + 14, tooltipY + 36);
+      ctx.fillText(shorten(hovered.step.title, 38), tooltipX + 14, tooltipY + 36);
     }
 
     if (currentMission) {
+      const bannerX = WORLD_WIDTH / 2 - 280;
+      const bannerY = 18;
+      const bannerW = 560;
+      const bannerH = 40;
       ctx.fillStyle = 'rgba(255,255,255,0.94)';
-      rr(ctx, WORLD_WIDTH / 2 - 210, 18, 420, 38, 18);
+      rr(ctx, bannerX, bannerY, bannerW, bannerH, 18);
       ctx.fill();
       ctx.strokeStyle = 'rgba(0,0,0,0.06)';
       ctx.lineWidth = 1;
-      rr(ctx, WORLD_WIDTH / 2 - 210, 18, 420, 38, 18);
+      rr(ctx, bannerX, bannerY, bannerW, bannerH, 18);
       ctx.stroke();
       ctx.fillStyle = '#1b1b1b';
       ctx.font = '600 13px "Segoe UI", sans-serif';
       ctx.textAlign = 'center';
       ctx.textBaseline = 'middle';
-      ctx.fillText(`${currentMission.title} • исследуйте новые зоны и запускайте эпизоды`, WORLD_WIDTH / 2, 37);
+      ctx.fillText(fitTextByWidth(ctx, `${currentMission.title} • исследуйте зоны и запускайте эпизоды`, bannerW - 26), WORLD_WIDTH / 2, bannerY + bannerH / 2 + 1);
     }
 
     animRef.current = requestAnimationFrame(draw);
@@ -699,19 +785,20 @@ export function GameCanvas() {
       const dx = player.x - encounter.x || 1;
       const dy = player.y - encounter.y || 1;
       const distance = Math.hypot(dx, dy) || 1;
-      player.x = clamp(encounter.x + (dx / distance) * (encounter.r + 50), 24, WORLD_WIDTH - 24);
-      player.y = clamp(encounter.y + (dy / distance) * (encounter.r + 50), 26, WORLD_HEIGHT - 20);
+      player.x = clamp(encounter.x + (dx / distance) * (encounter.r + 52), 24, WORLD_WIDTH - 24);
+      player.y = clamp(encounter.y + (dy / distance) * (encounter.r + 52), 26, WORLD_HEIGHT - 20);
       setPPos(player.x, player.y);
       dismissedEncounterIdRef.current = stepId;
     }
 
     keysRef.current.clear();
+    resetJoystick();
     setHovered(null);
     setPMov(false);
     setEncTrig(false);
     setEncStep(null);
     setEncounterStepState(null);
-  }, [encounterStep?.id, encounters, setEncStep, setEncTrig, setPMov, setPPos]);
+  }, [encounterStep?.id, encounters, resetJoystick, setEncStep, setEncTrig, setPMov, setPPos]);
 
   return (
     <div className="relative w-full h-full overflow-hidden bg-[#f9f7f1]">
@@ -735,9 +822,41 @@ export function GameCanvas() {
       </AnimatePresence>
 
       {gamePhase === 'explore' && (
-        <div className="absolute bottom-4 left-1/2 -translate-x-1/2 px-4 py-2.5 bg-white/92 backdrop-blur rounded-full border border-border/60 shadow-sm">
-          <span className="text-[11px] text-text-secondary">WASD или стрелки — движение • Подойдите к маркеру угрозы • Сначала обучение, потом отдельный тест</span>
-        </div>
+        <>
+          <div className="absolute bottom-4 left-1/2 -translate-x-1/2 px-4 py-2.5 bg-white/92 backdrop-blur rounded-full border border-border/60 shadow-sm hidden md:block">
+            <span className="text-[11px] text-text-secondary">WASD или стрелки - движение • Подойдите к маркеру угрозы • Сначала обучение, потом отдельный тест</span>
+          </div>
+
+          <div className="absolute left-4 bottom-4 md:hidden pointer-events-auto">
+            <div
+              ref={joystickPadRef}
+              className="relative h-28 w-28 rounded-full border border-border/70 bg-white/86 shadow-lg"
+              style={{ touchAction: 'none' }}
+              onTouchStart={event => {
+                event.preventDefault();
+                const touch = event.touches[0];
+                if (touch) updateJoystick(touch.clientX, touch.clientY);
+              }}
+              onTouchMove={event => {
+                event.preventDefault();
+                const touch = event.touches[0];
+                if (touch) updateJoystick(touch.clientX, touch.clientY);
+              }}
+              onTouchEnd={event => {
+                event.preventDefault();
+                if (event.touches.length === 0) resetJoystick();
+              }}
+              onTouchCancel={resetJoystick}
+            >
+              <div className="absolute inset-3 rounded-full border border-border/60 bg-bg-secondary/55" />
+              <div
+                className={`absolute left-1/2 top-1/2 h-12 w-12 rounded-full border border-border bg-white shadow ${joystick.active ? 'scale-100' : 'scale-95'}`}
+                style={{ transform: `translate(calc(-50% + ${joystick.x * 32}px), calc(-50% + ${joystick.y * 32}px))` }}
+              />
+            </div>
+            <p className="mt-2 text-[10px] text-text-secondary text-center">Джойстик</p>
+          </div>
+        </>
       )}
     </div>
   );

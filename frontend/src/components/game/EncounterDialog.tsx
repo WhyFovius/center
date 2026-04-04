@@ -1,7 +1,7 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { motion } from 'framer-motion';
 import { CheckCircle2, ShieldCheck, X, AlertTriangle } from 'lucide-react';
-import type { ScenarioStep, StepOption } from '@/types';
+import type { ScenarioStep } from '@/types';
 import { useGS } from '@/store/useGS';
 import { sfx } from '@/lib/sfx';
 
@@ -9,28 +9,58 @@ type FeedbackState = 'idle' | 'success' | 'error';
 
 type AnswerItem = {
   id: number;
+  optionId: number;
   label: string;
+  details: string;
   isCorrect: boolean;
 };
 
-const ANSWERS: AnswerItem[] = [
-  { id: 1, label: 'Перейти по ссылке и подтвердить данные', isCorrect: false },
-  { id: 2, label: 'Сообщить в ИБ и проверить через официальный канал', isCorrect: true },
-  { id: 3, label: 'Скачать вложение и посмотреть', isCorrect: false },
-  { id: 4, label: 'Ответить на письмо и уточнить', isCorrect: false },
-];
+function buildQuestion(step: ScenarioStep) {
+  return step.brief || `${step.title}. Какое действие безопаснее?`;
+}
 
-const CHECKLIST = [
-  'Проверь источник: адрес, номер, домен, имя отправителя.',
-  'Ищи давление срочностью, страхом или авторитетом.',
-  'Подтверждай действие только через независимый корпоративный канал.',
-  'Помни правило кейса: не доверяй письмам с требованием срочного действия.',
-];
+function buildChecklist(step: ScenarioStep) {
+  const family = [step.attack_type, step.location, step.title, step.code].join(' ').toLowerCase();
+  if (family.includes('wifi') || family.includes('кафе')) {
+    return [
+      'Сверьте SSID с официальным источником на площадке.',
+      'Не вводите корпоративный логин в публичных captive-порталах.',
+      'Для рабочих задач используйте VPN или мобильный интернет.',
+      'Не выполняйте срочные действия в недоверенной сети.',
+    ];
+  }
+  if (family.includes('sms') || family.includes('qr') || family.includes('смартф')) {
+    return [
+      'Не переходите по ссылкам из SMS и push без проверки.',
+      'Обновляйте приложения только через официальный магазин.',
+      'Проверяйте уведомление в официальном приложении сервиса.',
+      'Подтверждайте операции через доверенный канал ИБ/банка.',
+    ];
+  }
+  if (family.includes('звонок') || family.includes('соц') || family.includes('otp')) {
+    return [
+      'Не передавайте OTP, пароли и коды даже руководителю.',
+      'Проверьте личность через независимый канал подтверждения.',
+      'Любое давление срочностью считайте красным флагом.',
+      'Эскалируйте запрос в ИБ до выполнения действия.',
+    ];
+  }
+  return [
+    'Проверь источник: адрес, номер, домен, имя отправителя.',
+    'Ищи давление срочностью, страхом или авторитетом.',
+    'Подтверждай действие только через независимый корпоративный канал.',
+    'Не доверяй сообщению с требованием срочного действия.',
+  ];
+}
 
-function pickOption(stepOptions: StepOption[], isCorrect: boolean) {
-  const exact = stepOptions.find(option => option.is_correct === isCorrect);
-  if (exact) return exact;
-  return stepOptions[0] ?? null;
+function buildAnswers(step: ScenarioStep): AnswerItem[] {
+  return step.options.map((option, index) => ({
+    id: index + 1,
+    optionId: option.id,
+    label: option.label,
+    details: option.details,
+    isCorrect: option.is_correct,
+  }));
 }
 
 export function EncounterDialog({ step, onClose }: { step: ScenarioStep; onClose: () => void }) {
@@ -38,21 +68,36 @@ export function EncounterDialog({ step, onClose }: { step: ScenarioStep; onClose
   const getHints = useGS(s => s.getHints);
   const submitting = useGS(s => s.submitting);
 
+  const answers = useMemo(() => buildAnswers(step), [step]);
+  const checklist = useMemo(() => buildChecklist(step), [step]);
+  const question = useMemo(() => buildQuestion(step), [step]);
+  const canInstantCheck = useMemo(() => answers.some(answer => answer.isCorrect), [answers]);
   const [selectedAnswerId, setSelectedAnswerId] = useState<number | null>(null);
   const [feedback, setFeedback] = useState<FeedbackState>('idle');
   const [shakeAnswerId, setShakeAnswerId] = useState<number | null>(null);
 
-  const selectedAnswer = ANSWERS.find(answer => answer.id === selectedAnswerId) ?? null;
+  useEffect(() => {
+    setSelectedAnswerId(null);
+    setFeedback('idle');
+    setShakeAnswerId(null);
+  }, [step.id]);
+
+  const selectedAnswer = answers.find(answer => answer.id === selectedAnswerId) ?? null;
 
   const message = useMemo(() => {
-    if (feedback === 'success') return 'Верно. Это фишинг. Всегда проверяйте через доверенные каналы.';
-    if (feedback === 'error') return 'Ошибка. Это фишинговая атака.';
+    if (feedback === 'success') return `Верно. Угроза "${step.attack_type}" остановлена безопасным действием.`;
+    if (feedback === 'error') return `Ошибка. В этом сценарии "${step.attack_type}" это рискованный выбор.`;
     return '';
-  }, [feedback]);
+  }, [feedback, step.attack_type]);
 
   const handleSelect = (answer: AnswerItem) => {
     if (submitting) return;
     setSelectedAnswerId(answer.id);
+    if (!canInstantCheck) {
+      setFeedback('idle');
+      setShakeAnswerId(null);
+      return;
+    }
     if (answer.isCorrect) {
       sfx.success();
       setFeedback('success');
@@ -67,10 +112,8 @@ export function EncounterDialog({ step, onClose }: { step: ScenarioStep; onClose
 
   const continueWithResult = () => {
     if (!selectedAnswer || submitting) return;
-    const mapped = pickOption(step.options, selectedAnswer.isCorrect);
-    if (!mapped) return;
     sfx.click();
-    submit(step.id, mapped.id, getHints(step.id));
+    submit(step.id, selectedAnswer.optionId, getHints(step.id));
   };
 
   return (
@@ -96,7 +139,7 @@ export function EncounterDialog({ step, onClose }: { step: ScenarioStep; onClose
           >
             <X className="w-4 h-4" />
           </button>
-          <h2 className="text-2xl font-bold text-text">Тест на фишинговую осведомлённость</h2>
+          <h2 className="text-2xl font-bold text-text">Тест: {step.attack_type}</h2>
           <p className="mt-2 text-sm text-text-secondary">Выберите безопасное действие. После выбора будет показана мгновенная обратная связь.</p>
         </div>
 
@@ -110,7 +153,7 @@ export function EncounterDialog({ step, onClose }: { step: ScenarioStep; onClose
             >
               <h3 className="text-sm uppercase tracking-[0.14em] text-primary font-semibold">Чеклист перед решением</h3>
               <div className="mt-4 space-y-3">
-                {CHECKLIST.map((item, index) => (
+                {checklist.map((item, index) => (
                   <motion.div
                     key={item}
                     initial={{ opacity: 0, y: 8 }}
@@ -153,11 +196,11 @@ export function EncounterDialog({ step, onClose }: { step: ScenarioStep; onClose
             className="mt-6 rounded-[24px] border border-border bg-white p-5"
           >
             <p className="text-base md:text-lg font-semibold text-text">
-              Вы получили письмо с просьбой срочно подтвердить реквизиты. Что вы сделаете?
+              {question}
             </p>
 
             <div className="mt-4 grid grid-cols-1 gap-3">
-              {ANSWERS.map((answer, index) => {
+              {answers.map((answer, index) => {
                 const isSelected = selectedAnswerId === answer.id;
                 const isSuccess = isSelected && feedback === 'success';
                 const isError = isSelected && feedback === 'error';
@@ -188,6 +231,9 @@ export function EncounterDialog({ step, onClose }: { step: ScenarioStep; onClose
                     className={`w-full text-left rounded-2xl border px-4 py-4 shadow-sm transition-all duration-200 hover:shadow-[0_14px_28px_rgba(0,0,0,0.08)] ${paletteClass}`}
                   >
                     <span className="text-sm md:text-base font-semibold">{answer.label}</span>
+                    {answer.details && (
+                      <span className="mt-1 block text-xs text-current/70">{answer.details}</span>
+                    )}
                   </motion.button>
                 );
               })}

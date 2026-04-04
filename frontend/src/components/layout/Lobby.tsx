@@ -85,12 +85,24 @@ export default function Lobby() {
   const allMissions = useGS(s => s.sim?.missions ?? []);
   const stepStates = useGS(s => s.ss);
   const selectMission = useGS(s => s.selectMission);
-  const progress = useGS(s => s.prog);
 
   const missionCodes = TRACK_MISSIONS[track];
   const filtered = allMissions
     .map((mission, globalIndex) => ({ mission, globalIndex }))
     .filter(item => missionCodes.includes(item.mission.code));
+  const trackUnlockedIndex = (() => {
+    if (!filtered.length) return 0;
+    let unlocked = 0;
+    for (let index = 0; index < filtered.length; index += 1) {
+      const missionDone = filtered[index].mission.steps.every(step => ssFor(stepStates, step.id).resolved);
+      if (missionDone) {
+        unlocked = Math.min(index + 1, filtered.length - 1);
+      } else {
+        break;
+      }
+    }
+    return unlocked;
+  })();
 
   return (
     <div className="h-full flex flex-col bg-bg overflow-hidden relative">
@@ -106,7 +118,7 @@ export default function Lobby() {
         />
       </div>
 
-      <header className="flex items-center gap-3 px-6 py-3 border-b border-border bg-surface/95 backdrop-blur">
+      <header className="flex items-center gap-3 px-6 py-3 border-b border-border bg-surface/95 backdrop-blur shrink-0">
         <Button variant="ghost" size="sm" onClick={() => setScreen('menu')}>
           <ArrowLeft className="w-4 h-4 mr-1" />
           Назад
@@ -117,15 +129,16 @@ export default function Lobby() {
         </div>
       </header>
 
-      <div className="flex-1 overflow-y-auto p-6">
-        <div className="max-w-6xl mx-auto">
-          <div className="grid grid-cols-1 xl:grid-cols-2 gap-5">
-            {filtered.map(({ mission, globalIndex }, index) => {
+      <div className="flex-1 overflow-y-auto">
+        <div className="p-6">
+          <div className="max-w-6xl mx-auto">
+            <div className="grid grid-cols-1 xl:grid-cols-2 gap-5">
+              {filtered.map(({ mission, globalIndex }, index) => {
               const done = mission.steps.filter(step => ssFor(stepStates, step.id).resolved).length;
               const total = mission.steps.length;
               const progressValue = total ? Math.round((done / total) * 100) : 0;
               const theme = getMissionTheme(mission.code);
-              const locked = progress ? globalIndex > progress.unlocked_mission_index : true;
+              const locked = index > trackUnlockedIndex;
 
               return (
                 <motion.div
@@ -237,12 +250,12 @@ export default function Lobby() {
                   </div>
                 </motion.div>
               );
-            })}
+              })}
+            </div>
           </div>
         </div>
+        <Footer />
       </div>
-
-      <Footer />
     </div>
   );
 }
