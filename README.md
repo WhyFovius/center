@@ -1,73 +1,163 @@
-# ShieldOps: Fullstack Educational Cybersecurity Simulator
+# ShieldOps
 
-Senior-level интерактивный симулятор кибербезопасности: **React 18 + TypeScript + Vite** (frontend) и **FastAPI + PostgreSQL + Redis** (backend).
+Интерактивный симулятор кибербезопасности
 
-## Что реализовано
+> **Образовательный проект для изучения основ кибербезопасности**
 
-### Фронтенд (React + TypeScript)
-- **Компонентная архитектура**: Auth, HUD, MissionSidebar, ScenarioView, EnvironmentStage, ActionCard, FeedbackPanel, ProfileView
-- **Zustand state management**: единый store с типизированным состоянием, без redux boilerplate
-- **Framer Motion анимации**: плавные переходы между экранами, анимация последствий взлома (breach-pulse, shake, slide-up)
-- **Tailwind CSS v4**: дизайн-система с тёмной темой, glassmorphism-эффекты, полная адаптивность
-- **Масштабируемая система сценариев**: новые атаки добавляются через seed-данные без изменения ядра
-- **Система подсказок**: 3 уровня с прогрессивным раскрытием и штрафами
-- **Объяснение опасности**: после каждого шага — эмоциональный outcome, разбор missed signals, индуктивное правило
-- **Симуляция окружения**: Email, Chat, Browser, Phone, Workspace — каждый с уникальным UI
-- **Адаптивная сложность**: novice → intermediate → advanced на основе паттернов поведения
+[![Python](https://img.shields.io/badge/Python-3.11+-blue.svg)](https://python.org)
+[![FastAPI](https://img.shields.io/badge/FastAPI-0.109+-green.svg)](https://fastapi.tiangolo.com)
+[![React](https://img.shields.io/badge/React-18+-61dafb.svg)](https://reactjs.org)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5+-blue.svg)](https://typescriptlang.org)
 
-### Бэкенд (FastAPI)
-- 3 сюжетные линии: `Офис`, `Дом`, `Общественный Wi-Fi`
-- 6 интерактивных кейсов и 6 типов атак
-- JWT-аутентификация, пароли хэшированы (bcrypt)
-- WebSocket для live-обновления прогресса
-- Redis кэш для лидерборда
-- PostgreSQL: пользователи, сценарии, попытки, прогресс
+---
 
-## Архитектура
+## Описание
 
-```
-frontend/          React 18 + TypeScript + Vite + Tailwind
-  src/
-    components/    UI-компоненты (Auth, HUD, ScenarioView, etc.)
-    store/         Zustand state management
-    lib/           API client, utils
-    types/         TypeScript типы
-backend/           FastAPI API, SQLAlchemy модели
-  app/
-    routers/       API эндпоинты
-    services/      Бизнес-логика
-    data/          Seed-данные сценариев
-    ws/            WebSocket менеджер
-```
+Интерактивный симулятор кибербезопасности для обучения основам защиты в цифровом мире:
+- Авторизации и регистрации пользователей
+- Прохождения сюжетных сценариев с выбором действий
+- Анализа последствий решений и объяснения опасностей
+- Системы подсказок с прогрессивным раскрытием
+- Лидерборда и сертификатов
+- Адаптивной сложности на основе паттернов поведения
+
+---
+
+## Функционал по ТЗ
+
+### Модуль 1: Авторизация
+- [x] Вход по логину/паролю
+- [x] Регистрация пользователей
+- [x] Хеширование паролей (bcrypt)
+- [x] JWT токены
+
+### Модуль 2: Симулятор
+- [x] 3 сюжетные линии (Офис, Дом, Общественный Wi-Fi)
+- [x] 6 интерактивных кейсов
+- [x] 6 типов атак
+- [x] Симуляция окружения (Email, Chat, Browser, Phone, Workspace)
+- [x] Система подсказок (3 уровня)
+- [x] Объяснение опасности после каждого шага
+
+### Модуль 3: Прогресс и аналитика
+- [x] Отслеживание прогресса обучения
+- [x] Лидерборд (Redis кэш)
+- [x] Сертификаты
+- [x] WebSocket для live-обновлений
+
+### Модуль 4: Адаптивная сложность
+- [x] Уровни: novice → intermediate → advanced
+- [x] Анализ паттернов поведения
+- [x] Масштабируемая система сценариев
+
+---
 
 ## Быстрый старт
+
+### 1. Запуск
 
 ```bash
 docker compose up --build
 ```
 
-Откройте:
-- Приложение: `http://localhost:8000`
-- Swagger: `http://localhost:8000/docs`
-- ReDoc: `http://localhost:8000/redoc`
+### 2. Доступ
 
-## Основные API endpoint'ы
+- **Приложение:** http://localhost:8000
+- **Swagger API Docs:** http://localhost:8000/docs
+- **ReDoc:** http://localhost:8000/redoc
 
-- `POST /api/v1/auth/register`
-- `POST /api/v1/auth/login`
-- `GET /api/v1/simulator/state`
-- `POST /api/v1/simulator/attempt`
-- `GET /api/v1/leaderboard`
-- `GET /api/v1/certificate/me`
-- `GET /api/v1/health`
-- `WS /ws/progress?token=...`
+---
 
-## Данные и безопасность
+## Структура проекта
 
-- PostgreSQL хранит пользователей, сценарии, попытки и прогресс
-- Redis используется для кэша лидерборда
+```
+ShieldOps/
+├── frontend/
+│   ├── src/
+│   │   ├── components/     # UI компоненты (Auth, HUD, ScenarioView, etc.)
+│   │   ├── store/          # Zustand state management
+│   │   ├── lib/            # API client, utils
+│   │   └── types/          # TypeScript типы
+│   └── package.json
+├── backend/
+│   └── app/
+│       ├── routers/        # API эндпоинты
+│       ├── services/       # Бизнес-логика
+│       ├── data/           # Seed-данные сценариев
+│       └── ws/             # WebSocket менеджер
+├── docs/
+│   ├── ERD.mmd             # ER-диаграмма
+│   └── API.md              # API документация
+├── docker-compose.yml
+└── README.md
+```
+
+---
+
+## API Endpoints
+
+### Auth
+| Метод | Endpoint | Описание |
+|-------|----------|----------|
+| POST | `/api/v1/auth/register` | Регистрация |
+| POST | `/api/v1/auth/login` | Вход |
+
+### Simulator
+| Метод | Endpoint | Описание |
+|-------|----------|----------|
+| GET | `/api/v1/simulator/state` | Состояние симулятора |
+| POST | `/api/v1/simulator/attempt` | Попытка действия |
+
+### Leaderboard & Certificate
+| Метод | Endpoint | Описание |
+|-------|----------|----------|
+| GET | `/api/v1/leaderboard` | Лидерборд |
+| GET | `/api/v1/certificate/me` | Сертификат пользователя |
+
+### System
+| Метод | Endpoint | Описание |
+|-------|----------|----------|
+| GET | `/api/v1/health` | Проверка здоровья |
+| WS | `/ws/progress?token=...` | WebSocket прогресса |
+
+---
+
+## Docker
+
+```bash
+# Запуск
+docker compose up --build
+
+# Логи
+docker compose logs -f
+
+# Остановка
+docker compose down
+```
+
+---
+
+## Безопасность
+
+- Хеширование паролей (bcrypt)
+- JWT аутентификация
 - Все атаки симулированы на уровне UI/текста
 - Для production требуется reverse proxy с TLS 1.2+
+- PostgreSQL для хранения данных
+- Redis для кэширования лидерборда
+
+---
+
+## Дизайн
+
+- Тёмная тема с glassmorphism-эффектами
+- Framer Motion анимации
+- Tailwind CSS v4
+- Полная адаптивность (мобильные, планшеты, десктоп)
+- Плавные переходы между экранами
+- Анимация последствий взлома (breach-pulse, shake, slide-up)
+
+---
 
 ## Как добавить новый сценарий
 
@@ -100,7 +190,34 @@ docker compose up --build
 }
 ```
 
-## Документация по ТЗ
+---
 
-- ER-диаграмма: [docs/ERD.mmd](./docs/ERD.mmd)
-- API описание: [docs/API.md](./docs/API.md)
+## Технологии
+
+**Frontend:**
+- React 18 + TypeScript
+- Vite
+- Tailwind CSS v4
+- Zustand (state management)
+- Framer Motion (анимации)
+
+**Backend:**
+- FastAPI
+- PostgreSQL
+- Redis
+- WebSocket
+- SQLAlchemy
+- bcrypt
+
+---
+
+## Документация
+
+- [ER-диаграмма](./docs/ERD.mmd)
+- [API документация](./docs/API.md)
+
+---
+
+## Лицензия
+
+Образовательный проект
