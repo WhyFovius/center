@@ -143,9 +143,9 @@ export default function BrowserApp() {
   const isHome = !activeTab.url;
 
   return (
-    <div className="flex flex-col h-full" style={{ backgroundColor: isDark ? '#1e1e1e' : '#ffffff' }}>
+    <div className="flex flex-col h-full" style={{ backgroundColor: 'var(--color-bg)' }}>
       {/* Tab bar */}
-      <div className="flex items-end gap-0.5 px-2 pt-1.5 pb-0 overflow-x-auto" style={{ backgroundColor: isDark ? '#2a2a2a' : '#e8e8e8' }}>
+      <div className="flex items-end gap-0.5 px-2 pt-1.5 pb-0 overflow-x-auto" style={{ backgroundColor: 'var(--color-bg-secondary)' }}>
         <AnimatePresence>
           {tabs.map(tab => (
             <motion.div
@@ -155,46 +155,46 @@ export default function BrowserApp() {
               exit={{ opacity: 0, scale: 0.9 }}
               className={`flex items-center gap-1.5 px-3 py-1.5 rounded-t-lg cursor-pointer min-w-0 max-w-48 text-xs ${
                 tab.id === activeTabId
-                  ? (isDark ? 'bg-[#1e1e1e]' : 'bg-white')
-                  : (isDark ? 'bg-[#333] hover:bg-[#3a3a3a]' : 'bg-[#d8d8d8] hover:bg-[#d0d0d0]')
+                  ? 'bg-[var(--color-bg)]'
+                  : 'bg-[var(--color-surface-active)] hover:bg-[var(--color-surface-hover)]'
               }`}
               onClick={() => { setActiveTabId(tab.id); setUrlInput(tab.url); }}
             >
               {tab.loading ? (
-                <RotateCcw className="w-3 h-3 animate-spin shrink-0" style={{ color: isDark ? '#ccc' : '#666' }} />
+                <RotateCcw className="w-3 h-3 animate-spin shrink-0" style={{ color: 'var(--color-text-secondary)' }} />
               ) : tab.error ? (
-                <X className="w-3 h-3 shrink-0 text-red-500" />
+                <X className="w-3 h-3 shrink-0 text-[var(--color-danger)]" />
               ) : (
-                <Globe className="w-3 h-3 shrink-0" style={{ color: isDark ? '#ccc' : '#666' }} />
+                <Globe className="w-3 h-3 shrink-0" style={{ color: 'var(--color-text-secondary)' }} />
               )}
-              <span className="truncate flex-1" style={{ color: isDark ? '#e0e0e0' : '#333' }}>{tab.title}</span>
+              <span className="truncate flex-1" style={{ color: 'var(--color-text)' }}>{tab.title}</span>
               <button
                 onClick={e => { e.stopPropagation(); closeTab(tab.id); }}
                 className="p-0.5 rounded hover:bg-black/10 shrink-0"
               >
-                <X className="w-3 h-3" style={{ color: isDark ? '#999' : '#666' }} />
+                <X className="w-3 h-3" style={{ color: 'var(--color-text-muted)' }} />
               </button>
             </motion.div>
           ))}
         </AnimatePresence>
         <button onClick={createTab} className="p-1.5 rounded hover:bg-black/10 transition-colors shrink-0">
-          <Plus className="w-3.5 h-3.5" style={{ color: isDark ? '#ccc' : '#666' }} />
+          <Plus className="w-3.5 h-3.5" style={{ color: 'var(--color-text-secondary)' }} />
         </button>
       </div>
 
       {/* Toolbar */}
-      <div className="flex items-center gap-1.5 px-2 py-1.5 border-b" style={{ backgroundColor: isDark ? '#1e1e1e' : '#ffffff', borderColor: isDark ? '#333' : '#e0e0e0' }}>
+      <div className="flex items-center gap-1.5 px-2 py-1.5 border-b" style={{ backgroundColor: 'var(--color-surface)', borderColor: 'var(--color-border)' }}>
         <button onClick={() => { const iw = iframeRef.current?.contentWindow; if (iw) iw.history.back(); }} className="p-1.5 rounded hover:bg-black/10 disabled:opacity-30 transition-colors">
-          <ArrowLeft className="w-4 h-4" style={{ color: isDark ? '#ccc' : '#333' }} />
+          <ArrowLeft className="w-4 h-4" style={{ color: 'var(--color-text-secondary)' }} />
         </button>
         <button onClick={() => { const iw = iframeRef.current?.contentWindow; if (iw) iw.history.forward(); }} className="p-1.5 rounded hover:bg-black/10 disabled:opacity-30 transition-colors">
-          <ArrowRight className="w-4 h-4" style={{ color: isDark ? '#ccc' : '#333' }} />
+          <ArrowRight className="w-4 h-4" style={{ color: 'var(--color-text-secondary)' }} />
         </button>
         <button onClick={goHome} className="p-1.5 rounded hover:bg-black/10 transition-colors">
-          <Home className="w-4 h-4" style={{ color: isDark ? '#ccc' : '#333' }} />
+          <Home className="w-4 h-4" style={{ color: 'var(--color-text-secondary)' }} />
         </button>
         <button onClick={() => { setTabs(prev => prev.map(t => t.id === activeTabId ? { ...t, loading: true } : t)); if (iframeRef.current) iframeRef.current.src = iframeRef.current.src; }} className="p-1.5 rounded hover:bg-black/10 transition-colors">
-          <RotateCcw className={`w-4 h-4 ${activeTab.loading ? 'animate-spin' : ''}`} style={{ color: isDark ? '#ccc' : '#333' }} />
+          <RotateCcw className={`w-4 h-4 ${activeTab.loading ? 'animate-spin' : ''}`} style={{ color: 'var(--color-text-secondary)' }} />
         </button>
 
         {/* URL Bar */}
