@@ -32,7 +32,7 @@ def build_certificate_payload(
         }
 
     issue_date = date.today()
-    raw = f"{user.id}|{user.username}|{issue_date.isoformat()}|shieldops"
+    raw = f"{user.id}|{user.username}|{issue_date.isoformat()}|zeroday"
     certificate_id = hashlib.sha256(raw.encode("utf-8")).hexdigest()[:16].upper()
     qr_payload = json.dumps(
         {

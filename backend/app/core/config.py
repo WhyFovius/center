@@ -7,7 +7,7 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
 class Settings(BaseSettings):
-    app_name: str = "ShieldOps API"
+    app_name: str = "Zero Day API"
     api_prefix: str = "/api/v1"
     environment: str = "development"
     debug: bool = False
@@ -16,9 +16,9 @@ class Settings(BaseSettings):
     access_token_expire_minutes: int = 24 * 60
     jwt_algorithm: str = "HS256"
 
-    postgres_user: str = "shieldops"
-    postgres_password: str = "shieldops"
-    postgres_db: str = "shieldops"
+    postgres_user: str = "zeroday"
+    postgres_password: str = "zeroday"
+    postgres_db: str = "zeroday"
     postgres_host: str = "localhost"
     postgres_port: int = 5432
     database_url_from_env: str | None = Field(default=None, alias="DATABASE_URL")

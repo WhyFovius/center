@@ -1,0 +1,31 @@
+# Dependencies
+node_modules
+.venv
+__pycache__
+
+# IDE
+.vscode
+.idea
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Git
+.git
+.gitignore
+
+# Docs (not needed in production)
+*.md
+!README.md
+
+# Docker files (not used for Vercel)
+docker-compose.yml
+Dockerfile
+deploy.sh
+
+# Test files
+test_*
+*_test.py

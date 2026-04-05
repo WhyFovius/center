@@ -1,4 +1,4 @@
-# ShieldOps
+# Zero Day
 
 Интерактивный симулятор кибербезопасности
 
@@ -54,15 +54,24 @@
 
 ## Быстрый старт
 
-### 1. Запуск
+### 1. Запуск локально
 
+**Терминал 1 — Backend:**
 ```bash
-docker compose up --build
+cd backend
+uvicorn app.main:app --reload --port 8000
+```
+
+**Терминал 2 — Frontend:**
+```bash
+cd frontend
+npm run dev
 ```
 
 ### 2. Доступ
 
-- **Приложение:** http://localhost:8000
+- **Приложение:** http://localhost:5173
+- **Backend API:** http://localhost:8000
 - **Swagger API Docs:** http://localhost:8000/docs
 - **ReDoc:** http://localhost:8000/redoc
 
@@ -71,7 +80,7 @@ docker compose up --build
 ## Структура проекта
 
 ```
-ShieldOps/
+ZeroDay/
 ├── frontend/
 │   ├── src/
 │   │   ├── components/     # UI компоненты (Auth, HUD, ScenarioView, etc.)
@@ -88,7 +97,10 @@ ShieldOps/
 ├── docs/
 │   ├── ERD.mmd             # ER-диаграмма
 │   └── API.md              # API документация
-├── docker-compose.yml
+├── frontend/
+├── backend/
+├── docs/
+├── vercel.json
 └── README.md
 ```
 
@@ -122,18 +134,31 @@ ShieldOps/
 
 ---
 
-## Docker
+## Запуск и Деплой
+
+### Локальный запуск
 
 ```bash
-# Запуск
-docker compose up --build
+# Терминал 1 - Backend
+cd backend
+uvicorn app.main:app --reload --port 8000
 
-# Логи
-docker compose logs -f
-
-# Остановка
-docker compose down
+# Терминал 2 - Frontend
+cd frontend
+npm run dev
 ```
+
+### Деплой на Vercel
+
+```bash
+# 1. Установи Vercel CLI:
+npm i -g vercel
+
+# 2. Задеплой frontend + backend:
+vercel --prod
+```
+
+Подробная инструкция: [DEPLOY-WEB.md](./DEPLOY-WEB.md)
 
 ---
 
@@ -145,6 +170,7 @@ docker compose down
 - Для production требуется reverse proxy с TLS 1.2+
 - PostgreSQL для хранения данных
 - Redis для кэширования лидерборда
+- При деплое на Vercel используется Supabase/Neon для БД и Upstash для Redis
 
 ---
 

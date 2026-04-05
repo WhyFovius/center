@@ -1,1 +1,1 @@
-"""ShieldOps backend package."""
+"""Zero Day backend package."""
