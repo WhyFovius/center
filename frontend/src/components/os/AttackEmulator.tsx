@@ -1,8 +1,10 @@
 import { useState, useRef, useEffect } from 'react';
-import { motion } from 'framer-motion';
-import { Shield, Server, Activity, Terminal, Wifi } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { Shield, Server, Activity, Terminal, Wifi, Target } from 'lucide-react';
 import { useGS } from '@/store/useGS';
 import { t } from '@/lib/i18n';
+import AttackScenarioPlayer from './AttackScenarioPlayer';
+import { getScenarioById } from '@/lib/attackScenarios';
 
 interface AttackNode {
   id: number;
@@ -59,6 +61,7 @@ export default function AttackEmulator({ onClose }: { onClose?: () => void }) {
   const theme = useGS(s => s.theme);
   const lang = useGS(s => s.lang);
   const completeTask = useGS(s => s.completeTask);
+  const osTasks = useGS(s => s.osTasks);
   const T = (key: string) => t(lang, key);
   const isDark = theme === 'dark' || theme === 'bw';
   const [nodes, setNodes] = useState<AttackNode[]>(INITIAL_NODES);
@@ -67,6 +70,19 @@ export default function AttackEmulator({ onClose }: { onClose?: () => void }) {
   const [phase, setPhase] = useState<'idle' | 'scanning' | 'attacking' | 'defending' | 'done'>('idle');
   const [defenseLevel, setDefenseLevel] = useState(100);
   const logsEndRef = useRef<HTMLDivElement>(null);
+  const [scenarioId, setScenarioId] = useState<string | null>(null);
+  const [showScenarioPlayer, setShowScenarioPlayer] = useState(false);
+
+  const handleStartScenario = (sid: string) => {
+    setScenarioId(sid);
+    setShowScenarioPlayer(true);
+  };
+
+  const handleScenarioComplete = (success: boolean, _xpEarned: number) => {
+    if (success && scenarioId) {
+      completeTask(`scenario_${scenarioId}` as any);
+    }
+  };
 
   useEffect(() => {
     if (phase !== 'idle') return;
@@ -146,6 +162,14 @@ export default function AttackEmulator({ onClose }: { onClose?: () => void }) {
           <span className="text-xs font-bold text-white">Attack Simulator — Live</span>
         </div>
         <div className="flex items-center gap-3 text-xs">
+          {!osTasks.scenario_attack_full_apt && (
+            <button onClick={() => handleStartScenario('attack_full_apt')}
+              className="flex items-center gap-1 px-2 py-1 rounded-lg text-[10px] font-medium border transition-colors"
+              style={{ backgroundColor: 'rgba(124,58,237,0.1)', borderColor: 'rgba(124,58,237,0.3)', color: '#a78bfa' }}
+            >
+              <Target className="w-3 h-3" /> APT Сценарий
+            </button>
+          )}
           <span style={{ color: defenseLevel > 70 ? '#22c55e' : '#ef4444' }}>{T('osDefenseLevel')}: {defenseLevel}%</span>
           <span className="text-gray-400">{T('osScanSystem')}: {phase === 'idle' ? T('osReady') : phase === 'scanning' ? T('osScanning') : phase === 'attacking' ? T('osActiveThreats') : phase === 'defending' ? T('osActivateDefense') : T('osAttackReflected')}</span>
         </div>
@@ -227,6 +251,17 @@ export default function AttackEmulator({ onClose }: { onClose?: () => void }) {
           <div ref={logsEndRef} />
         </div>
       </div>
+
+      {/* Attack Scenario Player */}
+      <AnimatePresence>
+        {showScenarioPlayer && scenarioId && (
+          <AttackScenarioPlayer
+            scenario={getScenarioById(scenarioId)!}
+            onComplete={handleScenarioComplete}
+            onClose={() => setShowScenarioPlayer(false)}
+          />
+        )}
+      </AnimatePresence>
     </div>
   );
 }

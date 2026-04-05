@@ -1,6 +1,6 @@
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useCallback, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Mail, Globe, MessageSquare, FolderOpen, Terminal, Shield, Settings, Home, Battery, Wifi, Signal, ChevronRight } from 'lucide-react';
+import { Mail, Globe, MessageSquare, FolderOpen, Terminal, Shield, Settings, Home, Battery, Wifi, Signal, LogOut, ArrowLeft } from 'lucide-react';
 import { useGS } from '@/store/useGS';
 import { t } from '@/lib/i18n';
 import MailApp from './MailApp';
@@ -42,6 +42,8 @@ export default function ZeroMobile() {
   const [showTutorial, setShowTutorial] = useState(() => !localStorage.getItem('zd_os_tutorial_seen'));
   const [openApp, setOpenApp] = useState<string | null>(null);
   const [time, setTime] = useState(new Date());
+  const touchStartY = useRef<number>(0);
+  const homeIndicatorRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const t = setInterval(() => setTime(new Date()), 1000);
@@ -52,10 +54,38 @@ export default function ZeroMobile() {
     setOpenApp(id);
   }, []);
 
+  // Закрыть приложение и вернуться на домашний экран
   const handleBack = useCallback(() => {
-    if (openApp) setOpenApp(null);
-    else setScreen('menu');
+    if (openApp) {
+      setOpenApp(null);
+    } else {
+      setScreen('menu');
+    }
   }, [openApp, setScreen]);
+
+  // Кнопка «Домой» — закрывает приложение
+  const handleHome = useCallback(() => {
+    setOpenApp(null);
+  }, []);
+
+  // Свайп вверх для закрытия приложения (iOS style)
+  const handleTouchStart = useCallback((e: React.TouchEvent) => {
+    touchStartY.current = e.touches[0].clientY;
+  }, []);
+
+  const handleTouchEnd = useCallback((e: React.TouchEvent) => {
+    if (!openApp) return;
+    const deltaY = touchStartY.current - e.changedTouches[0].clientY;
+    // Свайп вверх более 80px с нижней части экрана
+    if (deltaY > 80 && touchStartY.current > window.innerHeight * 0.7) {
+      setOpenApp(null);
+    }
+  }, [openApp]);
+
+  // Вернуться в главное меню
+  const handleBackToMenu = useCallback(() => {
+    setScreen('menu');
+  }, [setScreen]);
 
   const AppIcon = ({ app }: { app: typeof MOBILE_APPS[0] }) => {
     const Icon = app.icon;
@@ -155,30 +185,40 @@ export default function ZeroMobile() {
                   <div className="w-2 h-2 rounded-full bg-white/30" />
                 </div>
 
-                {/* Home Indicator */}
-                <div className="flex justify-center pb-3">
+                {/* Home Indicator — swipe up to go back to menu */}
+                <div ref={homeIndicatorRef} className="flex flex-col items-center justify-center pb-3">
+                  <button onClick={handleBackToMenu}
+                    className="flex items-center gap-1.5 px-3 py-1 rounded-full mb-1.5 transition-colors hover:bg-white/10"
+                  >
+                    <LogOut className="w-3 h-3 text-white/60" />
+                    <span className="text-[10px] text-white/60 font-medium">Назад в меню</span>
+                  </button>
                   <div className="w-[134px] h-[5px] rounded-full bg-white/40" />
                 </div>
               </motion.div>
             )}
           </AnimatePresence>
 
-          {/* Active App — iOS style slide in */}
+          {/* Active App — iOS style slide in with swipe up to close */}
           <AnimatePresence>
             {openApp && ActiveApp && (
               <motion.div key="app" initial={{ x: '100%' }} animate={{ x: 0 }} exit={{ x: '100%' }} transition={{ type: 'spring', damping: 28, stiffness: 250 }}
                 className="absolute inset-0 z-40 bg-white" style={{ top: 0 }}
+                onTouchStart={handleTouchStart}
+                onTouchEnd={handleTouchEnd}
               >
                 {/* iOS Navigation Bar */}
                 <div className="flex items-center justify-between px-4 py-3 border-b" style={{ backgroundColor: isDark ? '#1c1c1e' : '#f8f8f8', borderColor: isDark ? '#38383a' : '#c6c6c8' }}>
+                  {/* Back button — closes app, returns to home screen */}
                   <button onClick={handleBack} className="flex items-center gap-0.5 text-[17px]" style={{ color: '#007AFF' }}>
-                    <ChevronRight className="w-5 h-5 rotate-180" />
-                    <span>{openApp === 'settings' ? T('osSettings') : T('osBack')}</span>
+                    <ArrowLeft className="w-5 h-5" />
+                    <span>{T('osHome')}</span>
                   </button>
                   <span className="text-[17px] font-semibold" style={{ color: isDark ? '#fff' : '#000' }}>
                     {T(MOBILE_APPS.find(a => a.id === openApp)?.label || '')}
                   </span>
-                  <button onClick={() => setOpenApp(null)} className="p-1">
+                  {/* Home button — closes app */}
+                  <button onClick={handleHome} className="p-1">
                     <Home className="w-5 h-5" style={{ color: '#007AFF' }} />
                   </button>
                 </div>
@@ -202,6 +242,7 @@ export default function ZeroMobile() {
           </AnimatePresence>
         </div>
       </div>
+
     </NotificationProvider>
   );
 }

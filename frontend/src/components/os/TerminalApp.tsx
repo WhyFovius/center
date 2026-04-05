@@ -1,7 +1,10 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
+import { AnimatePresence } from 'framer-motion';
 import { useGS } from '@/store/useGS';
 import { t } from '@/lib/i18n';
-import { CheckCircle } from 'lucide-react';
+import { CheckCircle, Target } from 'lucide-react';
+import AttackScenarioPlayer from './AttackScenarioPlayer';
+import { getScenarioById } from '@/lib/attackScenarios';
 
 interface CommandEntry {
   type: 'input' | 'output' | 'error' | 'info';
@@ -15,6 +18,19 @@ export default function TerminalApp() {
   const osTasks = useGS(s => s.osTasks);
   const T = (key: string) => t(lang, key);
   const isDark = true;
+  const [scenarioId, setScenarioId] = useState<string | null>(null);
+  const [showScenarioPlayer, setShowScenarioPlayer] = useState(false);
+
+  const handleStartScenario = (sid: string) => {
+    setScenarioId(sid);
+    setShowScenarioPlayer(true);
+  };
+
+  const handleScenarioComplete = (success: boolean, _xpEarned: number) => {
+    if (success && scenarioId) {
+      completeTask(`scenario_${scenarioId}` as any);
+    }
+  };
   const [history, setHistory] = useState<CommandEntry[]>([
     { type: 'info', text: 'ZeroOS Terminal v1.0.0', color: '#58a6ff' },
     { type: 'info', text: T('osTerminalHelp'), color: '#888' },
@@ -244,6 +260,15 @@ export default function TerminalApp() {
               <span className="text-[9px] text-green-500">protect</span>
             </div>
           )}
+          {!osTasks.scenario_terminal_backdoor && (
+            <button onClick={() => handleStartScenario('terminal_backdoor')}
+              className="flex items-center gap-1 px-1.5 py-0.5 rounded transition-colors"
+              style={{ backgroundColor: 'rgba(124,58,237,0.15)', color: '#a78bfa' }}
+            >
+              <Target className="w-3 h-3" />
+              <span className="text-[9px]">сценарий</span>
+            </button>
+          )}
         </div>
       </div>
 
@@ -271,6 +296,17 @@ export default function TerminalApp() {
           spellCheck={false}
         />
       </div>
+
+      {/* Attack Scenario Player */}
+      <AnimatePresence>
+        {showScenarioPlayer && scenarioId && (
+          <AttackScenarioPlayer
+            scenario={getScenarioById(scenarioId)!}
+            onComplete={handleScenarioComplete}
+            onClose={() => setShowScenarioPlayer(false)}
+          />
+        )}
+      </AnimatePresence>
     </div>
   );
 }

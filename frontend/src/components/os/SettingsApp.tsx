@@ -1,7 +1,11 @@
 import { useGS } from '@/store/useGS';
 import type { Theme, Lang } from '@/types';
 import { t } from '@/lib/i18n';
-import { Palette, Volume2, VolumeX, Globe, Cpu, HardDrive, Wifi, Monitor, CheckCircle } from 'lucide-react';
+import { Palette, Volume2, VolumeX, Globe, Cpu, HardDrive, Wifi, Monitor, CheckCircle, Target } from 'lucide-react';
+import { useState } from 'react';
+import { AnimatePresence } from 'framer-motion';
+import AttackScenarioPlayer from './AttackScenarioPlayer';
+import { getScenarioById } from '@/lib/attackScenarios';
 
 export default function SettingsApp() {
   const theme = useGS(s => s.theme);
@@ -14,6 +18,19 @@ export default function SettingsApp() {
   const osTasks = useGS(s => s.osTasks);
   const T = (key: string) => t(lang, key);
   const isDark = theme === 'dark' || theme === 'bw';
+  const [scenarioId, setScenarioId] = useState<string | null>(null);
+  const [showScenarioPlayer, setShowScenarioPlayer] = useState(false);
+
+  const handleStartScenario = (sid: string) => {
+    setScenarioId(sid);
+    setShowScenarioPlayer(true);
+  };
+
+  const handleScenarioComplete = (success: boolean, _xpEarned: number) => {
+    if (success && scenarioId) {
+      completeTask(`scenario_${scenarioId}` as any);
+    }
+  };
 
   const handleSetTheme = (t: Theme) => {
     setTheme(t);
@@ -48,6 +65,14 @@ export default function SettingsApp() {
               <item.icon className="w-3.5 h-3.5" />{item.label}
             </button>
           ))}
+          {!osTasks.scenario_settings_security_checklist && (
+            <button onClick={() => handleStartScenario('settings_security_checklist')}
+              className={`w-full flex items-center gap-2.5 px-3 py-2 text-xs font-medium rounded-lg transition-colors mx-1`}
+              style={{ borderColor: 'rgba(124,58,237,0.3)', color: '#7c3aed', backgroundColor: 'rgba(124,58,237,0.08)' }}
+            >
+              <Target className="w-3.5 h-3.5" /> 🎯 Чеклист безопасности
+            </button>
+          )}
         </div>
       </div>
 
@@ -147,6 +172,17 @@ export default function SettingsApp() {
           </div>
         </div>
       </div>
+
+      {/* Attack Scenario Player */}
+      <AnimatePresence>
+        {showScenarioPlayer && scenarioId && (
+          <AttackScenarioPlayer
+            scenario={getScenarioById(scenarioId)!}
+            onComplete={handleScenarioComplete}
+            onClose={() => setShowScenarioPlayer(false)}
+          />
+        )}
+      </AnimatePresence>
     </div>
   );
 }

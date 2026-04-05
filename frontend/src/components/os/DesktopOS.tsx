@@ -378,6 +378,14 @@ export default function DesktopOS() {
               >
                 {T('osProfile')}
               </button>
+              <button onClick={() => {
+                setScreen('menu');
+                setStartMenuOpen(false);
+              }}
+                className="text-xs text-red-400 hover:text-red-300 px-2 py-1 rounded hover:bg-red-500/10 transition-colors"
+              >
+                Завершить сеанс
+              </button>
             </div>
           </motion.div>
         )}

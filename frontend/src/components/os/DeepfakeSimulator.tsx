@@ -1,19 +1,35 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Phone, PhoneOff, PhoneCall, AlertTriangle, Check, ArrowRight, Shield, Mic, User, Clock } from 'lucide-react';
+import { Phone, PhoneOff, PhoneCall, AlertTriangle, Check, ArrowRight, Shield, Mic, User, Clock, Target } from 'lucide-react';
 import { useGS } from '@/store/useGS';
 import { t } from '@/lib/i18n';
+import AttackScenarioPlayer from './AttackScenarioPlayer';
+import { getScenarioById } from '@/lib/attackScenarios';
 
 type Phase = 'ringing' | 'conversation' | 'decision' | 'result';
 
 export default function DeepfakeSimulator({ onComplete }: { onComplete?: (safe: boolean) => void }) {
   const lang = useGS(s => s.lang);
   const completeTask = useGS(s => s.completeTask);
+  const osTasks = useGS(s => s.osTasks);
   const T = (key: string) => t(lang, key);
   const [phase, setPhase] = useState<Phase>('ringing');
   const [msgIndex, setMsgIndex] = useState(0);
   const [choice, setChoice] = useState<'transfer' | 'callback' | 'ignore' | null>(null);
   const [transferAnim, setTransferAnim] = useState(false);
+  const [scenarioId, setScenarioId] = useState<string | null>(null);
+  const [showScenarioPlayer, setShowScenarioPlayer] = useState(false);
+
+  const handleStartScenario = (sid: string) => {
+    setScenarioId(sid);
+    setShowScenarioPlayer(true);
+  };
+
+  const handleScenarioComplete = (success: boolean, _xpEarned: number) => {
+    if (success && scenarioId) {
+      completeTask(`scenario_${scenarioId}` as any);
+    }
+  };
 
   const MESSAGES = [
     { role: 'caller' as const, text: 'Алло, это Сергей Петрович. Слушай, срочно нужна помощь.' },
@@ -54,8 +70,18 @@ export default function DeepfakeSimulator({ onComplete }: { onComplete?: (safe: 
           <Phone className="w-5 h-5 text-purple-400" />
           <span className="text-sm font-bold text-white">Deepfake Call Simulator</span>
         </div>
-        <div className="text-[10px] px-2 py-0.5 rounded-full bg-purple-500/20 text-purple-400">
-          {phase === 'ringing' ? T('osDeepfakeCall') : phase === 'conversation' ? T('osContinue') : phase === 'decision' ? T('osDeepfakeDecision') : T('osWifiResult')}
+        <div className="flex items-center gap-2">
+          {!osTasks.scenario_deepfake_it_support && (
+            <button onClick={() => handleStartScenario('deepfake_it_support')}
+              className="flex items-center gap-1 px-2 py-1 rounded-lg text-[10px] font-medium border transition-colors"
+              style={{ backgroundColor: 'rgba(124,58,237,0.1)', borderColor: 'rgba(124,58,237,0.3)', color: '#a78bfa' }}
+            >
+              <Target className="w-3 h-3" /> Сценарий
+            </button>
+          )}
+          <div className="text-[10px] px-2 py-0.5 rounded-full bg-purple-500/20 text-purple-400">
+            {phase === 'ringing' ? T('osDeepfakeCall') : phase === 'conversation' ? T('osContinue') : phase === 'decision' ? T('osDeepfakeDecision') : T('osWifiResult')}
+          </div>
         </div>
       </div>
 
@@ -237,6 +263,17 @@ export default function DeepfakeSimulator({ onComplete }: { onComplete?: (safe: 
           )}
         </AnimatePresence>
       </div>
+
+      {/* Attack Scenario Player */}
+      <AnimatePresence>
+        {showScenarioPlayer && scenarioId && (
+          <AttackScenarioPlayer
+            scenario={getScenarioById(scenarioId)!}
+            onComplete={handleScenarioComplete}
+            onClose={() => setShowScenarioPlayer(false)}
+          />
+        )}
+      </AnimatePresence>
     </div>
   );
 }

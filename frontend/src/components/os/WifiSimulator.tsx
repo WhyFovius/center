@@ -1,8 +1,10 @@
 import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Wifi, Lock, Unlock, Shield, AlertTriangle, Eye, X, ArrowRight, Check, Smartphone, Laptop } from 'lucide-react';
+import { Wifi, Lock, Unlock, Shield, AlertTriangle, Eye, X, ArrowRight, Check, Smartphone, Laptop, Target } from 'lucide-react';
 import { useGS } from '@/store/useGS';
 import { t } from '@/lib/i18n';
+import AttackScenarioPlayer from './AttackScenarioPlayer';
+import { getScenarioById } from '@/lib/attackScenarios';
 
 type Phase = 'select' | 'connect' | 'browse' | 'attack' | 'result';
 type Choice = 'secure' | 'risky' | null;
@@ -32,6 +34,7 @@ const PHASE_TEXTS: Record<Phase, { titleKey: string; descKey: string }> = {
 export default function WifiSimulator({ onComplete }: { onComplete?: (safe: boolean) => void }) {
   const lang = useGS(s => s.lang);
   const completeTask = useGS(s => s.completeTask);
+  const osTasks = useGS(s => s.osTasks);
   const T = (key: string) => t(lang, key);
   const [phase, setPhase] = useState<Phase>('select');
   const [selectedNetwork, setSelectedNetwork] = useState<Network | null>(null);
@@ -39,7 +42,20 @@ export default function WifiSimulator({ onComplete }: { onComplete?: (safe: bool
   const [attackProgress, setAttackProgress] = useState(0);
   const [intercepted, setIntercepted] = useState<string[]>([]);
   const [packetAnimation, setPacketAnimation] = useState(false);
+  const [scenarioId, setScenarioId] = useState<string | null>(null);
+  const [showScenarioPlayer, setShowScenarioPlayer] = useState(false);
   const attackTimerRef = useRef<number>(0);
+
+  const handleStartScenario = (sid: string) => {
+    setScenarioId(sid);
+    setShowScenarioPlayer(true);
+  };
+
+  const handleScenarioComplete = (success: boolean, _xpEarned: number) => {
+    if (success && scenarioId) {
+      completeTask(`scenario_${scenarioId}` as any);
+    }
+  };
 
   const selectNetwork = (net: Network) => {
     setSelectedNetwork(net);
@@ -102,6 +118,14 @@ export default function WifiSimulator({ onComplete }: { onComplete?: (safe: bool
           <span className="text-sm font-bold text-white">Wi-Fi Security Simulator</span>
         </div>
         <div className="flex items-center gap-2">
+          {!osTasks.scenario_wifi_evil_twin && (
+            <button onClick={() => handleStartScenario('wifi_evil_twin')}
+              className="flex items-center gap-1 px-2 py-1 rounded-lg text-[10px] font-medium border transition-colors"
+              style={{ backgroundColor: 'rgba(124,58,237,0.1)', borderColor: 'rgba(124,58,237,0.3)', color: '#a78bfa' }}
+            >
+              <Target className="w-3 h-3" /> Сценарий
+            </button>
+          )}
           <div className="text-[10px] px-2 py-0.5 rounded-full" style={{ backgroundColor: phase === 'attack' ? 'rgba(239,68,68,0.2)' : 'rgba(63,185,80,0.2)', color: phase === 'attack' ? '#ef4444' : '#3fb950' }}>
             {phase === 'attack' ? 'АТАКА' : 'ЗАЩИЩЕНО'}
           </div>
@@ -378,6 +402,17 @@ export default function WifiSimulator({ onComplete }: { onComplete?: (safe: bool
           )}
         </AnimatePresence>
       </div>
+
+      {/* Attack Scenario Player */}
+      <AnimatePresence>
+        {showScenarioPlayer && scenarioId && (
+          <AttackScenarioPlayer
+            scenario={getScenarioById(scenarioId)!}
+            onComplete={handleScenarioComplete}
+            onClose={() => setShowScenarioPlayer(false)}
+          />
+        )}
+      </AnimatePresence>
     </div>
   );
 }

@@ -1,8 +1,10 @@
 import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Send, Search, MoreVertical, Phone, Video, Smile, Paperclip, X, Check, Mic, CheckCircle, AlertTriangle, Clock } from 'lucide-react';
+import { Send, Search, MoreVertical, Phone, Video, Smile, Paperclip, X, Check, Mic, CheckCircle, AlertTriangle, Clock, Target } from 'lucide-react';
 import { useGS } from '@/store/useGS';
 import { t } from '@/lib/i18n';
+import AttackScenarioPlayer from './AttackScenarioPlayer';
+import { getScenarioById } from '@/lib/attackScenarios';
 
 interface Message {
   id: number;
@@ -158,8 +160,8 @@ async function askAI(messages: Array<{ role: string; content: string }>, systemP
       body: JSON.stringify({
         model: API_MODEL,
         messages: allMessages,
-        max_tokens: 300,
-        temperature: 0.8,
+        max_tokens: 150,
+        temperature: 0.7,
       }),
     });
     if (resp.status === 401) {
@@ -181,6 +183,20 @@ export default function XamMessenger() {
   const T = (key: string) => t(lang, key);
   const isDark = theme === 'dark' || theme === 'bw';
   const completeTask = useGS(s => s.completeTask);
+  const osTasks = useGS(s => s.osTasks);
+  const [scenarioId, setScenarioId] = useState<string | null>(null);
+  const [showScenarioPlayer, setShowScenarioPlayer] = useState(false);
+
+  const handleStartScenario = (sid: string) => {
+    setScenarioId(sid);
+    setShowScenarioPlayer(true);
+  };
+
+  const handleScenarioComplete = (success: boolean, _xpEarned: number) => {
+    if (success && scenarioId) {
+      completeTask(`scenario_${scenarioId}` as any);
+    }
+  };
 
   const savedChats = loadChats();
   const [chats, setChats] = useState<Record<string, ChatData>>(savedChats || CONTACTS);
@@ -274,9 +290,6 @@ export default function XamMessenger() {
     if (chat.taskIds?.includes('messenger_social_eng')) {
       completeTask('messenger_social_eng');
     }
-    if (chat.taskIds?.includes('messenger_transfer')) {
-      // User recognized it's suspicious
-    }
   };
 
   const filteredContacts = Object.entries(chats)
@@ -303,6 +316,26 @@ export default function XamMessenger() {
               className="flex-1 bg-transparent text-xs outline-none" style={{ color: isDark ? '#e0e0e0' : '#333' }}
             />
           </div>
+        </div>
+
+        {/* Scenario buttons */}
+        <div className="px-2 pb-2 space-y-1">
+          {!osTasks.scenario_messenger_colleague_password && (
+            <button onClick={() => handleStartScenario('messenger_colleague_password')}
+              className="w-full flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-[11px] font-medium border transition-colors"
+              style={{ borderColor: 'rgba(124,58,237,0.3)', color: '#7c3aed', backgroundColor: 'rgba(124,58,237,0.05)' }}
+            >
+              <Target className="w-3 h-3" /> Сценарий: «Коллега» просит пароль
+            </button>
+          )}
+          {!osTasks.scenario_messenger_deepfake_call && (
+            <button onClick={() => handleStartScenario('messenger_deepfake_call')}
+              className="w-full flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-[11px] font-medium border transition-colors"
+              style={{ borderColor: 'rgba(124,58,237,0.3)', color: '#7c3aed', backgroundColor: 'rgba(124,58,237,0.05)' }}
+            >
+              <Target className="w-3 h-3" /> Сценарий: Дипфейк-звонок
+            </button>
+          )}
         </div>
 
         {/* Contact list */}
@@ -523,6 +556,17 @@ export default function XamMessenger() {
               </button>
             </div>
           </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Attack Scenario Player */}
+      <AnimatePresence>
+        {showScenarioPlayer && scenarioId && (
+          <AttackScenarioPlayer
+            scenario={getScenarioById(scenarioId)!}
+            onComplete={handleScenarioComplete}
+            onClose={() => setShowScenarioPlayer(false)}
+          />
         )}
       </AnimatePresence>
     </div>

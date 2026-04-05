@@ -1,8 +1,10 @@
 import { useState, useRef, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ArrowLeft, ArrowRight, RotateCcw, Home, Search, Lock, Unlock, ExternalLink, X, Plus, Globe, CheckCircle } from 'lucide-react';
+import { ArrowLeft, ArrowRight, RotateCcw, Home, Search, Lock, Unlock, ExternalLink, X, Plus, Globe, CheckCircle, Target } from 'lucide-react';
 import { useGS } from '@/store/useGS';
 import { t } from '@/lib/i18n';
+import AttackScenarioPlayer from './AttackScenarioPlayer';
+import { getScenarioById } from '@/lib/attackScenarios';
 
 interface BrowserTab {
   id: string;
@@ -58,6 +60,19 @@ export default function BrowserApp() {
   const [showBookmarks, setShowBookmarks] = useState(false);
   const [showHistory, setShowHistory] = useState(false);
   const iframeRef = useRef<HTMLIFrameElement>(null);
+  const [scenarioId, setScenarioId] = useState<string | null>(null);
+  const [showScenarioPlayer, setShowScenarioPlayer] = useState(false);
+
+  const handleStartScenario = (sid: string) => {
+    setScenarioId(sid);
+    setShowScenarioPlayer(true);
+  };
+
+  const handleScenarioComplete = (success: boolean, _xpEarned: number) => {
+    if (success && scenarioId) {
+      completeTask(`scenario_${scenarioId}` as any);
+    }
+  };
 
   const activeTab = tabs.find(t => t.id === activeTabId) || tabs[0];
 
@@ -309,6 +324,29 @@ export default function BrowserApp() {
                   </button>
                 ))}
               </div>
+
+              {/* Scenario buttons */}
+              <div className="mt-6 space-y-2">
+                <p className="text-xs font-semibold" style={{ color: isDark ? '#888' : '#666' }}>🎯 Сценарии безопасности</p>
+                <div className="grid grid-cols-2 gap-2">
+                  {!osTasks.scenario_browser_fake_bank && (
+                    <button onClick={() => handleStartScenario('browser_fake_bank')}
+                      className="flex items-center gap-2 px-3 py-2.5 rounded-xl text-xs font-medium border transition-all hover:scale-105"
+                      style={{ borderColor: 'rgba(124,58,237,0.3)', color: '#7c3aed', backgroundColor: 'rgba(124,58,237,0.05)' }}
+                    >
+                      <Target className="w-3.5 h-3.5" /> Поддельный банк
+                    </button>
+                  )}
+                  {!osTasks.scenario_browser_drive_by && (
+                    <button onClick={() => handleStartScenario('browser_drive_by')}
+                      className="flex items-center gap-2 px-3 py-2.5 rounded-xl text-xs font-medium border transition-all hover:scale-105"
+                      style={{ borderColor: 'rgba(124,58,237,0.3)', color: '#7c3aed', backgroundColor: 'rgba(124,58,237,0.05)' }}
+                    >
+                      <Target className="w-3.5 h-3.5" /> Drive-by Download
+                    </button>
+                  )}
+                </div>
+              </div>
             </motion.div>
           </div>
         ) : activeTab.error ? (
@@ -355,6 +393,17 @@ export default function BrowserApp() {
           </>
         )}
       </div>
+
+      {/* Attack Scenario Player */}
+      <AnimatePresence>
+        {showScenarioPlayer && scenarioId && (
+          <AttackScenarioPlayer
+            scenario={getScenarioById(scenarioId)!}
+            onComplete={handleScenarioComplete}
+            onClose={() => setShowScenarioPlayer(false)}
+          />
+        )}
+      </AnimatePresence>
     </div>
   );
 }

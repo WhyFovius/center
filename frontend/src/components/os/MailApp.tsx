@@ -1,8 +1,10 @@
 import { useState } from 'react';
-import { motion } from 'framer-motion';
-import { Inbox, Send, AlertTriangle, Shield, Mail, Star, Trash2, Archive, RefreshCw, Search, Reply, Forward, CheckCircle, Plus, X } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { Inbox, Send, AlertTriangle, Shield, Mail, Star, Trash2, Archive, RefreshCw, Search, Reply, Forward, CheckCircle, Plus, X, Target } from 'lucide-react';
 import { useGS } from '@/store/useGS';
 import { t } from '@/lib/i18n';
+import AttackScenarioPlayer from './AttackScenarioPlayer';
+import { getScenarioById } from '@/lib/attackScenarios';
 
 interface EmailData {
   id: number;
@@ -78,6 +80,19 @@ export default function MailApp() {
   const completeTask = useGS(s => s.completeTask);
   const osTasks = useGS(s => s.osTasks);
   const T = (key: string) => t(lang, key);
+  const [scenarioId, setScenarioId] = useState<string | null>(null);
+  const [showScenarioPlayer, setShowScenarioPlayer] = useState(false);
+
+  const handleStartScenario = (sid: string) => {
+    setScenarioId(sid);
+    setShowScenarioPlayer(true);
+  };
+
+  const handleScenarioComplete = (success: boolean, _xpEarned: number) => {
+    if (success && scenarioId) {
+      completeTask(`scenario_${scenarioId}` as any);
+    }
+  };
 
   const FOLDERS = [
     { id: 'inbox', label: T('osMailInbox'), icon: Inbox, count: 3 },
@@ -192,6 +207,26 @@ export default function MailApp() {
         >
           <Plus className="w-3.5 h-3.5" /> {T('osMailCompose')}
         </button>
+
+        {/* Scenario buttons */}
+        <div className="mx-2 mt-2 space-y-1">
+          {!osTasks.scenario_mail_phishing_payroll && (
+            <button onClick={() => handleStartScenario('mail_phishing_payroll')}
+              className="w-full flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-medium border transition-colors"
+              style={{ borderColor: 'rgba(124,58,237,0.3)', color: '#7c3aed', backgroundColor: 'rgba(124,58,237,0.05)' }}
+            >
+              <Target className="w-3.5 h-3.5" /> Сценарий: Фишинг
+            </button>
+          )}
+          {!osTasks.scenario_mail_ceo_fraud && (
+            <button onClick={() => handleStartScenario('mail_ceo_fraud')}
+              className="w-full flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-medium border transition-colors"
+              style={{ borderColor: 'rgba(124,58,237,0.3)', color: '#7c3aed', backgroundColor: 'rgba(124,58,237,0.05)' }}
+            >
+              <Target className="w-3.5 h-3.5" /> Сценарий: CEO Fraud
+            </button>
+          )}
+        </div>
 
         <div className="flex-1 overflow-y-auto py-2">
           {FOLDERS.map(folder => {
@@ -455,6 +490,17 @@ export default function MailApp() {
           </motion.div>
         </div>
       )}
+
+      {/* Attack Scenario Player */}
+      <AnimatePresence>
+        {showScenarioPlayer && scenarioId && (
+          <AttackScenarioPlayer
+            scenario={getScenarioById(scenarioId)!}
+            onComplete={handleScenarioComplete}
+            onClose={() => setShowScenarioPlayer(false)}
+          />
+        )}
+      </AnimatePresence>
     </div>
   );
 }

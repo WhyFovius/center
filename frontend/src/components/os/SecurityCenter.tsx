@@ -1,8 +1,10 @@
 import { useState } from 'react';
-import { motion } from 'framer-motion';
-import { Shield, AlertTriangle, XCircle, Activity, Lock, RefreshCw } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { Shield, AlertTriangle, XCircle, Activity, Lock, RefreshCw, Target } from 'lucide-react';
 import { useGS } from '@/store/useGS';
 import { t } from '@/lib/i18n';
+import AttackScenarioPlayer from './AttackScenarioPlayer';
+import { getScenarioById } from '@/lib/attackScenarios';
 
 interface Threat {
   id: number;
@@ -40,8 +42,22 @@ export default function SecurityCenter() {
   const theme = useGS(s => s.theme);
   const lang = useGS(s => s.lang);
   const completeTask = useGS(s => s.completeTask);
+  const osTasks = useGS(s => s.osTasks);
   const T = (key: string) => t(lang, key);
   const isDark = theme === 'dark' || theme === 'bw';
+  const [scenarioId, setScenarioId] = useState<string | null>(null);
+  const [showScenarioPlayer, setShowScenarioPlayer] = useState(false);
+
+  const handleStartScenario = (sid: string) => {
+    setScenarioId(sid);
+    setShowScenarioPlayer(true);
+  };
+
+  const handleScenarioComplete = (success: boolean, _xpEarned: number) => {
+    if (success && scenarioId) {
+      completeTask(`scenario_${scenarioId}` as any);
+    }
+  };
   const [threats] = useState<Threat[]>(INITIAL_THREATS);
   const [logs, setLogs] = useState<AttackLog[]>(ATTACK_MESSAGES);
   const [shieldActive, setShieldActive] = useState(true);
@@ -108,6 +124,14 @@ export default function SecurityCenter() {
             <RefreshCw className={`w-3.5 h-3.5 ${isScanning ? 'animate-spin' : ''}`} />
             {isScanning ? T('osScanning') : T('osScanSystem')}
           </button>
+          {!osTasks.scenario_security_mass_attack && (
+            <button onClick={() => handleStartScenario('security_mass_attack')}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium border transition-colors"
+              style={{ backgroundColor: 'rgba(124,58,237,0.1)', borderColor: 'rgba(124,58,237,0.3)', color: '#a78bfa' }}
+            >
+              <Target className="w-3.5 h-3.5" /> Сценарий
+            </button>
+          )}
           <button onClick={toggleShield}
             className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${shieldActive ? 'text-green-400' : 'text-red-400'}`}
             style={{ backgroundColor: shieldActive ? 'rgba(63,185,80,0.15)' : 'rgba(239,68,68,0.15)' }}
@@ -188,6 +212,17 @@ export default function SecurityCenter() {
           ))}
         </div>
       </div>
+
+      {/* Attack Scenario Player */}
+      <AnimatePresence>
+        {showScenarioPlayer && scenarioId && (
+          <AttackScenarioPlayer
+            scenario={getScenarioById(scenarioId)!}
+            onComplete={handleScenarioComplete}
+            onClose={() => setShowScenarioPlayer(false)}
+          />
+        )}
+      </AnimatePresence>
     </div>
   );
 }
