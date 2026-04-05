@@ -54,9 +54,11 @@ export default function ZeroMobile() {
   }, []);
 
   const handleBack = useCallback(() => {
+    // When inside app, close it and return to home screen
     if (openApp) {
       setOpenApp(null);
     } else {
+      // When on home screen, go back to main menu
       setScreen('menu');
     }
   }, [openApp, setScreen]);
@@ -71,8 +73,10 @@ export default function ZeroMobile() {
 
   const handleTouchEnd = useCallback((e: React.TouchEvent) => {
     if (!openApp) return;
-    const deltaY = touchStartY.current - e.changedTouches[0].clientY;
-    if (deltaY > 80 && touchStartY.current > window.innerHeight * 0.7) {
+    const deltaY = e.changedTouches[0].clientY - touchStartY.current;
+    // Swipe up from bottom area (gesture started from bottom 30% of screen)
+    const startYPercent = touchStartY.current / window.innerHeight;
+    if (deltaY < -50 && startYPercent > 0.7) {
       setOpenApp(null);
     }
   }, [openApp]);
@@ -207,23 +211,40 @@ export default function ZeroMobile() {
                     WebkitBackdropFilter: 'blur(20px)',
                   }}
                 >
-                  {/* Back button */}
-                  <button onClick={handleBack} className="flex items-center gap-0.5 text-[17px]" style={{ color: '#007AFF' }}>
-                    <ArrowLeft className="w-5 h-5" />
-                    <span>{T('osHome')}</span>
+                  {/* Back button - closes app and returns to home */}
+                  <button onClick={handleBack} 
+                    className="flex items-center gap-1 px-3 py-1.5 rounded-lg transition-colors hover:bg-black/5 active:bg-black/10"
+                    style={{ color: '#007AFF' }}
+                  >
+                    <ArrowLeft className="w-4 h-4" />
+                    <span className="text-[17px] font-normal">{T('osBack')}</span>
                   </button>
-                  <span className="text-[17px] font-semibold" style={{ color: isDark ? 'var(--color-text)' : 'var(--color-text)' }}>
+                  
+                  {/* App title */}
+                  <span className="text-[15px] font-semibold" style={{ color: isDark ? '#fff' : '#000' }}>
                     {T(MOBILE_APPS.find(a => a.id === openApp)?.label || '')}
                   </span>
-                  {/* Home button */}
-                  <button onClick={handleHome} className="p-1">
-                    <Home className="w-5 h-5" style={{ color: '#007AFF' }} />
+                  
+                  {/* Home button - closes app */}
+                  <button onClick={handleHome} 
+                    className="flex items-center gap-1 px-3 py-1.5 rounded-lg transition-colors hover:bg-black/5 active:bg-black/10"
+                    style={{ color: '#007AFF' }}
+                  >
+                    <Home className="w-4 h-4" />
+                    <span className="text-[17px] font-normal">{T('osHome')}</span>
                   </button>
                 </div>
 
                 {/* App Content */}
                 <div className="absolute inset-0" style={{ top: '56px' }}>
                   <ActiveApp />
+                </div>
+
+                {/* iOS Home Indicator - swipe up to close */}
+                <div className="absolute bottom-2 left-1/2 -translate-x-1/2 z-50">
+                  <div className="w-[134px] h-[5px] rounded-full transition-opacity hover:opacity-100" 
+                    style={{ backgroundColor: isDark ? 'rgba(255,255,255,0.6)' : 'rgba(0,0,0,0.4)' }} 
+                  />
                 </div>
               </motion.div>
             )}
