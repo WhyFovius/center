@@ -2,22 +2,6 @@
   "name": "center",
   "buildCommand": "cd frontend && npm install && npm run build",
   "outputDirectory": "frontend/dist",
-  "functions": {
-    "api/index.py": {
-      "runtime": "@vercel/python@4.1.0",
-      "includeFiles": ["backend/app/**", "requirements.txt"]
-    }
-  },
-  "rewrites": [
-    {
-      "source": "/api/:path*",
-      "destination": "/api/index.py"
-    },
-    {
-      "source": "/ws/:path*",
-      "destination": "/api/index.py"
-    }
-  ],
   "github": {
     "silent": true
   }

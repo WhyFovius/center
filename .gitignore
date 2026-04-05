@@ -16,3 +16,5 @@ uploads/
 backend/uploads/
 pgdata/
 redisdata/
+.vercel
+.env*.local
